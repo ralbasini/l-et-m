@@ -236,6 +236,15 @@
     background: #2a5951;
   }
 
+  /* This button used to sit above a second "polaroid style" CTA, so its
+     own 2rem margin only had to separate it from that other button, not
+     from "Nos souvenirs" below. Now that the second CTA is gone, restore
+     that lost breathing room directly on this one instead of bumping
+     .slideshow-cta's margin everywhere it's used. */
+  .slideshow-cta-hero {
+    margin-bottom: 3.5rem;
+  }
+
   .album-label {
     font-family: 'Work Sans', sans-serif;
     font-size: 0.75rem;
@@ -500,17 +509,6 @@
     color: rgba(208, 218, 209, 0.55);
   }
 
-  .footer-admin-link {
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 300;
-    font-size: 0.6875rem;
-    letter-spacing: 0.05em;
-    color: rgba(208, 218, 209, 0.28);
-    margin-top: 0.75rem;
-    text-decoration: none;
-  }
-
-  .footer-admin-link:hover { color: rgba(208, 218, 209, 0.55); }
 }
 
 /* ================================================================
