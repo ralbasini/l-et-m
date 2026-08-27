@@ -10,7 +10,10 @@ html, body {
      fallback so unsupporting browsers keep that instead of dropping the
      whole declaration. */
   height: 100dvh;
-  background: #171717;
+  /* A near-black base with the faintest wash of the site's green accent
+     (#356d65) rather than flat neutral grey — kept dark and subtle
+     enough that it reads as depth, not a visible color. */
+  background: radial-gradient(120% 100% at 50% 0%, #1a2321 0%, #171717 60%);
   overflow: hidden;
 }
 
