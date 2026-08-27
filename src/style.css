@@ -196,7 +196,6 @@
     position: absolute;
     z-index: 2;
     bottom: 2rem;
-    left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
@@ -211,11 +210,6 @@
   }
 
   .scroll-cue:hover { color: #d0dad1; }
-
-  /* letter-spacing adds space AFTER every character including the last one,
-     with nothing to balance it before the first — this pulls the text left
-     of true center despite the centering math above being correct. */
-  .scroll-cue span { margin-right: -0.18em; }
 
   .scroll-cue svg {
     width: 1rem;
