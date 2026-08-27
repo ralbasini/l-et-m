@@ -18,7 +18,15 @@ async function loadPhotos () {
     return data.map((entry) => {
       const file = typeof entry === 'string' ? entry : entry.file
       const alt = typeof entry === 'string' ? '' : (entry.alt || '')
-      return { src: REMOTE_GALLERY_URL + 'img/' + encodeURIComponent(file), alt: alt || 'Photo du mariage de Lobna et Martin' }
+      const tags = typeof entry === 'string' ? [] : (entry.tags || [])
+      // file may include folder segments (e.g. "ceremonie/photo.jpg') — encode
+      // each segment separately so the '/' itself isn't escaped.
+      const encodedPath = file.split('/').map(encodeURIComponent).join('/')
+      return {
+        src: REMOTE_GALLERY_URL + 'img/' + encodedPath,
+        alt: alt || 'Photo du mariage de Lobna et Martin',
+        tags,
+      }
     })
   } catch {
     return []
@@ -108,14 +116,14 @@ function buildSlideshow (photos) {
 }
 
 // ── Gallery grid ──────────────────────────────────────────────
+// Rebuildable: called again with a new (filtered) list whenever the tag
+// filter changes.
 function buildGallery (photos, openLightbox) {
   const grid = document.getElementById('gallery-grid')
   const empty = document.getElementById('gallery-empty')
 
-  if (!photos.length) {
-    empty.hidden = false
-    return
-  }
+  grid.innerHTML = ''
+  empty.hidden = photos.length > 0
 
   photos.forEach((photo, i) => {
     const btn = document.createElement('button')
@@ -137,8 +145,59 @@ function buildGallery (photos, openLightbox) {
   observeReveal(grid)
 }
 
-// ── Lightbox — returns an open(index) function for the gallery to call ──
-function initLightbox (photos) {
+// ── Tag filter ──────────────────────────────────────────────
+// Folders are purely organizational (see infomaniak/); tags are independent
+// metadata a photo can carry any number of. Selecting several tags shows
+// photos matching ANY of them (union, not intersection).
+function buildTagFilters (allPhotos, onChange) {
+  const wrap = document.getElementById('gallery-filters')
+  const tags = Array.from(new Set(allPhotos.flatMap((p) => p.tags))).sort((a, b) => a.localeCompare(b))
+  if (!tags.length) {
+    wrap.hidden = true
+    onChange(allPhotos)
+    return
+  }
+  wrap.hidden = false
+
+  const active = new Set()
+
+  function render () {
+    wrap.innerHTML = ''
+
+    const allChip = document.createElement('button')
+    allChip.type = 'button'
+    allChip.className = 'filter-chip' + (active.size === 0 ? ' is-active' : '')
+    allChip.textContent = 'Toutes'
+    allChip.addEventListener('click', () => {
+      active.clear()
+      render()
+    })
+    wrap.appendChild(allChip)
+
+    tags.forEach((tag) => {
+      const chip = document.createElement('button')
+      chip.type = 'button'
+      chip.className = 'filter-chip' + (active.has(tag) ? ' is-active' : '')
+      chip.textContent = tag
+      chip.addEventListener('click', () => {
+        if (active.has(tag)) active.delete(tag)
+        else active.add(tag)
+        render()
+      })
+      wrap.appendChild(chip)
+    })
+
+    const filtered = active.size === 0
+      ? allPhotos
+      : allPhotos.filter((p) => p.tags.some((t) => active.has(t)))
+    onChange(filtered)
+  }
+
+  render()
+}
+
+// ── Lightbox — returns { open, setPhotos } for the gallery to call ──
+function initLightbox (initialPhotos) {
   const lightbox = document.getElementById('lightbox')
   const imgEl = document.getElementById('lightbox-img')
   const countEl = document.getElementById('lightbox-count')
@@ -146,6 +205,7 @@ function initLightbox (photos) {
   const closeBtn = document.getElementById('lightbox-close')
   const prevBtn = document.getElementById('lightbox-prev')
   const nextBtn = document.getElementById('lightbox-next')
+  let photos = initialPhotos
   let index = 0
 
   function show (i) {
@@ -165,6 +225,10 @@ function initLightbox (photos) {
   function close () {
     lightbox.hidden = true
     document.body.style.overflow = ''
+  }
+
+  function setPhotos (next) {
+    photos = next
   }
 
   closeBtn.addEventListener('click', close)
@@ -187,7 +251,7 @@ function initLightbox (photos) {
     show(index + (dx < 0 ? 1 : -1))
   }, { passive: true })
 
-  return open
+  return { open, setPhotos }
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -197,8 +261,12 @@ async function init () {
 
   const photos = await loadPhotos()
   buildSlideshow(photos)
-  const openLightbox = initLightbox(photos)
-  buildGallery(photos, openLightbox)
+  const lightbox = initLightbox(photos)
+
+  buildTagFilters(photos, (filtered) => {
+    lightbox.setPhotos(filtered)
+    buildGallery(filtered, lightbox.open)
+  })
 }
 
 init()

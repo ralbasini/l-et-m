@@ -273,6 +273,39 @@
     margin-bottom: 3.5rem;
   }
 
+  .gallery-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .filter-chip {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7B3B49;
+    background: transparent;
+    border: 1px solid rgba(123, 59, 73, 0.35);
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s, border-color 0.25s;
+  }
+
+  .filter-chip:hover {
+    border-color: rgba(123, 59, 73, 0.6);
+  }
+
+  .filter-chip.is-active {
+    background: #7B3B49;
+    color: #FFFDF8;
+    border-color: #7B3B49;
+  }
+
   /* CSS-columns masonry: no JS layout needed, handles mixed aspect ratios */
   .gallery-grid {
     column-count: 2;
