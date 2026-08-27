@@ -18,7 +18,7 @@ async function loadPhotos () {
     return data.map((entry) => {
       const file = typeof entry === 'string' ? entry : entry.file
       const alt = typeof entry === 'string' ? '' : (entry.alt || '')
-      return { src: REMOTE_GALLERY_URL + encodeURIComponent(file), alt: alt || 'Photo du mariage de Lobna et Martin' }
+      return { src: REMOTE_GALLERY_URL + 'img/' + encodeURIComponent(file), alt: alt || 'Photo du mariage de Lobna et Martin' }
     })
   } catch {
     return []
