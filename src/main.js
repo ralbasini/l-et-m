@@ -35,7 +35,6 @@ function buildStars () {
 // ── Slideshow ─────────────────────────────────────────────────
 function buildSlideshow (photos) {
   const stage = document.getElementById('slideshow')
-  const dotsWrap = document.getElementById('slideshow-dots')
   if (!photos.length) return
 
   photos.forEach((photo, i) => {
@@ -46,34 +45,18 @@ function buildSlideshow (photos) {
     img.loading = i === 0 ? 'eager' : 'lazy'
     if (i === 0) img.classList.add('is-active')
     stage.appendChild(img)
-
-    const dot = document.createElement('button')
-    dot.type = 'button'
-    dot.className = 'slideshow-dot'
-    dot.setAttribute('role', 'tab')
-    dot.setAttribute('aria-label', `Photo ${i + 1}`)
-    if (i === 0) dot.classList.add('is-active')
-    dotsWrap.appendChild(dot)
   })
 
   if (photos.length < 2) return
 
   const slides = stage.querySelectorAll('.slide')
-  const dots = dotsWrap.querySelectorAll('.slideshow-dot')
   let current = 0
 
   function goTo (index) {
     slides[current].classList.remove('is-active')
-    dots[current].classList.remove('is-active')
     current = index
     slides[current].classList.add('is-active')
-    dots[current].classList.add('is-active')
   }
-
-  dots.forEach((dot, i) => dot.addEventListener('click', () => {
-    goTo(i)
-    resetTimer()
-  }))
 
   let timer
   function resetTimer () {

@@ -166,32 +166,6 @@
     color: rgba(208, 218, 209, 0.72);
   }
 
-  .slideshow-dots {
-    position: absolute;
-    z-index: 2;
-    bottom: 6.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .slideshow-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(208, 218, 209, 0.35);
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-  }
-
-  .slideshow-dot.is-active {
-    background: #abb9a2;
-    transform: scale(1.35);
-  }
-
   .scroll-cue {
     position: absolute;
     z-index: 2;
