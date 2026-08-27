@@ -3,6 +3,13 @@
 html, body {
   margin: 0;
   height: 100%;
+  /* dvh accounts for the mobile browser's collapsing/expanding address
+     bar; plain vh resolves to the largest possible viewport, so fixed
+     full-screen content sized off it can overflow past the actually-
+     visible area and get cropped by the toolbar. Declared after the vh
+     fallback so unsupporting browsers keep that instead of dropping the
+     whole declaration. */
+  height: 100dvh;
   background: #171717;
   overflow: hidden;
 }
@@ -10,6 +17,19 @@ html, body {
 .stage {
   position: fixed;
   inset: 0;
+}
+
+/* Only one style's view is shown at a time; main.js sets data-style on
+   #stage to match the user's choice (persisted, defaults to "standard"). */
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+#stage[data-style="standard"] #view-standard,
+#stage[data-style="polaroid"] #view-polaroid {
+  display: block;
 }
 
 .slide {
@@ -45,6 +65,51 @@ html, body {
   inset: 0;
   pointer-events: none;
   background: radial-gradient(120% 100% at 50% 100%, transparent 55%, rgba(23, 23, 23, 0.55) 100%);
+}
+
+/* Same polaroid look as the gallery on the main site (white border, square
+   corners, drop shadow) — just scaled up to be the star of a fullscreen
+   display instead of one tile among many. */
+.polaroid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  max-width: min(82vw, 82vh);
+  max-height: min(82vh, 82vw);
+  max-width: min(82vw, 82dvh);
+  max-height: min(82dvh, 82vw);
+  padding: 0.5rem 0.5rem 2.25rem;
+  background: #FFFFFF;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  /* --x is off-screen by default; main.js brings the active card to 0 and
+     sends the outgoing one further off-screen on the opposite side, like
+     printed photos being slid across a table rather than cross-fading. */
+  --x: 130vw;
+  transform: translate(calc(-50% + var(--x)), -50%) rotate(var(--tilt, 0deg));
+  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.polaroid img {
+  /* Viewport units, not percentages: the figure's own height is only
+     capped (max-height), never definite, so a percentage max-height here
+     would resolve to "none" and silently fail to constrain anything —
+     which is exactly what let photos overflow past the frame.
+
+     These must be the *same* min() expression as .polaroid's own
+     max-width/max-height above, minus its padding — not independently
+     chosen fractions. Portrait photos are scaled up to fill whichever
+     axis binds first, and when that was max-height it used to be looser
+     than .polaroid's own max-height minus its padding, so the image
+     poked out past the bottom border instead of stopping inside it. */
+  display: block;
+  max-width: calc(min(82vw, 82vh) - 1rem);
+  max-height: calc(min(82vh, 82vw) - 2.75rem);
+  max-width: calc(min(82vw, 82dvh) - 1rem);
+  max-height: calc(min(82dvh, 82vw) - 2.75rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .monogram {
@@ -199,6 +264,19 @@ html, body {
   width: 100%;
   margin-bottom: 1.1rem;
   accent-color: #356d65;
+}
+
+.settings-panel select {
+  display: block;
+  width: 100%;
+  margin-bottom: 1.1rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(208, 218, 209, 0.3);
+  background: rgba(208, 218, 209, 0.08);
+  color: #d0dad1;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.8125rem;
 }
 
 .settings-panel button {

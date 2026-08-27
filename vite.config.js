@@ -14,7 +14,6 @@ export default defineConfig({
       input: {
         main: r('src/index.html'),
         slideshow: r('src/slideshow/index.html'),
-        slideshow2: r('src/slideshow-2/index.html'),
       },
     },
   },
