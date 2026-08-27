@@ -188,7 +188,12 @@ html, body {
 .back-link {
   position: fixed;
   z-index: 3;
-  bottom: 1.25rem;
+  /* Not the same "bottom" as .monogram (1.25rem): Work Sans and the
+     monogram's cursive Bonheur Royale place their glyphs at different
+     depths within their own line box at any shared font-size, so lining
+     up their *baselines* takes a bigger offset here — tuned empirically,
+     not derived from the two fonts' metrics. */
+  bottom: 2rem;
   left: 1.25rem;
   display: inline-flex;
   align-items: center;
@@ -223,6 +228,8 @@ html, body {
     font-size: 1rem;
     padding: 0.75rem 1rem;
     margin: -0.75rem -1rem;
+    /* Larger font here shifts the baseline enough that 2rem overshoots. */
+    bottom: 1.8rem;
   }
 }
 
