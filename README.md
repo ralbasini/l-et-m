@@ -23,7 +23,8 @@ l-et-m/
 ├── photos-list.php
 ├── img/                (uniquement les photos + légendes .txt — jamais de code)
 │   └── .htaccess       (interdit toute exécution ici, sans exception)
-└── admin/
+├── admin/              panneau protégé par mot de passe (vous deux)
+└── guest/              page d'upload ouverte aux invités, voir plus bas
 ```
 
 Séparer `img/` du reste garantit que le dossier où atterrissent les fichiers envoyés par upload ne peut jamais exécuter de code, même en cas d'erreur ou de mauvaise manip.
@@ -40,4 +41,20 @@ L'ordre d'affichage suit l'ordre alphabétique naturel des noms de fichiers — 
 
 Tant qu'aucune photo n'est présente, le site affiche un état "photos à venir" — rien n'est cassé.
 
-`loadPhotos()` dans `src/main.js` interroge `photos-list.php` à chaque chargement de page ; c'est le seul endroit à modifier si la source de photos change un jour (S3, etc.), en renvoyant le même format (`{ src, alt }` par photo).
+`loadPhotos()` (dans `src/photos.js`, partagé par le site et le diaporama projecteur ci-dessous) interroge `photos-list.php` à chaque chargement de page ; c'est le seul endroit à modifier si la source de photos change un jour (S3, etc.), en renvoyant le même format (`{ src, alt }` par photo).
+
+## Diaporama pour le jour J (`/slideshow/`)
+
+`https://ralbasini.github.io/l-et-m/slideshow/` est une page à part, pensée pour tourner sur un vidéoprojecteur pendant la réception : les photos défilent en fondu (7s chacune, jamais recadrées), et la page revérifie `photos-list.php` toutes les 60s — les photos envoyées par les invités via le QR code rejoignent donc le diaporama toutes seules, sans y toucher. Un premier clic passe en plein écran.
+
+## Upload par les invités (QR code)
+
+`infomaniak/guest/` est une page publique, sans mot de passe. À la première visite, l'invité indique juste son prénom (jamais redemandé ensuite, retenu via un cookie signé) — ses photos vont dans `img/Invités/<son prénom>/` et apparaissent sur le site **immédiatement**, sans validation de votre part au préalable. La page lui montre aussi ses propres photos déjà envoyées, avec un bouton pour en supprimer une (ce qui lui redonne de la place : la limite de 15 par personne se recalcule à chaque fois sur ce qu'il reste réellement dans son dossier, pas sur un compteur séparé). Un invité ne voit et ne peut supprimer que ses propres photos.
+
+Un QR code pointant vers `https://ralbasini.ch/l-et-m/guest/` peut être imprimé sur les tables/invitations. Pour le régénérer ou changer l'URL, n'importe quel générateur de QR code en ligne fonctionne.
+
+À déployer comme le reste : dossier `infomaniak/guest/` (avec son `.htaccess` et `.user.ini`) et `infomaniak/shared.php` dans `l-et-m/`. Deux réglages dans `config.php` (partagé avec l'admin) contrôlent ce comportement :
+```php
+'guest_upload_secret' => '...',           // génère le tien : openssl rand -hex 32
+'guest_upload_max_per_person' => 15,
+```

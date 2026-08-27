@@ -1,4 +1,7 @@
 import { defineConfig } from 'vite'
+import { fileURLToPath } from 'node:url'
+
+const r = (p) => fileURLToPath(new URL(p, import.meta.url))
 
 export default defineConfig({
   root: 'src',
@@ -7,5 +10,11 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: r('src/index.html'),
+        slideshow: r('src/slideshow/index.html'),
+      },
+    },
   },
 })
