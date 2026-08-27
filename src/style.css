@@ -138,7 +138,10 @@
 
   .hero-monogram span {
     display: inline-block;
-    margin: 0 0.05em;
+    /* Asymmetric: "&" sits visually closer to "L" than to "M" at equal
+       margins, since the script font's ampersand has less of its own
+       left-side bearing than right-side. */
+    margin: 0 0.05em 0 0.1em;
     opacity: 0.85;
   }
 
@@ -499,7 +502,7 @@
     color: #abb9a2;
   }
 
-  .footer-monogram span { opacity: 0.85; margin: 0 0.05em; }
+  .footer-monogram span { opacity: 0.85; margin: 0 0.05em 0 0.1em; }
 
   .footer-text {
     font-family: 'Work Sans', sans-serif;
