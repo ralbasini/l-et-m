@@ -157,11 +157,14 @@ html, body {
 }
 
 .back-link-arrow {
-  /* Own line-height so the arrow glyph centers on the text's line box
-     instead of following the arrow font's own (taller) metrics, which is
-     what made it look vertically off next to "Retour". */
-  line-height: 1;
-  font-size: 1.15em;
+  /* An SVG icon (like the scroll-cue chevron on the main page) rather
+     than a "←" text glyph: a font's arrow character has its own baked-in
+     vertical metrics that don't necessarily sit centered in its em box,
+     so no amount of line-height/font-size tuning made it look centered
+     next to "Retour" — an SVG's box is exactly what flexbox centers. */
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
 }
 
 .back-link:hover { color: #d0dad1; }
