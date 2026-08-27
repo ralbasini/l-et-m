@@ -98,7 +98,7 @@ function buildGallery (photos, openLightbox) {
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.className = 'gallery-item fade-in'
-    btn.style.setProperty('--tilt', ((i % 5) - 2) * 0.8 + 'deg')
+    btn.style.setProperty('--tilt', ((i % 5) - 2) * 2.5 + 'deg')
     btn.setAttribute('aria-label', `Agrandir la photo ${i + 1}`)
 
     const img = document.createElement('img')

@@ -255,14 +255,11 @@
     text-decoration: none;
     padding: 1rem 2.25rem;
     border-radius: 999px;
-    box-shadow: 0 10px 24px rgba(53, 109, 101, 0.3);
-    transition: background-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    transition: background-color 0.25s;
   }
 
   .slideshow-cta:hover {
     background: #2a5951;
-    transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(53, 109, 101, 0.4);
   }
 
   .album-label {
@@ -344,17 +341,32 @@
 
   .gallery-item {
     display: block;
+    position: relative;
     width: 100%;
     break-inside: avoid;
     margin-bottom: 1rem;
     padding: 0.5rem 0.5rem 1.25rem;
     background: #FFFFFF;
     border: 1px solid rgba(37, 37, 37, 0.08);
-    border-radius: 0.25rem;
+    border-radius: 0;
     box-shadow: 0 10px 24px rgba(37, 37, 37, 0.1);
     cursor: pointer;
-    transform: rotate(var(--tilt, 0deg));
-    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    /* transform/transition are NOT set here — .fade-in (utilities layer)
+       always wins the `transform`/`transition` properties over this rule
+       (components layer) regardless of specificity, per Tailwind's @layer
+       priority order. They're composed together in the unlayered block
+       near the end of this file instead — see the comment there. */
+  }
+
+  /* A faint diagonal sheen — light catching one corner, a whisper of shadow
+     on the other — so the card reads as gently curved, not perfectly flat. */
+  .gallery-item::after {
+    content: '';
+    position: absolute;
+    inset: 0.5rem 0.5rem 1.25rem;
+    border-radius: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, transparent 40%, transparent 60%, rgba(37, 37, 37, 0.16) 100%);
+    pointer-events: none;
   }
 
   @media (min-width: 640px) {
@@ -363,7 +375,6 @@
 
   .gallery-item:hover,
   .gallery-item:focus-visible {
-    transform: rotate(0deg) translateY(-4px) scale(1.015);
     box-shadow: 0 18px 34px rgba(37, 37, 37, 0.18);
   }
 
@@ -375,7 +386,7 @@
   .gallery-item img {
     display: block;
     width: 100%;
-    border-radius: 0.125rem;
+    border-radius: 0;
   }
 
   .gallery-empty {
@@ -526,4 +537,32 @@
   }
 
   .footer-admin-link:hover { color: rgba(208, 218, 209, 0.55); }
+}
+
+/* ================================================================
+   GALLERY ITEM TILT — deliberately OUTSIDE any @layer block.
+   ================================================================
+   .fade-in / .fade-in.visible (in @layer utilities, near the top of this
+   file) set `transform`/`transition` for the scroll-reveal slide-up. Tailwind
+   gives @layer utilities top priority over @layer components — ABOVE
+   selector specificity — so .gallery-item's own transform/transition
+   (in @layer components) can never win no matter how it's written; it was
+   silently discarded every time, which is why the polaroid tilt never
+   actually rendered. Un-layered rules like this one outrank every @layer'd
+   rule regardless of specificity, so this is where the tilt + the entrance
+   slide are composed into a single transform value per state. */
+.gallery-item.fade-in {
+  transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.35s ease, box-shadow 0.35s ease;
+  transform: translateY(22px) rotateZ(var(--tilt, 0deg));
+}
+
+.gallery-item.fade-in.visible {
+  transform: translateY(0) rotateZ(var(--tilt, 0deg));
+}
+
+.gallery-item.fade-in:hover,
+.gallery-item.fade-in:focus-visible,
+.gallery-item.fade-in.visible:hover,
+.gallery-item.fade-in.visible:focus-visible {
+  transform: translateY(-4px) scale(1.015) rotateZ(0deg);
 }
