@@ -107,6 +107,15 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
+let touchStartX = 0
+document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX }, { passive: true })
+document.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX
+  if (Math.abs(dx) < 40) return
+  goTo(dx < 0 ? 1 : -1)
+  resetTimer()
+}, { passive: true })
+
 // The settings menu is meant for setting up the display, not for guests to
 // fiddle with mid-projection — it hides itself via CSS (:fullscreen) once
 // the page actually goes fullscreen. Clicking the stage itself still enters
