@@ -236,6 +236,15 @@
     background: #2a5951;
   }
 
+  /* This button used to sit above a second "polaroid style" CTA, so its
+     own 2rem margin only had to separate it from that other button, not
+     from "Nos souvenirs" below. Now that the second CTA is gone, restore
+     that lost breathing room directly on this one instead of bumping
+     .slideshow-cta's margin everywhere it's used. */
+  .slideshow-cta-hero {
+    margin-bottom: 3.5rem;
+  }
+
   .album-label {
     font-family: 'Work Sans', sans-serif;
     font-size: 0.75rem;
