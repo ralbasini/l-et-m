@@ -120,6 +120,25 @@ html, body {
   display: none;
 }
 
+.back-link {
+  position: fixed;
+  z-index: 3;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(208, 218, 209, 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover { color: #d0dad1; }
+
+:fullscreen .back-link,
+:-webkit-full-screen .back-link {
+  display: none;
+}
+
 .settings-panel {
   position: fixed;
   z-index: 3;
