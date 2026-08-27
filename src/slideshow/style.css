@@ -75,10 +75,14 @@ html, body {
   top: 50%;
   left: 50%;
   margin: 0;
-  max-width: min(82vw, 82vh);
-  max-height: min(82vh, 82vw);
-  max-width: min(82vw, 82dvh);
-  max-height: min(82dvh, 82vw);
+  /* Independent per axis, not min(vw, vh) against each other — that used
+     to force a square cap regardless of the photo's own orientation, so
+     a portrait photo (narrow, tall) had its height squeezed down to
+     match the width cap instead of being allowed to use the screen's
+     actual height, leaving huge empty margins above and below it. */
+  max-width: 82vw;
+  max-height: 82vh;
+  max-height: 82dvh;
   padding: 0.5rem 0.5rem 2.25rem;
   background: #FFFFFF;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
@@ -96,17 +100,14 @@ html, body {
      would resolve to "none" and silently fail to constrain anything —
      which is exactly what let photos overflow past the frame.
 
-     These must be the *same* min() expression as .polaroid's own
-     max-width/max-height above, minus its padding — not independently
-     chosen fractions. Portrait photos are scaled up to fill whichever
-     axis binds first, and when that was max-height it used to be looser
-     than .polaroid's own max-height minus its padding, so the image
-     poked out past the bottom border instead of stopping inside it. */
+     Each axis mirrors .polaroid's own max-width/max-height above, minus
+     its padding on that axis — not min()'d against the other axis (see
+     the comment on .polaroid), and not independently chosen fractions
+     either, or the image could still poke out past its border. */
   display: block;
-  max-width: calc(min(82vw, 82vh) - 1rem);
-  max-height: calc(min(82vh, 82vw) - 2.75rem);
-  max-width: calc(min(82vw, 82dvh) - 1rem);
-  max-height: calc(min(82dvh, 82vw) - 2.75rem);
+  max-width: calc(82vw - 1rem);
+  max-height: calc(82vh - 2.75rem);
+  max-height: calc(82dvh - 2.75rem);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -124,7 +125,7 @@ html, body {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
-.monogram span { opacity: 0.8; margin: 0 0.05em 0 0.1em; }
+.monogram span { opacity: 0.8; margin: 0 0.05em 0 0.15em; }
 
 .empty {
   position: fixed;
