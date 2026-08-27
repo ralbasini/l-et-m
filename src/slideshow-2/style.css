@@ -45,12 +45,19 @@ html, body {
   /* Viewport units, not percentages: the figure's own height is only
      capped (max-height), never definite, so a percentage max-height here
      would resolve to "none" and silently fail to constrain anything —
-     which is exactly what let photos overflow past the frame. */
+     which is exactly what let photos overflow past the frame.
+
+     These must be the *same* min() expression as .polaroid's own
+     max-width/max-height above, minus its padding — not independently
+     chosen fractions. Portrait photos are scaled up to fill whichever
+     axis binds first, and when that was max-height it used to be looser
+     than .polaroid's own max-height minus its padding, so the image
+     poked out past the bottom border instead of stopping inside it. */
   display: block;
-  max-width: min(76vw, 76vh);
-  max-height: min(70vh, 76vw);
-  max-width: min(76vw, 76dvh);
-  max-height: min(70dvh, 76vw);
+  max-width: calc(min(82vw, 82vh) - 3rem);
+  max-height: calc(min(82vh, 82vw) - 5rem);
+  max-width: calc(min(82vw, 82dvh) - 3rem);
+  max-height: calc(min(82dvh, 82vw) - 5rem);
   width: auto;
   height: auto;
   object-fit: contain;
