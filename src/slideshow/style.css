@@ -64,3 +64,101 @@ html, body {
    `[hidden] { display: none }` at equal specificity — without this, the
    message stays visible even after JS sets emptyEl.hidden = true. */
 .empty[hidden] { display: none; }
+
+/* ── Settings menu — for setting up the display, not for use mid-projection,
+   so it hides itself once the page is actually fullscreen. ── */
+.menu-toggle {
+  position: fixed;
+  z-index: 3;
+  top: 1.25rem;
+  left: 1.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgba(208, 218, 209, 0.25);
+  border-radius: 50%;
+  background: rgba(208, 218, 209, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.menu-toggle:hover {
+  background: rgba(208, 218, 209, 0.18);
+  border-color: rgba(208, 218, 209, 0.5);
+}
+
+.menu-toggle span {
+  display: block;
+  width: 1.1rem;
+  height: 2px;
+  background: rgba(208, 218, 209, 0.85);
+  border-radius: 1px;
+}
+
+:fullscreen .menu-toggle,
+:-webkit-full-screen .menu-toggle {
+  display: none;
+}
+
+.settings-panel {
+  position: fixed;
+  z-index: 3;
+  top: 4.5rem;
+  left: 1.25rem;
+  width: 15rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(23, 23, 23, 0.92);
+  border: 1px solid rgba(208, 218, 209, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  font-family: 'Work Sans', sans-serif;
+  color: rgba(208, 218, 209, 0.9);
+}
+
+.settings-panel[hidden] { display: none; }
+
+.settings-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.settings-panel label {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
+}
+
+.settings-panel input[type="range"] {
+  width: 100%;
+  margin-bottom: 1.1rem;
+  accent-color: #356d65;
+}
+
+.settings-panel button {
+  display: block;
+  width: 100%;
+  background: #356d65;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 0.4rem;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-panel button:hover { background: #2a5951; }
+
+:fullscreen .settings-panel,
+:-webkit-full-screen .settings-panel {
+  display: none;
+}
