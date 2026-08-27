@@ -10,6 +10,8 @@ const DURATION_KEY = 'slideshow_duration_ms'
 const stage = document.querySelector('.stage')
 const slideA = document.getElementById('slide-a')
 const slideB = document.getElementById('slide-b')
+const bgA = document.getElementById('bg-a')
+const bgB = document.getElementById('bg-b')
 const emptyEl = document.getElementById('empty')
 const menuToggle = document.getElementById('menu-toggle')
 const settingsPanel = document.getElementById('settings-panel')
@@ -48,6 +50,8 @@ function shuffle (list) {
 
 function activeEl () { return showingA ? slideA : slideB }
 function nextEl () { return showingA ? slideB : slideA }
+function activeBg () { return showingA ? bgA : bgB }
+function nextBg () { return showingA ? bgB : bgA }
 
 function preload (src) {
   return new Promise((resolve) => {
@@ -69,6 +73,12 @@ async function goTo (delta) {
   next.alt = photo.alt
   next.classList.add('is-active')
   activeEl().classList.remove('is-active')
+
+  const nextBackground = nextBg()
+  nextBackground.style.backgroundImage = `url("${photo.src}")`
+  nextBackground.classList.add('is-active')
+  activeBg().classList.remove('is-active')
+
   showingA = !showingA
 }
 
@@ -130,6 +140,7 @@ async function init () {
     index = 0
     activeEl().src = photos[0].src
     activeEl().alt = photos[0].alt
+    activeBg().style.backgroundImage = `url("${photos[0].src}")`
   }
   resetTimer()
   setInterval(refreshPhotos, REFRESH_MS)
