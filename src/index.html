@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Lobna & Martin se marient — retrouvez le diaporama et la galerie photo de notre mariage.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Lobna &amp; Martin — Notre mariage</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bonheur+Royale&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       HERO — diaporama
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="accueil" class="hero">
+    <div id="slideshow" class="slideshow" aria-hidden="true"></div>
+    <div class="hero-stars" aria-hidden="true"></div>
+    <div class="hero-veil"></div>
+
+    <div class="hero-content">
+      <p class="hero-monogram fade-in">L <span>&amp;</span> M</p>
+      <h1 class="hero-title fade-in delay-1">Lobna <span class="hero-amp">&amp;</span> Martin</h1>
+      <p class="hero-sub fade-in delay-2">Merci d'avoir partagé notre journée avec nous</p>
+    </div>
+
+    <div id="slideshow-dots" class="slideshow-dots" role="tablist" aria-label="Photos du diaporama"></div>
+
+    <a href="#galerie" class="scroll-cue fade-in delay-3" aria-label="Voir la galerie">
+      <span>La galerie</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </a>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       GALERIE — album
+       ══════════════════════════════════════════════════════════════ -->
+  <section id="galerie" class="album">
+    <div class="album-inner">
+      <p class="album-label fade-in">Nos souvenirs</p>
+      <h2 class="album-title fade-in delay-1">La Galerie</h2>
+      <p class="album-subtitle fade-in delay-2">Quelques instants de notre mariage</p>
+
+      <div id="gallery-grid" class="gallery-grid"></div>
+      <p id="gallery-empty" class="gallery-empty fade-in" hidden>
+        Les photos arrivent bientôt <span aria-hidden="true">🤍</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       LIGHTBOX
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-overlay" id="lightbox-overlay"></div>
+    <button type="button" id="lightbox-close" class="lightbox-btn lightbox-close" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <button type="button" id="lightbox-prev" class="lightbox-btn lightbox-nav lightbox-prev" aria-label="Photo précédente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-img" class="lightbox-img" src="" alt="">
+      <figcaption id="lightbox-count" class="lightbox-count"></figcaption>
+    </figure>
+    <button type="button" id="lightbox-next" class="lightbox-btn lightbox-nav lightbox-next" aria-label="Photo suivante">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <p class="footer-monogram">L <span>&amp;</span> M</p>
+    <p class="footer-text">Avec amour, Lobna &amp; Martin</p>
+    <a href="https://ralbasini.ch/l-et-m/admin/" class="footer-admin-link">Ajouter des photos</a>
+  </footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
