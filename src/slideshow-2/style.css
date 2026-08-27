@@ -30,7 +30,7 @@ html, body {
      that instead of dropping the whole declaration. */
   max-width: min(82vw, 82dvh);
   max-height: min(82dvh, 82vw);
-  padding: 1rem 1rem 2.25rem;
+  padding: 0.5rem 0.5rem 2.25rem;
   background: #FFFFFF;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
   /* --x is off-screen by default; main.js brings the active card to 0 and
@@ -54,10 +54,10 @@ html, body {
      than .polaroid's own max-height minus its padding, so the image
      poked out past the bottom border instead of stopping inside it. */
   display: block;
-  max-width: calc(min(82vw, 82vh) - 2rem);
-  max-height: calc(min(82vh, 82vw) - 3.25rem);
-  max-width: calc(min(82vw, 82dvh) - 2rem);
-  max-height: calc(min(82dvh, 82vw) - 3.25rem);
+  max-width: calc(min(82vw, 82vh) - 1rem);
+  max-height: calc(min(82vh, 82vw) - 2.75rem);
+  max-width: calc(min(82vw, 82dvh) - 1rem);
+  max-height: calc(min(82dvh, 82vw) - 2.75rem);
   width: auto;
   height: auto;
   object-fit: contain;
