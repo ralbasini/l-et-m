@@ -1,0 +1,196 @@
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #171717;
+  overflow: hidden;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+}
+
+/* Same polaroid look as the gallery on the main site (white border, square
+   corners, drop shadow) — just scaled up to be the star of a fullscreen
+   display instead of one tile among many. */
+.polaroid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  max-width: min(82vw, 82vh);
+  max-height: min(82vh, 82vw);
+  padding: 1.5rem 1.5rem 3.5rem;
+  background: #FFFFFF;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  transition: opacity 1.4s ease;
+}
+
+.polaroid.is-active { opacity: 1; }
+
+.polaroid img {
+  /* Viewport units, not percentages: the figure's own height is only
+     capped (max-height), never definite, so a percentage max-height here
+     would resolve to "none" and silently fail to constrain anything —
+     which is exactly what let photos overflow past the frame. */
+  display: block;
+  max-width: min(76vw, 76vh);
+  max-height: min(70vh, 76vw);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.monogram {
+  position: fixed;
+  z-index: 2;
+  right: 1.5rem;
+  bottom: 1.25rem;
+  margin: 0;
+  font-family: 'Bonheur Royale', cursive;
+  font-size: 1.75rem;
+  color: rgba(208, 218, 209, 0.55);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.monogram span { opacity: 0.8; margin: 0 0.05em; }
+
+.empty {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1.25rem;
+  color: rgba(208, 218, 209, 0.6);
+}
+
+/* `display: flex` above otherwise overrides the browser's default
+   `[hidden] { display: none }` at equal specificity — without this, the
+   message stays visible even after JS sets emptyEl.hidden = true. */
+.empty[hidden] { display: none; }
+
+/* ── Settings menu — for setting up the display, not for use mid-projection,
+   so it hides itself once the page is actually fullscreen. ── */
+.menu-toggle {
+  position: fixed;
+  z-index: 3;
+  top: 1.25rem;
+  left: 1.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgba(208, 218, 209, 0.25);
+  border-radius: 50%;
+  background: rgba(208, 218, 209, 0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.menu-toggle:hover {
+  background: rgba(208, 218, 209, 0.18);
+  border-color: rgba(208, 218, 209, 0.5);
+}
+
+.menu-toggle span {
+  display: block;
+  width: 1.1rem;
+  height: 2px;
+  background: rgba(208, 218, 209, 0.85);
+  border-radius: 1px;
+}
+
+:fullscreen .menu-toggle,
+:-webkit-full-screen .menu-toggle {
+  display: none;
+}
+
+.back-link {
+  position: fixed;
+  z-index: 3;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(208, 218, 209, 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover { color: #d0dad1; }
+
+:fullscreen .back-link,
+:-webkit-full-screen .back-link {
+  display: none;
+}
+
+.settings-panel {
+  position: fixed;
+  z-index: 3;
+  top: 4.5rem;
+  left: 1.25rem;
+  width: 15rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(23, 23, 23, 0.92);
+  border: 1px solid rgba(208, 218, 209, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  font-family: 'Work Sans', sans-serif;
+  color: rgba(208, 218, 209, 0.9);
+}
+
+.settings-panel[hidden] { display: none; }
+
+.settings-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.settings-panel label {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 0.5rem;
+}
+
+.settings-panel input[type="range"] {
+  width: 100%;
+  margin-bottom: 1.1rem;
+  accent-color: #356d65;
+}
+
+.settings-panel button {
+  display: block;
+  width: 100%;
+  background: #356d65;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 0.4rem;
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-panel button:hover { background: #2a5951; }
+
+:fullscreen .settings-panel,
+:-webkit-full-screen .settings-panel {
+  display: none;
+}

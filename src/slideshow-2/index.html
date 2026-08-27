@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Diaporama plein écran du mariage de Lobna & Martin.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Diaporama — Lobna &amp; Martin</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bonheur+Royale&family=Work+Sans:wght@300;400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="stage">
+    <figure id="polaroid-a" class="polaroid is-active">
+      <img id="slide-a" alt="">
+    </figure>
+    <figure id="polaroid-b" class="polaroid">
+      <img id="slide-b" alt="">
+    </figure>
+  </div>
+
+  <p class="monogram">L <span>&amp;</span> M</p>
+  <p id="empty" class="empty" hidden>Les photos arrivent bientôt <span aria-hidden="true">🤍</span></p>
+
+  <a href="https://ralbasini.github.io/l-et-m/" class="back-link">← Retour</a>
+
+  <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Réglages">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div id="settings-panel" class="settings-panel" hidden>
+    <h2>Réglages</h2>
+    <label for="duration">Durée entre les photos : <output id="duration-value" for="duration">7 s</output></label>
+    <input type="range" id="duration" min="3" max="30" step="1" value="7">
+    <button type="button" id="fullscreen-btn">Plein écran</button>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
