@@ -25,12 +25,13 @@ html, body {
   padding: 1.5rem 1.5rem 3.5rem;
   background: #FFFFFF;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
-  transition: opacity 1.4s ease;
+  /* --x is off-screen by default; main.js brings the active card to 0 and
+     sends the outgoing one further off-screen on the opposite side, like
+     printed photos being slid across a table rather than cross-fading. */
+  --x: 130vw;
+  transform: translate(calc(-50% + var(--x)), -50%) rotate(var(--tilt, 0deg));
+  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
 }
-
-.polaroid.is-active { opacity: 1; }
 
 .polaroid img {
   /* Viewport units, not percentages: the figure's own height is only

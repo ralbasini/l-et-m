@@ -67,20 +67,43 @@ function randomTilt () {
   return (Math.random() * 10 - 5).toFixed(2) + 'deg'
 }
 
+// Jumps a card off-screen with no transition (so it doesn't visibly fly
+// there), then forces a reflow before re-enabling the transition — without
+// that reflow, the browser can coalesce the "teleport" and the animated
+// move into one no-op instead of animating from the off-screen position.
+function placeOffscreen (el, side) {
+  el.style.transition = 'none'
+  el.style.setProperty('--x', side === 'right' ? '130vw' : '-130vw')
+  void el.offsetWidth
+  el.style.transition = ''
+}
+
 async function goTo (delta) {
   if (!photos.length) return
   index = (index + delta + photos.length) % photos.length
   const photo = photos[index]
   await preload(photo.src)
 
+  const enterSide = delta < 0 ? 'left' : 'right'
+  const exitSide = delta < 0 ? 'right' : 'left'
+
   const img = nextImg()
   img.src = photo.src
   img.alt = photo.alt
 
-  const card = nextPolaroid()
-  card.style.setProperty('--tilt', randomTilt())
-  card.classList.add('is-active')
-  activePolaroid().classList.remove('is-active')
+  const incoming = nextPolaroid()
+  const outgoing = activePolaroid()
+
+  incoming.style.setProperty('--tilt', randomTilt())
+  placeOffscreen(incoming, enterSide)
+
+  // Next frame: slide the incoming card to center and push the outgoing
+  // one off the opposite side, like sliding one printed photo out from
+  // under the next.
+  requestAnimationFrame(() => {
+    incoming.style.setProperty('--x', '0px')
+    outgoing.style.setProperty('--x', exitSide === 'right' ? '130vw' : '-130vw')
+  })
 
   showingA = !showingA
 }
@@ -150,9 +173,12 @@ async function init () {
   await refreshPhotos()
   if (photos.length) {
     index = 0
+    const card = activePolaroid()
     activeImg().src = photos[0].src
     activeImg().alt = photos[0].alt
-    activePolaroid().style.setProperty('--tilt', randomTilt())
+    card.style.setProperty('--tilt', randomTilt())
+    placeOffscreen(card, 'right')
+    requestAnimationFrame(() => card.style.setProperty('--x', '0px'))
   }
   resetTimer()
   setInterval(refreshPhotos, REFRESH_MS)
