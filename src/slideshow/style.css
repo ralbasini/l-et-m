@@ -124,7 +124,7 @@ html, body {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
-.monogram span { opacity: 0.8; margin: 0 0.05em; }
+.monogram span { opacity: 0.8; margin: 0 0.05em 0 0.1em; }
 
 .empty {
   position: fixed;
