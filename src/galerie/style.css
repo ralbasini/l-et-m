@@ -195,24 +195,6 @@
     max-width: 32rem;
   }
 
-  .hero-monogram {
-    font-family: 'MoreSugar-Thin', cursive;
-    font-size: clamp(2.75rem, 9vw, 4.5rem);
-    color: #abb9a2;
-    line-height: 1;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 0 24px rgba(171, 185, 162, 0.35);
-  }
-
-  .hero-monogram span {
-    display: inline-block;
-    /* Asymmetric: "&" sits visually closer to "L" than to "M" at equal
-       margins, since the script font's ampersand has less of its own
-       left-side bearing than right-side. */
-    margin: 0 0.05em 0 0.3em;
-    opacity: 0.85;
-  }
-
   .hero-title {
     font-family: 'MoreSugar-Thin', Georgia, serif;
     font-weight: 400;
@@ -563,14 +545,6 @@
     align-items: center;
     gap: 0.75rem;
   }
-
-  .footer-monogram {
-    font-family: 'MoreSugar-Thin', cursive;
-    font-size: 1.75rem;
-    color: #abb9a2;
-  }
-
-  .footer-monogram span { opacity: 0.85; margin: 0 0.05em 0 0.3em; }
 
   .footer-text {
     font-family: 'Work Sans', sans-serif;

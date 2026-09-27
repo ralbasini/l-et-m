@@ -62,9 +62,7 @@
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in
-			   src/galerie/style.css for the full note. Used only for the page
-			   title below, not the rest of this page's theme-native Raleway
-			   typography. */
+			   src/galerie/style.css for the full note. */
 			@font-face {
 				font-family: 'MoreSugar-Thin';
 				src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
@@ -72,8 +70,97 @@
 				font-style: normal;
 				font-display: swap;
 			}
-			#header header h1 {
+
+			/* Script font for just the "&" below — same logo treatment as
+			   .hero-amp on /galerie/ (see src/galerie/style.css for the full
+			   note on its license/source). */
+			@font-face {
+				font-family: 'Apricot';
+				src: url('/fonts/Apricot.woff') format('woff');
+				font-weight: 400;
+				font-style: normal;
+				font-display: swap;
+			}
+			#header header h1 .hero-amp {
+				font-family: 'Apricot', cursive;
+				color: #abb9a2;
+				padding: 0 0.15em;
+			}
+
+			/* ── Reskin over the vendored HTML5 UP theme (main.css) ──────────
+			   Same colors/fonts/paddings as /photos/ and /galerie/, without
+			   touching the theme's own layout mechanics (the full-height
+			   sections, the centered .container box, the mobile breakpoints,
+			   the scrollex/scrolly JS) — this is an override layer, not a
+			   rewrite. Rules here share `#header`'s/`.button`'s/etc. exact
+			   specificity with main.css, so — because this <style> comes
+			   after main.css's <link> in the document — plain declarations
+			   already win on source order; `!important` is only added where
+			   main.css itself used `!important` (a:hover, .button and its
+			   hover/active states), since nothing less beats that. */
+
+			body, input, select, textarea {
+				font-family: 'Work Sans', system-ui, sans-serif;
+				font-size: 16px;
+				line-height: 1.6;
+				color: #252525;
+			}
+			body { background: #d0dad1; }
+
+			a { color: #356d65; }
+			a:hover { color: #2a5951 !important; }
+
+			h1, h2, h3, h4, h5, h6 {
 				font-family: 'MoreSugar-Thin', Georgia, serif;
+				color: #252525;
+				font-weight: 400;
+				text-transform: none;
+				letter-spacing: normal;
+			}
+			/* Schedule labels ("Cérémonie", "14h30", ...) are h3s structurally
+			   but read as body text, not titles — excluded from the script
+			   font above like every other non-title text on the site. */
+			.icons-grid h3 {
+				font-family: 'Work Sans', sans-serif;
+				font-weight: 500;
+				font-size: 0.9375rem;
+			}
+
+			#header header h1 { font-size: 3em; }
+
+			/* Photo hero: same dark vignette treatment as /galerie/'s
+			   .hero-veil, layered on top of the existing photo/position/size/
+			   attachment from main.css's own #header rule (only
+			   background-image is redeclared, so the rest of that rule's
+			   properties still apply). */
+			#header {
+				background-image: linear-gradient(180deg, rgba(23, 23, 23, 0.35) 0%, rgba(23, 23, 23, 0.25) 40%, rgba(23, 23, 23, 0.65) 100%), url('/mariage/images/Bizerte.jpg');
+			}
+
+			/* Section "cards": main.css's .container is already a centered,
+			   fixed-width box (not full-bleed) — recolored into a white card
+			   on the site's sage background instead of a translucent-white
+			   panel on plain white, matching the .card look on /photos/. */
+			.main.special, #footer { background: #d0dad1; }
+			.main .container, #footer .container {
+				background: #FFFFFF;
+				border-radius: 0.75rem;
+				box-shadow: 0 10px 24px rgba(37, 37, 37, 0.1);
+			}
+
+			.button, .padded {
+				background-color: #356d65 !important;
+				color: #FFFFFF !important;
+				box-shadow: none;
+				border-radius: 999px;
+				font-family: 'Work Sans', sans-serif;
+				font-weight: 600;
+				text-transform: none;
+			}
+			.button:hover, .button:active,
+			.padded:hover, .padded:active {
+				background-color: #2a5951 !important;
+				color: #FFFFFF !important;
 			}
 		</style>
 	</head>
@@ -89,8 +176,8 @@
 		<!-- Header -->
 			<section id="header">
 				<header class="major" style="text-shadow: 0 2px 4px rgba(0,0,0,0.7);">
-					<h1 style="color: #ffffff;">Mariage Lobna et Martin</h1>
-					<p class="major" style="color: #ffffff;">Le 31 octobre 2026</p>
+					<h1 style="color: #d0dad1;">Lobna <span class="hero-amp">&amp;</span> Martin</h1>
+					<p class="major" style="color: #d0dad1;">Le 31 octobre 2026</p>
 				</header>
 			</section>
 
