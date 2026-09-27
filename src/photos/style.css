@@ -300,6 +300,8 @@ button.link-btn, button.link-inline {
 }
 button.link-btn:hover, button.link-inline:hover { background: none; color: #2a5951; }
 
+#not-me-btn { font-style: italic; }
+
 #collision-step button:first-of-type { margin-right: 0.75rem; margin-bottom: 0.5rem; }
 
 .error {

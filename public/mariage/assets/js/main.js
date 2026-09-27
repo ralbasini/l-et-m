@@ -18,6 +18,38 @@
 			xsmall:  [ null,     '480px'  ]
 		});
 
+	// Fade between the existing wedding photos in the Mariage hero.
+		var heroLayers = document.querySelectorAll('#header .mariage-hero-image'),
+			heroImageBase = new URL('../../images/', document.currentScript.src).href,
+			heroPhotos = ['Bizerte.jpg', 'la_2.jpg', 'plage.jpg'].map(function(file) {
+				return heroImageBase + file;
+			}),
+			heroPhotoIndex = 0,
+			activeHeroLayer = 0;
+
+		if (heroLayers.length === 2) {
+			heroLayers[0].style.backgroundImage = 'url("' + heroPhotos[0] + '")';
+
+			if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+				heroPhotos.slice(1).forEach(function(src) {
+					var image = new Image();
+					image.src = src;
+				});
+
+				window.setInterval(function() {
+					var nextLayerIndex = 1 - activeHeroLayer,
+						nextPhotoIndex = (heroPhotoIndex + 1) % heroPhotos.length,
+						nextLayer = heroLayers[nextLayerIndex];
+
+					nextLayer.style.backgroundImage = 'url("' + heroPhotos[nextPhotoIndex] + '")';
+					nextLayer.classList.add('is-active');
+					heroLayers[activeHeroLayer].classList.remove('is-active');
+					heroPhotoIndex = nextPhotoIndex;
+					activeHeroLayer = nextLayerIndex;
+				}, 7000);
+			}
+		}
+
 	// Play initial animations on page load.
 		$window.on('load', function() {
 			window.setTimeout(function() {
