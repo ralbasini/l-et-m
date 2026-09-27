@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com),
+   file lives in public/fonts/ so every page needing it declares its own
+   @font-face against the same root-absolute path (no CSS is shared between
+   pages anywhere in this project — see CLAUDE.md). */
+@font-face {
+  font-family: 'MoreSugar-Thin';
+  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Script font used only for the "&" in "Lobna & Martin" (.hero-amp below) —
+   free-for-personal-use license (befonts.com), same self-hosting pattern as
+   MoreSugar-Thin above. */
+@font-face {
+  font-family: 'Apricot';
+  src: url('/fonts/Apricot.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ================================================================
    BASE
    ================================================================ */
@@ -51,6 +74,51 @@
   .delay-1 { transition-delay: 0.1s; }
   .delay-2 { transition-delay: 0.2s; }
   .delay-3 { transition-delay: 0.3s; }
+}
+
+/* ================================================================
+   SITE NAV — shared across /, galerie/, photos/ (not slideshow/, which
+   deliberately hides all chrome for unattended projector use)
+   ================================================================ */
+@layer components {
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 0.85rem 1rem;
+    background: rgba(23, 23, 23, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .site-nav a {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.75rem;
+    /* Explicit, not inherited: Tailwind's Preflight sets html{line-height:1.5}
+       on this page, but /photos/ (no Tailwind) falls back to the browser's
+       own default line-height instead — left implicit, the nav bar rendered
+       at a different height on each page despite identical padding/font-size. */
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(208, 218, 209, 0.75);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .site-nav a:hover { color: #d0dad1; }
+  .site-nav a.is-current { color: #abb9a2; font-weight: 600; }
+
+  @media (max-width: 480px) {
+    .site-nav { gap: 1rem; padding: 0.7rem 0.75rem; }
+    .site-nav a { font-size: 0.6875rem; letter-spacing: 0.08em; }
+  }
 }
 
 /* ================================================================
@@ -128,7 +196,7 @@
   }
 
   .hero-monogram {
-    font-family: 'Bonheur Royale', cursive;
+    font-family: 'MoreSugar-Thin', cursive;
     font-size: clamp(2.75rem, 9vw, 4.5rem);
     color: #abb9a2;
     line-height: 1;
@@ -146,7 +214,7 @@
   }
 
   .hero-title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'MoreSugar-Thin', Georgia, serif;
     font-weight: 400;
     font-size: clamp(2.25rem, 6vw, 3.75rem);
     color: #d0dad1;
@@ -155,7 +223,8 @@
   }
 
   .hero-amp {
-    font-style: italic;
+    font-family: 'Apricot', cursive;
+    font-style: normal;
     color: #abb9a2;
     padding: 0 0.15em;
   }
@@ -260,9 +329,8 @@
   }
 
   .album-title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'MoreSugar-Thin', Georgia, serif;
     font-weight: 400;
-    font-style: italic;
     font-size: clamp(2rem, 5vw, 3rem);
     color: #252525;
     text-align: center;
@@ -497,7 +565,7 @@
   }
 
   .footer-monogram {
-    font-family: 'Bonheur Royale', cursive;
+    font-family: 'MoreSugar-Thin', cursive;
     font-size: 1.75rem;
     color: #abb9a2;
   }

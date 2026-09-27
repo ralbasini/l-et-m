@@ -10,11 +10,18 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bonheur+Royale&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+  <nav class="site-nav" aria-label="Navigation">
+    <a href="../">Mariage</a>
+    <a href="../galerie/">Galerie</a>
+    <a href="./" class="is-current" aria-current="page">Photos</a>
+    <a href="../slideshow/">Diaporama</a>
+  </nav>
+
   <div id="toast-host" class="toast-host"></div>
 
   <main>
@@ -22,7 +29,7 @@
     <h1>Ajoutez vos photos</h1>
     <p class="subtitle">Partagez vos souvenirs de la journée — merci !</p>
 
-    <a href="../slideshow/" class="btn-link">Voir toutes les photos</a>
+    <a href="../galerie/" class="btn-link">Voir toutes les photos</a>
 
     <!-- Step 1: just a name. -->
     <div id="name-step" class="card">
@@ -48,8 +55,14 @@
       <p id="quota-full" class="empty" hidden></p>
       <form id="upload-form">
         <label id="photos-label" for="photos"></label>
-        <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
-        <button type="submit">Envoyer</button>
+        <label id="dropzone" for="photos" class="dropzone">
+          <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
+          <span class="dropzone-icon" aria-hidden="true">+</span>
+          <span id="dropzone-text" class="dropzone-text">Touchez pour choisir des photos</span>
+        </label>
+        <div id="preview-grid" class="grid preview-grid" hidden></div>
+        <p id="preview-warning" class="warning" hidden></p>
+        <button type="submit" id="upload-submit" disabled>Envoyer</button>
       </form>
     </div>
 

@@ -1,5 +1,15 @@
 * { box-sizing: border-box; }
 
+/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
+   see the matching declaration in src/galerie/style.css for the full note. */
+@font-face {
+  font-family: 'MoreSugar-Thin';
+  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -11,13 +21,56 @@ html, body {
 main {
   max-width: 32rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem 4rem;
+  /* Top padding cleared past the fixed .site-nav bar (~55px, less on
+     mobile) so it doesn't sit over the monogram. */
+  padding: 4.5rem 1.5rem 4rem;
   text-align: center;
+}
+
+/* Exact match with src/galerie/style.css's .site-nav — same fixed dark
+   translucent bar on every page that has one, not a page-specific variant. */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1rem;
+  background: rgba(23, 23, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.site-nav a {
+  font-family: 'Work Sans', sans-serif;
+  font-size: 0.75rem;
+  /* Explicit, not inherited — see the matching comment in
+     src/galerie/style.css for why (Tailwind Preflight vs. no Tailwind here
+     made the bar render at two different heights despite identical
+     padding/font-size). */
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(208, 218, 209, 0.75);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-nav a:hover { color: #d0dad1; }
+.site-nav a.is-current { color: #abb9a2; font-weight: 600; }
+
+@media (max-width: 480px) {
+  .site-nav { gap: 1rem; padding: 0.7rem 0.75rem; }
+  .site-nav a { font-size: 0.6875rem; letter-spacing: 0.08em; }
 }
 
 .monogram {
   margin: 0 0 1rem;
-  font-family: 'Bonheur Royale', cursive;
+  font-family: 'MoreSugar-Thin', cursive;
   font-size: 2.25rem;
   color: #356d65;
 }
@@ -26,9 +79,8 @@ main {
 
 h1 {
   margin: 0 0 0.5rem;
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'MoreSugar-Thin', Georgia, serif;
   font-weight: 400;
-  font-style: italic;
   font-size: 1.75rem;
 }
 
@@ -77,6 +129,81 @@ input[type="text"], input[type="file"] {
   font-size: 0.9375rem;
 }
 
+/* ── Dropzone ────────────────────────────────────────────────────── */
+/* The real <input type="file"> sits on top, fully transparent, so every
+   click/tap anywhere in the box opens the native picker — more reliable
+   across mobile browsers than relying on the <label for> association
+   alone. The icon + text underneath are purely decorative. */
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 1.75rem 1rem;
+  border: 1.5px dashed rgba(53, 109, 101, 0.4);
+  border-radius: 0.6rem;
+  background: rgba(53, 109, 101, 0.05);
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.dropzone:hover, .dropzone:focus-within {
+  background: rgba(53, 109, 101, 0.09);
+  border-color: rgba(53, 109, 101, 0.7);
+}
+
+.dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #356d65;
+  color: #FFFFFF;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.dropzone-text {
+  font-size: 0.875rem;
+  color: rgba(37, 37, 37, 0.75);
+}
+
+.preview-grid {
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  margin: 0 0 1rem;
+}
+
+/* Previews aren't clickable to zoom (unlike the "Vos photos" grid below),
+   so don't borrow its zoom-in cursor. */
+.preview-grid figure img { cursor: default; }
+
+.warning {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.4rem;
+  background: rgba(163, 72, 72, 0.08);
+  color: #a34848;
+  font-size: 0.8125rem;
+}
+
 button {
   font-family: 'Work Sans', sans-serif;
   font-weight: 600;
@@ -92,6 +219,12 @@ button {
 }
 
 button:hover { background: #2a5951; }
+
+button:disabled {
+  background: rgba(37, 37, 37, 0.15);
+  color: rgba(37, 37, 37, 0.45);
+  cursor: not-allowed;
+}
 
 button.link-btn, button.link-inline {
   background: none;

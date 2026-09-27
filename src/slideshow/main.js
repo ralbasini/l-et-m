@@ -7,7 +7,7 @@ const DEFAULT_ADVANCE_MS = 7000
 const REFRESH_MS = 60000
 const DURATION_KEY = 'slideshow_duration_ms'
 const STYLE_KEY = 'slideshow_style'
-const DEFAULT_STYLE = 'standard'
+const DEFAULT_STYLE = 'polaroid'
 
 const stage = document.getElementById('stage')
 const emptyEl = document.getElementById('empty')

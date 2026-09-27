@@ -1,4 +1,4 @@
-import { loadPhotos } from './photos.js'
+import { loadPhotos } from '../photos.js'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

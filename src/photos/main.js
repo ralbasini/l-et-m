@@ -139,6 +139,7 @@ async function enterUploadStep (guestName) {
 }
 
 function renderQuota (remaining, maxPerPerson) {
+  currentRemaining = remaining
   const form = document.getElementById('upload-form')
   const label = document.getElementById('photos-label')
   const full = document.getElementById('quota-full')
@@ -203,6 +204,106 @@ async function refreshMyPhotos () {
   renderPhotos(data.photos)
 }
 
+// ── Upload preview ────────────────────────────────────────────
+// The bare <input type="file"> gives no feedback about what's about to be
+// sent, and on a phone camera roll it's easy to fat-finger the wrong photo.
+// This keeps our own File[] (selectedFiles) in sync with the input's real
+// FileList via a DataTransfer, so thumbnails can be shown and individual
+// photos removed before sending — the input alone can't do either.
+const dropzoneText = document.getElementById('dropzone-text')
+const photosInput = document.getElementById('photos')
+const previewGrid = document.getElementById('preview-grid')
+const previewWarning = document.getElementById('preview-warning')
+const uploadSubmitBtn = document.getElementById('upload-submit')
+
+let selectedFiles = []
+let previewUrls = []
+let currentRemaining = 15
+
+function fileKey (file) {
+  return [file.name, file.size, file.lastModified].join('|')
+}
+
+function syncInputFiles () {
+  const dt = new DataTransfer()
+  selectedFiles.forEach((file) => dt.items.add(file))
+  photosInput.files = dt.files
+}
+
+function clearPreviewUrls () {
+  previewUrls.forEach((url) => URL.revokeObjectURL(url))
+  previewUrls = []
+}
+
+function renderPreview () {
+  clearPreviewUrls()
+  previewGrid.innerHTML = ''
+
+  const count = selectedFiles.length
+  previewGrid.hidden = count === 0
+  uploadSubmitBtn.disabled = count === 0
+  dropzoneText.textContent = count === 0
+    ? 'Touchez pour choisir des photos'
+    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
+
+  if (count > currentRemaining) {
+    previewWarning.hidden = false
+    previewWarning.textContent = `Seules les ${currentRemaining} première${currentRemaining > 1 ? 's' : ''} seront envoyées (il n'en reste que ${currentRemaining}).`
+  } else {
+    previewWarning.hidden = true
+  }
+
+  selectedFiles.forEach((file, i) => {
+    const url = URL.createObjectURL(file)
+    previewUrls.push(url)
+
+    const figure = document.createElement('figure')
+    const img = document.createElement('img')
+    img.src = url
+    img.alt = ''
+    figure.appendChild(img)
+
+    const removeBtn = document.createElement('button')
+    removeBtn.type = 'button'
+    removeBtn.className = 'delete-btn'
+    removeBtn.setAttribute('aria-label', 'Retirer cette photo de l’envoi')
+    removeBtn.textContent = '×'
+    removeBtn.addEventListener('click', () => {
+      selectedFiles.splice(i, 1)
+      syncInputFiles()
+      renderPreview()
+    })
+    figure.appendChild(removeBtn)
+
+    previewGrid.appendChild(figure)
+  })
+}
+
+function resetPreview () {
+  selectedFiles = []
+  syncInputFiles()
+  renderPreview()
+}
+
+// Each tap on the dropzone opens a fresh native picker that replaces
+// FileList entirely (especially on iOS) — merge instead of replacing, so
+// reopening it to add one more photo doesn't silently drop what was
+// already chosen.
+photosInput.addEventListener('change', () => {
+  const existingKeys = new Set(selectedFiles.map(fileKey))
+  Array.from(photosInput.files).forEach((file) => {
+    const key = fileKey(file)
+    if (!existingKeys.has(key)) {
+      selectedFiles.push(file)
+      existingKeys.add(key)
+    }
+  })
+  syncInputFiles()
+  renderPreview()
+})
+
+renderPreview()
+
 document.getElementById('upload-form').addEventListener('submit', async (e) => {
   e.preventDefault()
   const form = e.target
@@ -214,6 +315,7 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
     if (data.errors.length) parts.push(data.errors.join(' '))
     toast(parts.join(' '), data.uploaded > 0 && data.errors.length === 0)
     form.reset()
+    resetPreview()
     renderPhotos(data.photos)
     renderQuota(data.remaining, currentMaxPerPerson)
   } catch (err) {

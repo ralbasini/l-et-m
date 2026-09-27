@@ -1,5 +1,15 @@
 * { box-sizing: border-box; }
 
+/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
+   see the matching declaration in src/galerie/style.css for the full note. */
+@font-face {
+  font-family: 'MoreSugar-Thin';
+  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   height: 100%;
@@ -125,7 +135,7 @@ html, body {
   right: 1.5rem;
   bottom: 1.25rem;
   margin: 0;
-  font-family: 'Bonheur Royale', cursive;
+  font-family: 'MoreSugar-Thin', cursive;
   font-size: 1.75rem;
   color: rgba(208, 218, 209, 0.55);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
@@ -196,10 +206,12 @@ html, body {
   position: fixed;
   z-index: 3;
   /* Not the same "bottom" as .monogram (1.25rem): Work Sans and the
-     monogram's cursive Bonheur Royale place their glyphs at different
+     monogram's script MoreSugar-Thin place their glyphs at different
      depths within their own line box at any shared font-size, so lining
-     up their *baselines* takes a bigger offset here — tuned empirically,
-     not derived from the two fonts' metrics. */
+     up their *baselines* takes a bigger offset here — tuned empirically
+     against the monogram's PREVIOUS font (Bonheur Royale), not derived
+     from either font's metrics. Now that the monogram uses MoreSugar-Thin
+     instead, re-check this offset visually — it may need adjusting again. */
   bottom: 2rem;
   left: 1.25rem;
   display: inline-flex;

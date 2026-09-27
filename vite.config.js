@@ -12,14 +12,17 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        // Root = the site-home "wedding info" page — the default page.
         main: r('src/index.html'),
+        galerie: r('src/galerie/index.html'),
         slideshow: r('src/slideshow/index.html'),
         admin: r('src/admin/index.html'),
         photos: r('src/photos/index.html'),
-        // Redirect-only stub: this page used to live at /guest/ (see
-        // src/guest/index.html) — kept as a thin forward to /photos/ so an
-        // already-shared URL/QR code doesn't just start 404ing.
+        // Redirect-only stubs, kept as thin forwards so an already-shared
+        // URL/QR code doesn't just start 404ing after a page moved:
+        // /guest -> /photos, /mariage -> / (root).
         guest: r('src/guest/index.html'),
+        mariage: r('src/mariage/index.html'),
       },
     },
   },
