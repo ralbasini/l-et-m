@@ -16,6 +16,19 @@ function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 function setToken (token) { localStorage.setItem(TOKEN_KEY, token) }
 function clearToken () { localStorage.removeItem(TOKEN_KEY) }
 
+// `retryable` marks failures worth trying again as-is: the connection
+// dropped, or the server/proxy was overloaded (5xx, 408, 429). Note that a
+// raw fetch() "Failed to fetch" TypeError also covers errors produced before
+// PHP runs (proxy 413/502/504…) — those carry no CORS headers, so the
+// browser hides them behind a generic network error.
+class ApiError extends Error {
+  constructor (message, { status = 0, retryable = false } = {}) {
+    super(message)
+    this.status = status
+    this.retryable = retryable
+  }
+}
+
 async function apiFetch (path, { method = 'GET', json, formData } = {}) {
   const headers = {}
   const token = getToken()
@@ -29,7 +42,12 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
     body = JSON.stringify(json)
   }
 
-  const res = await fetch(API + path, { method, headers, body })
+  let res
+  try {
+    res = await fetch(API + path, { method, headers, body })
+  } catch {
+    throw new ApiError('Connexion au serveur impossible, vérifiez votre réseau.', { retryable: true })
+  }
 
   let data = null
   try { data = await res.json() } catch {}
@@ -37,16 +55,19 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
   if (res.status === 401) {
     clearToken()
     showNameStep()
-    throw new Error('Session expirée, merci de recommencer.')
+    throw new ApiError('Session expirée, merci de recommencer.', { status: 401 })
   }
   if (!res.ok) {
-    throw new Error((data && data.error) || 'Une erreur est survenue.')
+    throw new ApiError((data && data.error) || 'Une erreur est survenue.', {
+      status: res.status,
+      retryable: res.status >= 500 || res.status === 408 || res.status === 429
+    })
   }
   return data
 }
 
 // ── Toasts ──────────────────────────────────────────────────────
-function toast (message, ok) {
+function toast (message, ok, durationMs = 4000) {
   if (!message) return
   const host = document.getElementById('toast-host')
   const el = document.createElement('div')
@@ -56,7 +77,7 @@ function toast (message, ok) {
   setTimeout(() => {
     el.classList.add('toast-hide')
     setTimeout(() => el.remove(), 400)
-  }, 4000)
+  }, durationMs)
 }
 
 // ── Steps ─────────────────────────────────────────────────────
@@ -135,6 +156,7 @@ document.getElementById('not-me-btn').addEventListener('click', () => {
 
 // ── Upload step ───────────────────────────────────────────────
 async function enterUploadStep (guestName) {
+  leftovers = null // bookkeeping for the previous identity's folder
   showUploadStep(guestName)
   await refreshMyPhotos()
 }
@@ -222,6 +244,11 @@ let selectedFiles = []
 let previewUrls = []
 let currentRemaining = 15
 let isUploading = false
+// Photos from the last batch that still couldn't be sent after the
+// automatic retries (they stay selected), plus the server filenames already
+// accounted for at that point — so the next send can first check whether any
+// of them actually arrived (see uploadBatch()). null when there are none.
+let leftovers = null
 
 function fileKey (file) {
   return [file.name, file.size, file.lastModified].join('|')
@@ -245,6 +272,8 @@ function renderPreview () {
   const count = selectedFiles.length
   previewGrid.hidden = count === 0
   uploadSubmitBtn.disabled = count === 0
+  const onlyLeftovers = leftovers && count > 0 && selectedFiles.every((f) => leftovers.files.has(f))
+  uploadSubmitBtn.textContent = onlyLeftovers ? `Réessayer l’envoi (${count})` : 'Envoyer'
   dropzoneText.textContent = count === 0
     ? 'Touchez pour choisir des photos'
     : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
@@ -282,8 +311,8 @@ function renderPreview () {
   })
 }
 
-function resetPreview () {
-  selectedFiles = []
+function setSelectedFiles (files) {
+  selectedFiles = files
   syncInputFiles()
   renderPreview()
 }
@@ -307,12 +336,126 @@ photosInput.addEventListener('change', () => {
 
 renderPreview()
 
+// ── Upload ──────────────────────────────────────────────────────
+// Photos go up one per request rather than all in one: a phone batch can
+// easily be 50–150 MB, and on venue mobile data one hiccup used to fail the
+// whole thing with "Failed to fetch". Each photo gets one attempt in a first
+// pass; the ones that failed for a retryable reason (network, 5xx) are then
+// retried together at the end, in RETRY_DELAYS_MS.length extra rounds.
+// Whatever still fails stays selected, behind a "Réessayer" button.
+const RETRY_DELAYS_MS = [2000, 6000]
+
+const uploadProgressText = document.getElementById('upload-progress-text')
+
+function sleep (ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
+
+// Mirrors safeUploadFilename()/uniqueTargetName() in infomaniak/shared.php:
+// matches the name(s) the server may have stored this upload under
+// ("IMG 01.JPG" → "IMG-01.jpg", or "IMG-01-2.jpg" on a collision).
+function serverNamePattern (originalName) {
+  const dot = originalName.lastIndexOf('.')
+  const rawBase = dot === -1 ? originalName : originalName.slice(0, dot)
+  const ext = dot === -1 ? '' : originalName.slice(dot + 1).toLowerCase()
+  const base = rawBase.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'photo'
+  const escapedExt = ext.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^${base}(-\\d+)?\\.${escapedExt}$`)
+}
+
+function applyServerState (data) {
+  renderPhotos(data.photos)
+  renderQuota(data.remaining, currentMaxPerPerson)
+}
+
+async function uploadBatch (files) {
+  // Leftovers from a previous batch start out as 'failed', so they skip the
+  // first pass and go through the arrival check before being resent.
+  const jobs = files.map((file) => ({
+    file,
+    status: leftovers && leftovers.files.has(file) ? 'failed' : 'pending',
+    error: ''
+  }))
+  const hasLeftovers = jobs.some((j) => j.status === 'failed')
+  // Server filenames that existed before this batch, or that a job already
+  // accounted for — used to spot a "failed" upload that actually arrived
+  // (response lost on the way back), so retrying it doesn't duplicate it.
+  const baseline = hasLeftovers ? leftovers.knownPhotos : new Set(lightboxFiles)
+  const claimed = new Set()
+
+  function claimArrival (job, photos) {
+    const pattern = serverNamePattern(job.file.name)
+    const name = photos.find((p) => !baseline.has(p) && !claimed.has(p) && pattern.test(p))
+    if (name) claimed.add(name)
+    return Boolean(name)
+  }
+
+  async function attempt (job) {
+    if (currentRemaining <= 0) {
+      job.status = 'rejected'
+      job.error = `${job.file.name} : limite de ${currentMaxPerPerson} photos par personne atteinte.`
+      return
+    }
+    try {
+      const formData = new FormData()
+      formData.append('photos[]', job.file)
+      const data = await apiFetch('upload.php', { method: 'POST', formData })
+      applyServerState(data)
+      if (data.uploaded > 0) {
+        job.status = 'done'
+        claimArrival(job, data.photos)
+      } else {
+        job.status = 'rejected'
+        job.error = data.errors.join(' ')
+      }
+    } catch (err) {
+      if (err.status === 401) throw err
+      job.status = err.retryable ? 'failed' : 'rejected'
+      job.error = err.retryable ? '' : `${job.file.name} : ${err.message}`
+    }
+  }
+
+  const pending = jobs.filter((j) => j.status === 'pending')
+  for (const [i, job] of pending.entries()) {
+    uploadProgressText.textContent = pending.length > 1
+      ? `Envoi de la photo ${i + 1} sur ${pending.length}…`
+      : 'Envoi de la photo…'
+    await attempt(job)
+  }
+
+  for (const delay of hasLeftovers ? [0, ...RETRY_DELAYS_MS] : RETRY_DELAYS_MS) {
+    let failed = jobs.filter((j) => j.status === 'failed')
+    if (failed.length === 0) break
+    uploadProgressText.textContent = `Nouvelle tentative pour ${failed.length} photo${failed.length > 1 ? 's' : ''}…`
+    await sleep(delay)
+
+    try {
+      const me = await apiFetch('me.php')
+      applyServerState(me)
+      failed.forEach((job) => { if (claimArrival(job, me.photos)) job.status = 'done' })
+    } catch (err) {
+      if (err.status === 401) throw err
+      continue // still offline — don't risk duplicates, wait for the next round
+    }
+
+    failed = jobs.filter((j) => j.status === 'failed')
+    for (const [i, job] of failed.entries()) {
+      uploadProgressText.textContent = `Nouvelle tentative : photo ${i + 1} sur ${failed.length}…`
+      await attempt(job)
+    }
+  }
+
+  const stillFailed = jobs.filter((j) => j.status === 'failed')
+  leftovers = stillFailed.length
+    ? { files: new Set(stillFailed.map((j) => j.file)), knownPhotos: new Set([...baseline, ...claimed]) }
+    : null
+  return jobs
+}
+
 document.getElementById('upload-form').addEventListener('submit', async (e) => {
   e.preventDefault()
   if (isUploading || selectedFiles.length === 0) return
 
   const form = e.target
-  const formData = new FormData(form)
+  const files = selectedFiles.slice()
   isUploading = true
   uploadSubmitBtn.disabled = true
   uploadSubmitBtn.classList.add('is-uploading')
@@ -320,16 +463,23 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
   form.setAttribute('aria-busy', 'true')
 
   try {
-    const data = await apiFetch('upload.php', { method: 'POST', formData })
+    const jobs = await uploadBatch(files)
+    const done = jobs.filter((j) => j.status === 'done')
+    const rejected = jobs.filter((j) => j.status === 'rejected')
+    const failed = jobs.filter((j) => j.status === 'failed')
+
     const parts = []
-    if (data.uploaded > 0) parts.push(`${data.uploaded} photo(s) envoyée(s), merci !`)
-    if (data.errors.length) parts.push(data.errors.join(' '))
-    toast(parts.join(' '), data.uploaded > 0 && data.errors.length === 0)
-    form.reset()
-    resetPreview()
-    renderPhotos(data.photos)
-    renderQuota(data.remaining, currentMaxPerPerson)
+    if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci !`)
+    rejected.forEach((j) => parts.push(j.error))
+    if (failed.length) {
+      parts.push(`${failed.length} photo${failed.length > 1 ? 's n’ont' : ' n’a'} pas pu être envoyée${failed.length > 1 ? 's' : ''} (connexion instable). Touchez « Réessayer l’envoi » pour ${failed.length > 1 ? 'les' : 'la'} renvoyer.`)
+    }
+    toast(parts.join(' '), failed.length === 0 && rejected.length === 0, failed.length ? 8000 : 4000)
+
+    setSelectedFiles(failed.map((j) => j.file))
   } catch (err) {
+    // Only a 401 gets here — apiFetch already sent the guest back to the
+    // name step. Keep the selection so they can send it once re-identified.
     toast(err.message, false)
   } finally {
     isUploading = false
