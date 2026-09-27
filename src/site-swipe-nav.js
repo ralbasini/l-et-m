@@ -51,6 +51,7 @@ if (embedded) {
 
 if (links.length > 1) {
   let start = null
+  let horizontalGesture = false
 
   function navigateByDirection (direction) {
     const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
@@ -81,28 +82,45 @@ if (links.length > 1) {
   document.addEventListener('touchstart', (event) => {
     if (event.touches.length !== 1 || document.querySelector('#lightbox:not([hidden])')) {
       start = null
+      horizontalGesture = false
       return
     }
 
     const target = event.target
-    if (target instanceof Element && target.closest('input, textarea, select, button, label, [contenteditable="true"], #upload-progress:not([hidden])')) {
+    if (target instanceof Element && target.closest('input, textarea, select, label, [contenteditable="true"], #upload-progress:not([hidden])')) {
       start = null
+      horizontalGesture = false
       return
     }
 
     const touch = event.touches[0]
-    const edge = 24
+    const edge = 8
     if (touch.clientX < edge || touch.clientX > window.innerWidth - edge) {
       start = null
+      horizontalGesture = false
       return
     }
 
     start = { x: touch.clientX, y: touch.clientY, time: Date.now() }
+    horizontalGesture = false
   }, { passive: true })
+
+  document.addEventListener('touchmove', (event) => {
+    if (!start || event.touches.length !== 1) return
+
+    const touch = event.touches[0]
+    const deltaX = touch.clientX - start.x
+    const deltaY = touch.clientY - start.y
+    if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+      horizontalGesture = true
+      if (event.cancelable) event.preventDefault()
+    }
+  }, { passive: false })
 
   document.addEventListener('touchend', (event) => {
     if (!start || event.changedTouches.length !== 1) {
       start = null
+      horizontalGesture = false
       return
     }
 
@@ -112,11 +130,19 @@ if (links.length > 1) {
     const duration = Date.now() - start.time
     start = null
 
-    if (Math.abs(deltaX) < 64 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 1200) return
+    if (!horizontalGesture || Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 2000) {
+      horizontalGesture = false
+      return
+    }
 
+    if (event.cancelable) event.preventDefault()
+    horizontalGesture = false
     const direction = deltaX < 0 ? 1 : -1
     navigateByDirection(direction)
-  }, { passive: true })
+  }, { passive: false })
 
-  document.addEventListener('touchcancel', () => { start = null }, { passive: true })
+  document.addEventListener('touchcancel', () => {
+    start = null
+    horizontalGesture = false
+  }, { passive: true })
 }
