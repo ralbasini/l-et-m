@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration — Lobna &amp; Martin</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bonheur+Royale&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="toast-host" class="toast-host"></div>
+
+  <!-- ── Login screen ── -->
+  <main id="login-view" class="login-view">
+    <div class="card login-card">
+      <a href="../" class="monogram">L <span>&amp;</span> M</a>
+      <h1>Administration</h1>
+      <p id="login-error" class="error" hidden></p>
+      <form id="login-form">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" autofocus required>
+        <button type="submit">Se connecter</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- ── Dashboard ── -->
+  <main id="dashboard-view" class="dashboard-view" hidden>
+    <a href="../" class="monogram">L <span>&amp;</span> M</a>
+    <div class="top-row">
+      <h1>Photos du mariage</h1>
+      <span class="top-links">
+        <button type="button" id="logout-btn" class="link-btn">Se déconnecter</button>
+      </span>
+    </div>
+
+    <div class="storage-meter">
+      <div class="storage-bar"><div id="storage-bar-fill" class="storage-bar-fill"></div></div>
+      <p id="storage-label" class="storage-label"></p>
+    </div>
+
+    <nav id="breadcrumb" class="breadcrumb"></nav>
+
+    <div class="card">
+      <form id="upload-form">
+        <label for="photos">Ajouter des photos</label>
+        <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
+        <select id="upload-dest" name="path" required></select>
+        <button type="submit">Envoyer</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <label>Dossiers</label>
+      <div id="folders-grid" class="grid folders"></div>
+      <div id="folder-bulk-bar" class="bulk-bar folder-bulk-bar" hidden>
+        <button type="button" id="delete-folders-keep" class="secondary">Supprimer (garder les photos)</button>
+        <button type="button" id="delete-folders-purge" class="danger">Supprimer (+ photos)</button>
+      </div>
+      <form id="create-folder-form" class="folder-form">
+        <div class="folder-form-row">
+          <input type="text" id="foldername" name="name" placeholder="ex. Préparatifs" required>
+          <button type="submit">Créer</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <label>Tags</label>
+      <ul id="tags-list" class="tags-list"></ul>
+      <p id="tags-empty" class="empty" hidden>Aucun tag défini pour l'instant.</p>
+      <form id="add-tag-form" class="folder-form" style="margin-top: 1rem;">
+        <div class="folder-form-row">
+          <input type="text" id="tagname" name="name" placeholder="ex. Cérémonie" required>
+          <button type="submit">Ajouter un tag</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <label>Photos</label>
+      <div class="bulk-bar">
+        <div class="bulk-group">
+          <span id="move-controls" hidden>
+            <select id="move-dest"></select>
+            <button type="button" id="move-btn">OK</button>
+          </span>
+          <button type="button" id="delete-photos-btn" class="danger">Supprimer</button>
+        </div>
+        <div class="bulk-group">
+          <button type="button" id="save-tags-btn">Enregistrer les tags</button>
+        </div>
+      </div>
+      <label class="select-all"><input type="checkbox" id="select-all"> Tout sélectionner</label>
+      <div id="photos-grid" class="grid"></div>
+      <p id="photos-empty" class="empty" hidden>Aucune photo pour l'instant.</p>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-overlay" id="lightbox-overlay"></div>
+    <button type="button" id="lightbox-close" class="lightbox-btn lightbox-close" aria-label="Fermer">×</button>
+    <button type="button" id="lightbox-prev" class="lightbox-btn lightbox-nav lightbox-prev" aria-label="Photo précédente">‹</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-img" class="lightbox-img" src="" alt="">
+      <figcaption id="lightbox-count" class="lightbox-count"></figcaption>
+    </figure>
+    <button type="button" id="lightbox-next" class="lightbox-btn lightbox-nav lightbox-next" aria-label="Photo suivante">›</button>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

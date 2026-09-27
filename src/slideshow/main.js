@@ -2,7 +2,7 @@ import { loadPhotos } from '../photos.js'
 
 // Meant to run unattended on a projector all evening: advances slowly, and
 // re-polls photos-list.php periodically so photos guests upload live (via
-// the QR code / guest/ page) join the rotation without anyone touching it.
+// the QR code / photos/ page) join the rotation without anyone touching it.
 const DEFAULT_ADVANCE_MS = 7000
 const REFRESH_MS = 60000
 const DURATION_KEY = 'slideshow_duration_ms'

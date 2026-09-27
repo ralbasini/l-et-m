@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Ajoutez vos photos — Lobna &amp; Martin</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bonheur+Royale&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="toast-host" class="toast-host"></div>
+
+  <main>
+    <p class="monogram">L <span>&amp;</span> M</p>
+    <h1>Ajoutez vos photos</h1>
+    <p class="subtitle">Partagez vos souvenirs de la journée — merci !</p>
+
+    <a href="../slideshow/" class="btn-link">Voir toutes les photos</a>
+
+    <!-- Step 1: just a name. -->
+    <div id="name-step" class="card">
+      <form id="name-form">
+        <p id="name-error" class="error" hidden></p>
+        <label for="name">Votre nom</label>
+        <input type="text" id="name" name="name" placeholder="ex. Camille" required autofocus>
+        <button type="submit">Continuer</button>
+      </form>
+    </div>
+
+    <!-- Step 1b: name collision — someone (maybe this same guest, on
+         another device) already has this folder. -->
+    <div id="collision-step" class="card" hidden>
+      <p class="guest-name">Le nom <strong id="collision-name"></strong> est déjà utilisé — peut-être vous, depuis un autre appareil ?</p>
+      <button type="button" id="collision-yes">Oui, c'est moi</button>
+      <button type="button" id="collision-no" class="link-btn">Non, choisir un autre nom</button>
+    </div>
+
+    <!-- Step 2: identity known — upload + own photos. -->
+    <div id="upload-step" class="card" hidden>
+      <p class="guest-name">Vous envoyez en tant que <strong id="guest-name-label"></strong> — <button type="button" id="not-me-btn" class="link-inline">ce n'est pas moi</button></p>
+      <p id="quota-full" class="empty" hidden></p>
+      <form id="upload-form">
+        <label id="photos-label" for="photos"></label>
+        <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
+        <button type="submit">Envoyer</button>
+      </form>
+    </div>
+
+    <div id="my-photos" class="card my-photos" hidden>
+      <label>Vos photos</label>
+      <div id="photos-grid" class="grid"></div>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-overlay" id="lightbox-overlay"></div>
+    <button type="button" id="lightbox-close" class="lightbox-btn lightbox-close" aria-label="Fermer">×</button>
+    <button type="button" id="lightbox-prev" class="lightbox-btn lightbox-nav lightbox-prev" aria-label="Photo précédente">‹</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-img" class="lightbox-img" src="" alt="">
+      <figcaption id="lightbox-count" class="lightbox-count"></figcaption>
+    </figure>
+    <button type="button" id="lightbox-next" class="lightbox-btn lightbox-nav lightbox-next" aria-label="Photo suivante">›</button>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
