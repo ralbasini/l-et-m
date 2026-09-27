@@ -77,7 +77,7 @@
 }
 
 /* ================================================================
-   SITE NAV — shared across /, galerie/, photos/ (not slideshow/, which
+  SITE NAV — shared across /, galerie/, photos/ (not /diaporama/, which
    deliberately hides all chrome for unattended projector use)
    ================================================================ */
 @layer components {
@@ -116,8 +116,8 @@
   .site-nav a.is-current { color: #abb9a2; font-weight: 600; }
 
   @media (max-width: 480px) {
-    .site-nav { gap: 1rem; padding: 0.7rem 0.75rem; }
-    .site-nav a { font-size: 0.6875rem; letter-spacing: 0.08em; }
+    .site-nav { gap: 0.4rem; padding: 1rem 0.5rem; }
+    .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
   }
 }
 
@@ -195,6 +195,16 @@
     max-width: 32rem;
   }
 
+  .hero-kicker {
+    margin-bottom: 1.25rem;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(208, 218, 209, 0.78);
+  }
+
   .hero-title {
     font-family: 'MoreSugar-Thin', Georgia, serif;
     font-weight: 400;
@@ -263,11 +273,11 @@
   .album-inner {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 5.5rem 1.5rem 6rem;
+    padding: 5.5rem 1.5rem 2rem;
   }
 
   @media (min-width: 768px) {
-    .album-inner { padding: 7rem 2.5rem 8rem; }
+    .album-inner { padding: 7rem 2.5rem 2rem; }
   }
 
   .slideshow-cta {
@@ -290,24 +300,22 @@
     background: #2a5951;
   }
 
-  /* This button used to sit above a second "polaroid style" CTA, so its
-     own 2rem margin only had to separate it from that other button, not
-     from "Nos souvenirs" below. Now that the second CTA is gone, restore
-     that lost breathing room directly on this one instead of bumping
-     .slideshow-cta's margin everywhere it's used. */
-  .slideshow-cta-hero {
-    margin-bottom: 3.5rem;
+  .slideshow-cta-quiet {
+    background: transparent;
+    color: #356d65;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0;
+    border-radius: 0;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    transition: color 0.2s;
   }
 
-  .album-label {
-    font-family: 'Work Sans', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: #356d65;
-    text-align: center;
-    margin-bottom: 0.75rem;
+  .slideshow-cta-quiet:hover {
+    background: transparent;
+    color: #252525;
   }
 
   .album-title {
@@ -325,7 +333,7 @@
     font-size: 0.9375rem;
     color: rgba(37, 37, 37, 0.6);
     text-align: center;
-    margin-bottom: 3.5rem;
+    margin-bottom: 2rem;
   }
 
   .gallery-filters {
@@ -531,29 +539,6 @@
     .lightbox-next { right: 0.5rem; }
     .lightbox-close { top: 0.75rem; right: 0.75rem; }
   }
-}
-
-/* ================================================================
-   FOOTER
-   ================================================================ */
-@layer components {
-  .site-footer {
-    background: #252525;
-    padding: 3.5rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .footer-text {
-    font-family: 'Work Sans', sans-serif;
-    font-weight: 300;
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
-    color: rgba(208, 218, 209, 0.55);
-  }
-
 }
 
 /* ================================================================

@@ -7,7 +7,7 @@ export const REMOTE_GALLERY_URL = 'https://ralbasini.ch/l-et-m/'
 // No manifest, no images committed to the repo: this asks photos-list.php
 // what's currently in the Infomaniak folder. Drop a photo in that folder
 // and it shows up on next load — nothing to redeploy. Shared by the main
-// site (src/main.js) and the projector slideshow (src/slideshow/main.js).
+// site (src/main.js) and the projector slideshow (src/diaporama/main.js).
 export async function loadPhotos () {
   try {
     const res = await fetch(REMOTE_GALLERY_URL + 'photos-list.php', { cache: 'no-store' })

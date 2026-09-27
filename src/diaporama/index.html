@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Diaporama plein écran du mariage de Lobna & Martin.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Diaporama — Lobna &amp; Martin</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="stage" class="stage">
+    <div id="view-standard" class="view">
+      <div id="bg-a" class="slide-bg is-active"></div>
+      <div id="bg-b" class="slide-bg"></div>
+      <img id="slide-a" class="slide is-active" alt="">
+      <img id="slide-b" class="slide" alt="">
+      <div class="veil"></div>
+    </div>
+
+    <div id="view-polaroid" class="view">
+      <figure id="polaroid-a" class="polaroid"><img id="polaroid-img-a" alt=""></figure>
+      <figure id="polaroid-b" class="polaroid"><img id="polaroid-img-b" alt=""></figure>
+    </div>
+  </div>
+
+  <p class="monogram">L<span>&amp;</span>M</p>
+  <p id="empty" class="empty" hidden>Les photos arrivent bientôt <span aria-hidden="true">🤍</span></p>
+
+  <a href="../galerie/" class="back-link">
+    <svg class="back-link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Retour
+  </a>
+
+  <button type="button" id="menu-toggle" class="menu-toggle" aria-label="Réglages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.61l-1.92-3.32a.5.5 0 0 0-.59-.22l-2.39.96c-.5-.38-1.05-.7-1.63-.94l-.36-2.54a.5.5 0 0 0-.49-.42h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.24-1.13.56-1.63.94l-2.39-.96a.5.5 0 0 0-.59.22L2.7 8.88a.5.5 0 0 0 .12.61l2.03 1.58c-.05.31-.07.63-.07.94s.02.63.07.94l-2.03 1.58a.5.5 0 0 0-.12.61l1.92 3.32a.5.5 0 0 0 .59.22l2.39-.96c.5.38 1.05.7 1.63.94l.36 2.54a.5.5 0 0 0 .49.42h3.8a.5.5 0 0 0 .49-.42l.36-2.54c.58-.24 1.13-.56 1.63-.94l2.39.96a.5.5 0 0 0 .59-.22l1.92-3.32a.5.5 0 0 0-.12-.61zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+    </svg>
+  </button>
+
+  <div id="settings-panel" class="settings-panel" hidden>
+    <h2>Réglages</h2>
+    <label for="style">Style</label>
+    <select id="style">
+      <option value="standard">Standard</option>
+      <option value="polaroid">Polaroid</option>
+    </select>
+    <label for="duration">Durée entre les photos : <output id="duration-value" for="duration">7 s</output></label>
+    <input type="range" id="duration" min="3" max="30" step="1" value="7">
+    <button type="button" id="fullscreen-btn">Plein écran</button>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

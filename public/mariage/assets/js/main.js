@@ -152,15 +152,11 @@
 					return;
 
 			// Create bg and append it to body.
-				// overlay.png path is absolute (not the original theme's
-				// site-root-relative "assets/css/images/overlay.png") since
-				// this theme's assets now live under /mariage/, not the site
-				// root — a relative path here resolves against the PAGE's
-				// URL (this div is appended to <body>, not into the
-				// stylesheet), not against main.css's own location.
+				// Resolve from the page URL so the deployed /l-et-m/ base is
+				// retained; this div is appended to <body>, not the stylesheet.
 				$bg = $('<div class="main-bg" id="' + $this.attr('id') + '-bg"></div>')
 					.css('background-image', (
-						'url("/mariage/assets/css/images/overlay.png"), url("' + $primaryImg.attr('src') + '")'
+						'url("mariage/assets/css/images/overlay.png"), url("' + $primaryImg.attr('src') + '")'
 					))
 					.appendTo($body);
 

@@ -10,6 +10,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Apricot';
+  src: url('/fonts/Apricot.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -64,18 +72,22 @@ main {
 .site-nav a.is-current { color: #abb9a2; font-weight: 600; }
 
 @media (max-width: 480px) {
-  .site-nav { gap: 1rem; padding: 0.7rem 0.75rem; }
-  .site-nav a { font-size: 0.6875rem; letter-spacing: 0.08em; }
+  .site-nav { gap: 0.4rem; padding: 1rem 0.5rem; }
+  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
 }
 
 .monogram {
   margin: 0 0 1rem;
   font-family: 'MoreSugar-Thin', cursive;
   font-size: 2.25rem;
-  color: #356d65;
+  color: #abb9a2;
 }
 
-.monogram span { opacity: 0.85; margin: 0 0.05em 0 0.15em; }
+.monogram span {
+  font-family: 'Apricot', cursive;
+  color: #abb9a2;
+  margin: 0;
+}
 
 h1 {
   margin: 0 0 0.5rem;

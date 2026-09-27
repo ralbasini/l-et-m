@@ -43,9 +43,9 @@ Tant qu'aucune photo n'est présente, le site affiche un état "photos à venir"
 
 `loadPhotos()` (dans `src/photos.js`, partagé par le site et le diaporama projecteur ci-dessous) interroge `photos-list.php` à chaque chargement de page ; c'est le seul endroit à modifier si la source de photos change un jour (S3, etc.), en renvoyant le même format (`{ src, alt }` par photo).
 
-## Diaporama pour le jour J (`/slideshow/`)
+## Diaporama pour le jour J (`/diaporama/`)
 
-`https://ralbasini.github.io/l-et-m/slideshow/` est une page à part, pensée pour tourner sur un vidéoprojecteur pendant la réception : les photos défilent en fondu (7s chacune, jamais recadrées), et la page revérifie `photos-list.php` toutes les 60s — les photos envoyées par les invités via le QR code rejoignent donc le diaporama toutes seules, sans y toucher. Un premier clic passe en plein écran.
+`https://ralbasini.github.io/l-et-m/diaporama/` est une page à part, pensée pour tourner sur un vidéoprojecteur pendant la réception : les photos défilent en fondu (7s chacune, jamais recadrées), et la page revérifie `photos-list.php` toutes les 60s — les photos envoyées par les invités via le QR code rejoignent donc le diaporama toutes seules, sans y toucher. Un premier clic passe en plein écran. L'ancienne adresse `/slideshow/` redirige vers cette page.
 
 ## Upload par les invités (QR code)
 
