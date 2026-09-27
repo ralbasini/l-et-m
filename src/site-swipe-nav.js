@@ -52,6 +52,32 @@ if (embedded) {
 if (links.length > 1) {
   let start = null
 
+  function navigateByDirection (direction) {
+    const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
+    if (currentIndex < 0) return
+
+    const nextIndex = currentIndex + direction
+    if (nextIndex < 0 || nextIndex >= links.length) return
+    navigate(links[nextIndex].href)
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+    if (document.querySelector('#lightbox:not([hidden])')) return
+
+    const target = event.target
+    if (target instanceof Element && target.closest('input, textarea, select, button, [contenteditable="true"]')) return
+
+    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (!direction) return
+
+    const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
+    if (currentIndex + direction < 0 || currentIndex + direction >= links.length) return
+
+    event.preventDefault()
+    navigateByDirection(direction)
+  })
+
   document.addEventListener('touchstart', (event) => {
     if (event.touches.length !== 1 || document.querySelector('#lightbox:not([hidden])')) {
       start = null
@@ -88,13 +114,8 @@ if (links.length > 1) {
 
     if (Math.abs(deltaX) < 64 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 1200) return
 
-    const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
-    if (currentIndex < 0) return
-
     const direction = deltaX < 0 ? 1 : -1
-    const nextIndex = currentIndex + direction
-    if (nextIndex < 0 || nextIndex >= links.length) return
-    navigate(links[nextIndex].href)
+    navigateByDirection(direction)
   }, { passive: true })
 
   document.addEventListener('touchcancel', () => { start = null }, { passive: true })

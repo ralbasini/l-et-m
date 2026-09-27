@@ -72,6 +72,20 @@ if (window.parent !== window) {
     if (location.hash !== link.hash) location.hash = link.hash
   })
 
+  window.addEventListener('keydown', (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+    if (event.target instanceof Element && event.target.closest('input, textarea, select, button, [contenteditable="true"]')) return
+
+    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
+    if (!direction) return
+
+    const nextIndex = pages.indexOf(location.hash.slice(1)) + direction
+    if (nextIndex < 0 || nextIndex >= pages.length) return
+
+    event.preventDefault()
+    location.hash = pages[nextIndex]
+  })
+
   window.addEventListener('hashchange', render)
   window.addEventListener('message', (event) => {
     if (event.origin !== location.origin || !frames.some((frame) => frame.contentWindow === event.source)) return
