@@ -76,7 +76,7 @@ html.is-embedded .site-nav { display: none; }
 
 .site-nav a:hover { color: #d0dad1; }
 .site-nav a.is-current {
-  color: #d0dad1;
+  color: #ffffff;
   background: #356d65;
   padding: 0 0.6rem;
   margin: -0.85rem 0;

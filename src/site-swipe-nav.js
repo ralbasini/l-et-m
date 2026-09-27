@@ -1,6 +1,22 @@
 const nav = document.querySelector('.site-nav')
 const links = nav ? [...nav.querySelectorAll('a')] : []
 const embedded = window.parent !== window
+let suppressedClick = null
+
+document.addEventListener('click', (event) => {
+  if (!suppressedClick) return
+  if (Date.now() > suppressedClick.expires) {
+    suppressedClick = null
+    return
+  }
+
+  const target = event.target
+  if (target instanceof Node && (target === suppressedClick.target || suppressedClick.target.contains(target))) {
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    suppressedClick = null
+  }
+}, true)
 
 function getSection (href) {
   const target = new URL(href, location.href)
@@ -51,7 +67,6 @@ if (embedded) {
 
 if (links.length > 1) {
   let start = null
-  let horizontalGesture = false
 
   function navigateByDirection (direction) {
     const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
@@ -79,70 +94,123 @@ if (links.length > 1) {
     navigateByDirection(direction)
   })
 
-  document.addEventListener('touchstart', (event) => {
-    if (event.touches.length !== 1 || document.querySelector('#lightbox:not([hidden])')) {
+  if (window.PointerEvent) {
+    document.documentElement.style.touchAction = 'pan-y pinch-zoom'
+
+    document.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'touch') return
+      if (!event.isPrimary || document.querySelector('#lightbox:not([hidden])')) {
+        start = null
+        return
+      }
+
+      const target = event.target
+      if (target instanceof Element && target.closest('input, textarea, select, label, [contenteditable="true"], #upload-progress:not([hidden])')) return
+
+      const edge = 8
+      if (event.clientX < edge || event.clientX > window.innerWidth - edge) return
+
+      const captureTarget = target instanceof Element ? target : document.body
+      start = { pointerId: event.pointerId, target: captureTarget, x: event.clientX, y: event.clientY, time: Date.now(), horizontal: false }
+      try { captureTarget.setPointerCapture(event.pointerId) } catch {}
+    }, { passive: true })
+
+    document.addEventListener('pointermove', (event) => {
+      if (!start || event.pointerId !== start.pointerId) return
+
+      const deltaX = event.clientX - start.x
+      const deltaY = event.clientY - start.y
+      if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) start.horizontal = true
+    }, { passive: true })
+
+    document.addEventListener('pointerup', (event) => {
+      if (!start || event.pointerId !== start.pointerId) return
+
+      const deltaX = event.clientX - start.x
+      const deltaY = event.clientY - start.y
+      const duration = Date.now() - start.time
+      const target = start.target
+      const horizontal = start.horizontal
       start = null
-      horizontalGesture = false
-      return
-    }
 
-    const target = event.target
-    if (target instanceof Element && target.closest('input, textarea, select, label, [contenteditable="true"], #upload-progress:not([hidden])')) {
+      if (!horizontal || Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 2000) return
+
+      const direction = deltaX < 0 ? 1 : -1
+      const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
+      if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= links.length) return
+
+      suppressedClick = { target, expires: Date.now() + 500 }
+      navigateByDirection(direction)
+    }, { passive: true })
+
+    document.addEventListener('pointercancel', () => { start = null }, { passive: true })
+  } else {
+    let horizontalGesture = false
+
+    document.addEventListener('touchstart', (event) => {
+      if (event.touches.length !== 1 || document.querySelector('#lightbox:not([hidden])')) {
+        start = null
+        horizontalGesture = false
+        return
+      }
+
+      const target = event.target
+      if (target instanceof Element && target.closest('input, textarea, select, label, [contenteditable="true"], #upload-progress:not([hidden])')) {
+        start = null
+        horizontalGesture = false
+        return
+      }
+
+      const touch = event.touches[0]
+      const edge = 8
+      if (touch.clientX < edge || touch.clientX > window.innerWidth - edge) {
+        start = null
+        horizontalGesture = false
+        return
+      }
+
+      start = { x: touch.clientX, y: touch.clientY, time: Date.now() }
+      horizontalGesture = false
+    }, { passive: true })
+
+    document.addEventListener('touchmove', (event) => {
+      if (!start || event.touches.length !== 1) return
+
+      const touch = event.touches[0]
+      const deltaX = touch.clientX - start.x
+      const deltaY = touch.clientY - start.y
+      if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
+        horizontalGesture = true
+        if (event.cancelable) event.preventDefault()
+      }
+    }, { passive: false })
+
+    document.addEventListener('touchend', (event) => {
+      if (!start || event.changedTouches.length !== 1) {
+        start = null
+        horizontalGesture = false
+        return
+      }
+
+      const touch = event.changedTouches[0]
+      const deltaX = touch.clientX - start.x
+      const deltaY = touch.clientY - start.y
+      const duration = Date.now() - start.time
       start = null
-      horizontalGesture = false
-      return
-    }
 
-    const touch = event.touches[0]
-    const edge = 8
-    if (touch.clientX < edge || touch.clientX > window.innerWidth - edge) {
-      start = null
-      horizontalGesture = false
-      return
-    }
+      if (!horizontalGesture || Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 2000) {
+        horizontalGesture = false
+        return
+      }
 
-    start = { x: touch.clientX, y: touch.clientY, time: Date.now() }
-    horizontalGesture = false
-  }, { passive: true })
-
-  document.addEventListener('touchmove', (event) => {
-    if (!start || event.touches.length !== 1) return
-
-    const touch = event.touches[0]
-    const deltaX = touch.clientX - start.x
-    const deltaY = touch.clientY - start.y
-    if (Math.abs(deltaX) > 12 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) {
-      horizontalGesture = true
       if (event.cancelable) event.preventDefault()
-    }
-  }, { passive: false })
+      horizontalGesture = false
+      navigateByDirection(deltaX < 0 ? 1 : -1)
+    }, { passive: false })
 
-  document.addEventListener('touchend', (event) => {
-    if (!start || event.changedTouches.length !== 1) {
+    document.addEventListener('touchcancel', () => {
       start = null
       horizontalGesture = false
-      return
-    }
-
-    const touch = event.changedTouches[0]
-    const deltaX = touch.clientX - start.x
-    const deltaY = touch.clientY - start.y
-    const duration = Date.now() - start.time
-    start = null
-
-    if (!horizontalGesture || Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25 || duration > 2000) {
-      horizontalGesture = false
-      return
-    }
-
-    if (event.cancelable) event.preventDefault()
-    horizontalGesture = false
-    const direction = deltaX < 0 ? 1 : -1
-    navigateByDirection(direction)
-  }, { passive: false })
-
-  document.addEventListener('touchcancel', () => {
-    start = null
-    horizontalGesture = false
-  }, { passive: true })
+    }, { passive: true })
+  }
 }
