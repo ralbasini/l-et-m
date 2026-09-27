@@ -215,10 +215,12 @@ const photosInput = document.getElementById('photos')
 const previewGrid = document.getElementById('preview-grid')
 const previewWarning = document.getElementById('preview-warning')
 const uploadSubmitBtn = document.getElementById('upload-submit')
+const uploadProgress = document.getElementById('upload-progress')
 
 let selectedFiles = []
 let previewUrls = []
 let currentRemaining = 15
+let isUploading = false
 
 function fileKey (file) {
   return [file.name, file.size, file.lastModified].join('|')
@@ -306,8 +308,16 @@ renderPreview()
 
 document.getElementById('upload-form').addEventListener('submit', async (e) => {
   e.preventDefault()
+  if (isUploading || selectedFiles.length === 0) return
+
   const form = e.target
   const formData = new FormData(form)
+  isUploading = true
+  uploadSubmitBtn.disabled = true
+  uploadSubmitBtn.classList.add('is-uploading')
+  uploadProgress.hidden = false
+  form.setAttribute('aria-busy', 'true')
+
   try {
     const data = await apiFetch('upload.php', { method: 'POST', formData })
     const parts = []
@@ -320,6 +330,12 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
     renderQuota(data.remaining, currentMaxPerPerson)
   } catch (err) {
     toast(err.message, false)
+  } finally {
+    isUploading = false
+    uploadSubmitBtn.classList.remove('is-uploading')
+    uploadSubmitBtn.disabled = selectedFiles.length === 0
+    uploadProgress.hidden = true
+    form.removeAttribute('aria-busy')
   }
 })
 

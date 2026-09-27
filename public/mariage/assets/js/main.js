@@ -33,6 +33,7 @@
 			// Create wrapper.
 				$body.wrapInner('<div id="wrapper" />');
 				$wrapper = $('#wrapper');
+				$wrapper.children('.site-nav').appendTo($body);
 
 				// Hack: iOS vh bug.
 					if (browser.os == 'ios')

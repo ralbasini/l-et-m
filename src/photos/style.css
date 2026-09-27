@@ -47,6 +47,7 @@ main {
   justify-content: center;
   gap: 1.5rem;
   padding: 0.85rem 1rem;
+  padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
   background: rgba(23, 23, 23, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -73,6 +74,7 @@ main {
 
 @media (max-width: 480px) {
   .site-nav { gap: 0.4rem; padding: 1rem 0.5rem; }
+  .site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
   .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
 }
 
@@ -216,6 +218,50 @@ input[type="text"], input[type="file"] {
   font-size: 0.8125rem;
 }
 
+.upload-progress {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(23, 23, 23, 0.55);
+}
+
+.upload-progress[hidden] { display: none; }
+
+.upload-progress-message {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  background: #FFFFFF;
+  color: #252525;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.upload-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  border: 2px solid rgba(53, 109, 101, 0.2);
+  border-top-color: #356d65;
+  border-radius: 50%;
+  animation: upload-spin 0.8s linear infinite;
+}
+
+@keyframes upload-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-spinner { animation: none; }
+}
+
 button {
   font-family: 'Work Sans', sans-serif;
   font-weight: 600;
@@ -236,6 +282,13 @@ button:disabled {
   background: rgba(37, 37, 37, 0.15);
   color: rgba(37, 37, 37, 0.45);
   cursor: not-allowed;
+}
+
+#upload-submit.is-uploading {
+  background: #8d9690;
+  color: #FFFFFF;
+  cursor: wait;
+  opacity: 1;
 }
 
 button.link-btn, button.link-inline {

@@ -29,11 +29,12 @@
 				top: 0;
 				left: 0;
 				right: 0;
-				z-index: 20;
+				z-index: 10002;
 				display: flex;
 				justify-content: center;
 				gap: 1.5rem;
 				padding: 0.85rem 1rem;
+				padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
 				background: rgba(23, 23, 23, 0.72);
 				backdrop-filter: blur(8px);
 				-webkit-backdrop-filter: blur(8px);
@@ -57,6 +58,7 @@
 			.site-nav a.is-current { color: #abb9a2; font-weight: 600; }
 			@media (max-width: 480px) {
 				.site-nav { gap: 0.4rem; padding: 1rem 0.5rem; }
+				.site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
 				.site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
 			}
 
@@ -135,7 +137,7 @@
 			}
 			@media (max-width: 736px) {
 				#header header h1 {
-					font-size: clamp(2.25rem, 6vw, 3.75rem);
+					font-size: min(2rem, 9vw);
 					letter-spacing: 0.01em;
 					white-space: nowrap;
 				}
