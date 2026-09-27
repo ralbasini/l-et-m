@@ -70,7 +70,14 @@ main {
 }
 
 .site-nav a:hover { color: #d0dad1; }
-.site-nav a.is-current { color: #abb9a2; font-weight: 600; }
+.site-nav a.is-current {
+  color: #171717;
+  background: #abb9a2;
+  border-radius: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  margin: -0.45rem -0.6rem;
+  font-weight: 600;
+}
 
 @media (max-width: 480px) {
   .site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
