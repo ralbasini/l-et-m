@@ -10,6 +10,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Apricot';
+  src: url('/fonts/Apricot.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -23,12 +31,16 @@ html, body {
   width: fit-content;
   margin: 0 auto 1.5rem;
   font-family: 'MoreSugar-Thin', cursive;
-  font-size: 2rem;
-  color: #356d65;
+  font-size: 2.25rem;
+  color: #abb9a2;
   text-decoration: none;
 }
 
-.monogram span { opacity: 0.85; margin: 0 0.05em 0 0.15em; }
+.monogram span {
+  font-family: 'Apricot', cursive;
+  color: #abb9a2;
+  margin: 0;
+}
 
 /* ── Login ───────────────────────────────────────────────────── */
 .login-view {
