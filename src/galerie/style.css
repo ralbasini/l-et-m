@@ -120,7 +120,7 @@
 
   .site-nav a:hover { color: #d0dad1; }
   .site-nav a.is-current {
-    color: #ffffff;
+    color: #ffffff !important;
     background: #356d65;
     padding: 0 0.6rem;
     margin: -0.85rem 0;
