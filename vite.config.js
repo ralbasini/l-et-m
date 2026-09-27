@@ -2,10 +2,29 @@ import { defineConfig } from 'vite'
 import { fileURLToPath } from 'node:url'
 
 const r = (p) => fileURLToPath(new URL(p, import.meta.url))
+const base = '/l-et-m/'
+
+function redirectBarePhotosPath (request, response, next) {
+  const pathname = new URL(request.url || '/', 'http://vite.local').pathname
+  if (pathname !== `${base}photos`.replace(/\/$/, '')) return next()
+
+  response.statusCode = 302
+  response.setHeader('Location', `${base}#photos`)
+  response.end()
+}
 
 export default defineConfig({
   root: 'src',
-  base: '/l-et-m/',
+  base,
+  plugins: [{
+    name: 'bare-photos-route-redirect',
+    configureServer (server) {
+      server.middlewares.use(redirectBarePhotosPath)
+    },
+    configurePreviewServer (server) {
+      server.middlewares.use(redirectBarePhotosPath)
+    },
+  }],
   publicDir: '../public',
   build: {
     outDir: '../dist',
