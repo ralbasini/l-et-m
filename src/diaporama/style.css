@@ -167,7 +167,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 300;
   font-size: 1.25rem;
   color: rgba(208, 218, 209, 0.6);
@@ -230,7 +230,7 @@ html, body {
      as before instead of visually pushing the link inward. */
   padding: 0.5rem 0.75rem;
   margin: -0.5rem -0.75rem;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.8125rem;
   color: rgba(208, 218, 209, 0.6);
   text-decoration: none;
@@ -277,7 +277,7 @@ html, body {
   background: rgba(23, 23, 23, 0.92);
   border: 1px solid rgba(208, 218, 209, 0.2);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   color: rgba(208, 218, 209, 0.9);
 }
 
@@ -310,7 +310,7 @@ html, body {
   border: 1px solid rgba(208, 218, 209, 0.3);
   background: rgba(208, 218, 209, 0.08);
   color: #d0dad1;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.8125rem;
 }
 
@@ -322,7 +322,7 @@ html, body {
   border: none;
   padding: 0.6rem 1rem;
   border-radius: 0.4rem;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.05em;

@@ -8,17 +8,15 @@
 	<head>
 		<title>Mariage Lobna et Martin</title>
 		<meta charset="utf-8" />
+		<script>if (window.parent !== window) document.documentElement.classList.add('is-embedded')</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<meta name="robots" content="noindex, nofollow">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
 		<link rel="stylesheet" href="/mariage/assets/css/main.css" />
-		<!-- Work Sans, loaded only for .site-nav below (the rest of this page
-		     uses the vendored theme's own Raleway) — needed so the nav renders
-		     with the exact same typeface as /galerie/ and /photos/, not a
-		     fallback font. -->
+		<!-- Quicksand is the site's sans-serif typeface. -->
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 		<!-- .site-nav matches the nav on /galerie/ and /photos/ byte-for-byte
 		     (see src/galerie/style.css) — kept inline here rather than in a
 		     linked stylesheet since this page otherwise only loads the
@@ -41,7 +39,9 @@
 				-webkit-backdrop-filter: blur(8px);
 			}
 			.site-nav a {
-				font-family: 'Work Sans', sans-serif;
+				display: flex;
+				align-items: center;
+				font-family: 'Quicksand', sans-serif;
 				font-size: 0.75rem;
 				line-height: 1;
 				font-weight: 500;
@@ -57,20 +57,64 @@
 			}
 			.site-nav a:hover { color: #d0dad1; }
 			.site-nav a.is-current {
-				display: flex;
-				align-items: center;
 				color: #d0dad1;
 				background: #356d65;
 				padding: 0 0.6rem;
 				margin: -0.85rem 0;
 				font-weight: 600;
 			}
+			#app-shell {
+				--nav-height: calc(3.1rem + env(safe-area-inset-top, 0px));
+				position: fixed;
+				inset: 0;
+				z-index: 10001;
+				display: flex;
+				flex-direction: column;
+				background: #171717;
+			}
+			#app-shell > .site-nav {
+				position: relative;
+				top: auto;
+				left: auto;
+				right: auto;
+				flex: 0 0 var(--nav-height);
+				height: var(--nav-height);
+				padding: env(safe-area-inset-top, 0px) 1rem 0;
+				align-items: stretch;
+			}
+			#app-shell > .site-nav a.is-current { margin: 0; }
+			#panel-viewport { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+			#panel-track {
+				display: flex;
+				width: max-content;
+				height: 100%;
+				transition: transform 420ms cubic-bezier(0.22, 0.68, 0, 1);
+			}
+			#panel-track iframe {
+				display: block;
+				flex: 0 0 100vw;
+				width: 100vw;
+				height: 100%;
+				border: 0;
+				background: #d0dad1;
+			}
+			#wedding-site { display: none; }
+			html.is-embedded #app-shell { display: none; }
+			html.is-embedded #wedding-site { display: block; }
+			html.is-embedded .site-nav { display: none; }
+			@media (prefers-reduced-motion: reduce) {
+				#panel-track { transition: none; }
+			}
 			@media (max-width: 480px) {
 				.site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
 				.site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
 				.site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
 				.site-nav a.is-current { margin: -1rem 0; }
+				#app-shell > .site-nav { padding: env(safe-area-inset-top, 0px) 0.5rem 0; }
+				#app-shell > .site-nav a.is-current { margin: 0; }
 			}
+			body.is-preload #app-shell { opacity: 0; }
+			body:not(.is-preload) #app-shell { opacity: 1; transition: opacity 0.2s ease; }
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in
@@ -112,7 +156,7 @@
 			   hover/active states), since nothing less beats that. */
 
 			body, input, select, textarea {
-				font-family: 'Work Sans', system-ui, sans-serif;
+				font-family: 'Quicksand', system-ui, sans-serif;
 				font-size: 16px;
 				line-height: 1.6;
 				color: #252525;
@@ -133,7 +177,7 @@
 			   but read as body text, not titles — excluded from the script
 			   font above like every other non-title text on the site. */
 			.icons-grid h3 {
-				font-family: 'Work Sans', sans-serif;
+				font-family: 'Quicksand', sans-serif;
 				font-weight: 500;
 				font-size: 0.9375rem;
 			}
@@ -229,7 +273,7 @@
 				color: #FFFFFF !important;
 				box-shadow: none;
 				border-radius: 999px;
-				font-family: 'Work Sans', sans-serif;
+				font-family: 'Quicksand', sans-serif;
 				font-weight: 600;
 				text-transform: none;
 			}
@@ -252,6 +296,22 @@
 	</head>
 	<body class="is-preload">
 
+		<div id="app-shell">
+			<nav class="site-nav" aria-label="Navigation">
+				<a href="#mariage" class="is-current" aria-current="page">Mariage</a>
+				<a href="#galerie">Galerie</a>
+				<a href="#photos">Photos</a>
+			</nav>
+			<main id="panel-viewport" aria-label="Contenu du site">
+				<div id="panel-track">
+					<iframe title="Mariage" data-page="mariage" data-src="./?embed=mariage"></iframe>
+					<iframe title="Galerie" data-page="galerie" data-src="galerie/?embed=1"></iframe>
+					<iframe title="Photos" data-page="photos" data-src="photos/?embed=1"></iframe>
+				</div>
+			</main>
+		</div>
+
+		<div id="wedding-site">
 		<nav class="site-nav" aria-label="Navigation">
 			<a href="./" class="is-current" aria-current="page">Mariage</a>
 			<a href="galerie/">Galerie</a>
@@ -358,15 +418,8 @@
 					</div>
 				</div>
 			</section>
-		<!-- Scripts -->
-			<script src="/mariage/assets/js/jquery.min.js"></script>
-			<script src="/mariage/assets/js/jquery.scrollex.min.js"></script>
-			<script src="/mariage/assets/js/jquery.scrolly.min.js"></script>
-			<script src="/mariage/assets/js/browser.min.js"></script>
-			<script src="/mariage/assets/js/breakpoints.min.js"></script>
-			<script src="/mariage/assets/js/util.js"></script>
-			<script src="/mariage/assets/js/main.js"></script>
-			<script type="module" src="./site-swipe-nav.js"></script>
+		</div>
+		<script type="module" src="./onepager.js"></script>
 
 	</body>
 </html>

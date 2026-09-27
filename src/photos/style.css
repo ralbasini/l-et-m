@@ -23,7 +23,7 @@ html, body {
   min-height: 100%;
   background: #d0dad1;
   color: #252525;
-  font-family: 'Work Sans', system-ui, sans-serif;
+  font-family: 'Quicksand', system-ui, sans-serif;
 }
 
 main {
@@ -54,8 +54,12 @@ main {
   -webkit-backdrop-filter: blur(8px);
 }
 
+html.is-embedded .site-nav { display: none; }
+
 .site-nav a {
-  font-family: 'Work Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.75rem;
   /* Explicit, not inherited — see the matching comment in
      src/galerie/style.css for why (Tailwind Preflight vs. no Tailwind here
@@ -72,8 +76,6 @@ main {
 
 .site-nav a:hover { color: #d0dad1; }
 .site-nav a.is-current {
-  display: flex;
-  align-items: center;
   color: #d0dad1;
   background: #356d65;
   padding: 0 0.6rem;
@@ -149,7 +151,7 @@ input[type="text"], input[type="file"] {
   border-radius: 0.4rem;
   background: #FFFFFF;
   color: #252525;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.9375rem;
 }
 
@@ -273,7 +275,7 @@ input[type="text"], input[type="file"] {
 }
 
 button {
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.03em;

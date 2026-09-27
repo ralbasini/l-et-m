@@ -35,7 +35,7 @@
   }
 
   body {
-    font-family: 'Work Sans', system-ui, sans-serif;
+    font-family: 'Quicksand', system-ui, sans-serif;
     color: #252525;
     background-color: #d0dad1;
     -webkit-font-smoothing: antialiased;
@@ -98,8 +98,12 @@
     -webkit-backdrop-filter: blur(8px);
   }
 
+  html.is-embedded .site-nav { display: none; }
+
   .site-nav a {
-    font-family: 'Work Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.75rem;
     /* Explicit, not inherited: Tailwind's Preflight sets html{line-height:1.5}
        on this page, but /photos/ (no Tailwind) falls back to the browser's
@@ -116,8 +120,6 @@
 
   .site-nav a:hover { color: #d0dad1; }
   .site-nav a.is-current {
-    display: flex;
-    align-items: center;
     color: #d0dad1;
     background: #356d65;
     padding: 0 0.6rem;
@@ -209,7 +211,7 @@
 
   .hero-kicker {
     margin-bottom: 1.25rem;
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.22em;
@@ -235,7 +237,7 @@
 
   .hero-sub {
     margin-top: 1.25rem;
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-weight: 300;
     font-size: 0.9375rem;
     letter-spacing: 0.06em;
@@ -298,7 +300,7 @@
     margin: 0 auto 2rem;
     background: #356d65;
     color: #FFFFFF;
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.9375rem;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -340,7 +342,7 @@
   }
 
   .album-subtitle {
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-weight: 300;
     font-size: 0.9375rem;
     color: rgba(37, 37, 37, 0.6);
@@ -357,7 +359,7 @@
   }
 
   .filter-chip {
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -501,7 +503,7 @@
   }
 
   .lightbox-count {
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-size: 0.75rem;
     letter-spacing: 0.1em;
     color: rgba(208, 218, 209, 0.65);
@@ -535,6 +537,19 @@
     height: 2.75rem;
   }
 
+  .lightbox-slideshow {
+    top: 1.25rem;
+    left: 1.25rem;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+
   .lightbox-nav {
     top: 50%;
     transform: translateY(-50%);
@@ -550,6 +565,7 @@
     .lightbox-prev { left: 0.5rem; }
     .lightbox-next { right: 0.5rem; }
     .lightbox-close { top: 0.75rem; right: 0.75rem; }
+    .lightbox-slideshow { top: 0.75rem; left: 0.75rem; }
   }
 }
 

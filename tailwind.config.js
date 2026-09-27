@@ -15,7 +15,7 @@ export default {
       fontFamily: {
         display: ['"Fraunces"', 'Georgia', 'serif'],
         script: ['"Bonheur Royale"', 'cursive'],
-        body: ['"Work Sans"', 'system-ui', 'sans-serif'],
+        body: ['"Quicksand"', 'system-ui', 'sans-serif'],
       },
     },
   },

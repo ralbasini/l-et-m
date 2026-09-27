@@ -23,7 +23,7 @@ html, body {
   min-height: 100%;
   background: #d0dad1;
   color: #252525;
-  font-family: 'Work Sans', system-ui, sans-serif;
+  font-family: 'Quicksand', system-ui, sans-serif;
 }
 
 .monogram {
@@ -106,7 +106,7 @@ html, body {
 
 .card > label {
   display: block;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 600;
   font-size: 0.9375rem;
   margin-bottom: 1rem;
@@ -123,12 +123,12 @@ input[type="text"], input[type="password"], input[type="file"], select {
   border-radius: 0.4rem;
   background: #FFFFFF;
   color: #252525;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-size: 0.9375rem;
 }
 
 button {
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Quicksand', sans-serif;
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.03em;
