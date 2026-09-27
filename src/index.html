@@ -31,6 +31,7 @@
 				right: 0;
 				z-index: 10002;
 				display: flex;
+				align-items: stretch;
 				justify-content: center;
 				gap: 2rem;
 				padding: 0.85rem 1rem;
@@ -56,17 +57,19 @@
 			}
 			.site-nav a:hover { color: #d0dad1; }
 			.site-nav a.is-current {
-				color: #171717;
-				background: #abb9a2;
-				border-radius: 0.25rem;
-				padding: 0.45rem 0.6rem;
-				margin: -0.45rem -0.6rem;
+				display: flex;
+				align-items: center;
+				color: #d0dad1;
+				background: #356d65;
+				padding: 0 0.6rem;
+				margin: -0.85rem 0;
 				font-weight: 600;
 			}
 			@media (max-width: 480px) {
 				.site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
 				.site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
 				.site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
+				.site-nav a.is-current { margin: -1rem 0; }
 			}
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
@@ -192,37 +195,17 @@
 			}
 			#header header { position: relative; z-index: 2; }
 			.wedding-signature {
-				margin: 0;
-				padding: 2.5rem 1.5rem 3.5rem;
+				display: block;
+				margin: 0.75rem 0 0;
 				color: #356d65;
 				font-family: 'MoreSugar-Thin', Georgia, serif;
-				font-size: 1.75rem;
+				font-size: 1.25rem;
 				line-height: 1.2;
-				text-align: center;
 			}
 			.wedding-signature .hero-amp {
 				font-family: 'Apricot', cursive;
 				color: #356d65;
 				padding: 0 0.1em;
-			}
-			.brand-footer {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				min-height: 3rem;
-				padding: 0.55rem 1rem;
-				background: #252525;
-			}
-			.brand-footer-logo {
-				font-family: 'MoreSugar-Thin', Georgia, serif;
-				font-size: 1.125rem;
-				line-height: 1;
-				color: #abb9a2;
-			}
-			.brand-footer-logo span {
-				font-family: 'Apricot', cursive;
-				color: #abb9a2;
-				margin: 0;
 			}
 			.main-bg {
 				z-index: 0;
@@ -370,16 +353,11 @@
 						Nous mettrons à disposition une urne et notre numéro d'IBAN est le suivant CH29 0840 1000 0708 1852 5 au nom de <i>Lobna Abdennebi et Martin Héritier</i> <br><br>
 
 						Merci pour votre générosité!
+						<span class="wedding-signature">Lobna <span class="hero-amp">&amp;</span> Martin</span>
 						</p>
 					</div>
 				</div>
 			</section>
-
-					<p class="wedding-signature">Lobna <span class="hero-amp">&amp;</span> Martin</p>
-					<footer class="brand-footer" aria-label="Lobna et Martin">
-						<span class="brand-footer-logo">L<span>&amp;</span>M</span>
-					</footer>
-
 		<!-- Scripts -->
 			<script src="/mariage/assets/js/jquery.min.js"></script>
 			<script src="/mariage/assets/js/jquery.scrollex.min.js"></script>
