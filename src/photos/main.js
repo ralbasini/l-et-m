@@ -1,4 +1,5 @@
 import { REMOTE_GALLERY_URL } from '../photos.js'
+import '../site-swipe-nav.js'
 
 // Guest photo upload, served from github.io but talking to the
 // Infomaniak-hosted PHP API. A guest's identity is a bearer token in

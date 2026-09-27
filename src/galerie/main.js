@@ -1,4 +1,5 @@
 import { loadPhotos } from '../photos.js'
+import '../site-swipe-nav.js'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

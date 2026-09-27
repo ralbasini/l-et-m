@@ -32,7 +32,7 @@
 				z-index: 10002;
 				display: flex;
 				justify-content: center;
-				gap: 1.5rem;
+				gap: 2rem;
 				padding: 0.85rem 1rem;
 				padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
 				background: rgba(23, 23, 23, 0.72);
@@ -57,7 +57,7 @@
 			.site-nav a:hover { color: #d0dad1; }
 			.site-nav a.is-current { color: #abb9a2; font-weight: 600; }
 			@media (max-width: 480px) {
-				.site-nav { gap: 1.25rem; padding: 1rem 0.5rem; }
+				.site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
 				.site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
 				.site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
 			}
@@ -164,11 +164,18 @@
 				background-position: center;
 				background-repeat: no-repeat;
 				background-size: cover;
+				background-color: #171717;
 				opacity: 0;
 				transform: scale(1.03);
 				transition: opacity 1.5s ease-in-out;
 			}
 			#header .mariage-hero-image.is-active { opacity: 1; }
+			@media (max-width: 736px) {
+				#header .mariage-hero-image {
+					background-size: contain;
+					transform: none;
+				}
+			}
 			#header .mariage-hero-veil {
 				position: absolute;
 				inset: 0;
@@ -352,6 +359,7 @@
 			<script src="/mariage/assets/js/breakpoints.min.js"></script>
 			<script src="/mariage/assets/js/util.js"></script>
 			<script src="/mariage/assets/js/main.js"></script>
+			<script type="module" src="./site-swipe-nav.js"></script>
 
 	</body>
 </html>
