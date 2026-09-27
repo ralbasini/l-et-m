@@ -42,10 +42,32 @@ html, body {
   margin: 0;
 }
 
+.brand-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.55rem 1rem;
+  background: #252525;
+}
+
+.brand-footer-logo {
+  font-family: 'MoreSugar-Thin', Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: #abb9a2;
+}
+
+.brand-footer-logo span {
+  font-family: 'Apricot', cursive;
+  color: #abb9a2;
+  margin: 0;
+}
+
 /* ── Login ───────────────────────────────────────────────────── */
 .login-view {
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: calc(100vh - 3rem);
+  min-height: calc(100dvh - 3rem);
   display: flex;
   align-items: center;
   justify-content: center;
