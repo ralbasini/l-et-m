@@ -350,6 +350,19 @@ button.link-btn:hover, button.link-inline:hover { background: none; color: #2a59
   cursor: zoom-in;
 }
 
+.img-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0.5rem;
+  background: rgba(37, 37, 37, 0.06);
+  color: rgba(37, 37, 37, 0.5);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
 .delete-btn {
   position: absolute;
   top: 0.35rem;
