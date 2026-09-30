@@ -177,6 +177,25 @@ function renderQuota (remaining, maxPerPerson) {
   }
 }
 
+// A file the browser can't decode (an old HEIC upload from before the fix
+// above, or any other unsupported format) would otherwise show nothing at
+// all — a blank tile reads as a loading delay, not a real problem, so swap
+// in an explicit "can't preview this" placeholder instead.
+function addImgFallback (img, figure) {
+  img.addEventListener('error', () => {
+    // Not the `hidden` attribute: `.grid figure img` sets `display: block`
+    // at the same specificity the UA stylesheet's `[hidden]` rule uses, and
+    // author styles win that tie — same reason .empty needs its own
+    // `[hidden]` override elsewhere in this codebase. An inline style
+    // always wins regardless.
+    img.style.display = 'none'
+    const fallback = document.createElement('div')
+    fallback.className = 'img-fallback'
+    fallback.textContent = 'Aperçu indisponible'
+    figure.appendChild(fallback)
+  }, { once: true })
+}
+
 function renderPhotos (photos) {
   const grid = document.getElementById('photos-grid')
   grid.innerHTML = ''
@@ -192,6 +211,7 @@ function renderPhotos (photos) {
     img.loading = 'lazy'
     img.addEventListener('click', () => openLightbox(i))
     figure.appendChild(img)
+    addImgFallback(img, figure)
 
     const delBtn = document.createElement('button')
     delBtn.type = 'button'
@@ -254,6 +274,32 @@ function fileKey (file) {
   return [file.name, file.size, file.lastModified].join('|')
 }
 
+// iPhones save photos as HEIC/HEIF by default. No browser can render that
+// format in an <img> (so the preview shows nothing), and it's a common
+// reason uploads then get rejected server-side too — converting to a JPEG
+// blob before it ever reaches the preview or upload.php fixes both. The
+// decoder is ~1.3MB, so it's only fetched when a HEIC file is actually
+// picked, not paid for by every guest.
+function isHeicFile (file) {
+  if (/^image\/heic$|^image\/heif$/i.test(file.type)) return true
+  return !file.type && /\.hei[cf]$/i.test(file.name)
+}
+
+async function convertHeicToJpeg (file) {
+  if (!isHeicFile(file)) return file
+  try {
+    const { default: heic2any } = await import('heic2any')
+    const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 })
+    const blob = Array.isArray(result) ? result[0] : result
+    const name = file.name.replace(/\.hei[cf]$/i, '.jpg')
+    return new File([blob], name, { type: 'image/jpeg', lastModified: file.lastModified })
+  } catch {
+    // Couldn't decode it client-side either — hand back the original and
+    // let the existing preview/upload error paths surface the failure.
+    return file
+  }
+}
+
 function syncInputFiles () {
   const dt = new DataTransfer()
   selectedFiles.forEach((file) => dt.items.add(file))
@@ -294,6 +340,7 @@ function renderPreview () {
     img.src = url
     img.alt = ''
     figure.appendChild(img)
+    addImgFallback(img, figure)
 
     const removeBtn = document.createElement('button')
     removeBtn.type = 'button'
@@ -321,15 +368,19 @@ function setSelectedFiles (files) {
 // FileList entirely (especially on iOS) — merge instead of replacing, so
 // reopening it to add one more photo doesn't silently drop what was
 // already chosen.
-photosInput.addEventListener('change', () => {
+photosInput.addEventListener('change', async () => {
   const existingKeys = new Set(selectedFiles.map(fileKey))
-  Array.from(photosInput.files).forEach((file) => {
-    const key = fileKey(file)
-    if (!existingKeys.has(key)) {
-      selectedFiles.push(file)
-      existingKeys.add(key)
-    }
-  })
+  const toAdd = Array.from(photosInput.files).filter((file) => !existingKeys.has(fileKey(file)))
+  if (toAdd.length === 0) return
+
+  // Conversion can take a couple of seconds per HEIC photo — say so, since
+  // renderPreview() below would otherwise be the only feedback and it
+  // doesn't run until every file in this batch is done.
+  if (toAdd.some(isHeicFile)) dropzoneText.textContent = 'Conversion des photos…'
+
+  for (const file of toAdd) {
+    selectedFiles.push(await convertHeicToJpeg(file))
+  }
   syncInputFiles()
   renderPreview()
 })
