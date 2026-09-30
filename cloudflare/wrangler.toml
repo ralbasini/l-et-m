@@ -1,0 +1,37 @@
+name = "l-et-m-api"
+main = "src/index.js"
+compatibility_date = "2026-09-30"
+
+# ── R2 bucket (photo storage — replaces Infomaniak's img/ folder) ──────────
+[[r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "l-et-m-photos"
+# TODO once created: `wrangler r2 bucket create l-et-m-photos` (or pick your
+# own name here, doesn't have to match). See cloudflare/README.md.
+
+# ── D1 database (guests, photos, folders, tags — replaces the filesystem
+#    bookkeeping the PHP scripts did) ───────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "l-et-m"
+database_id = "TODO-replace-with-the-id-from-`wrangler-d1-create-l-et-m`"
+
+# ── Custom domain(s) — optional, but without one the API lives at
+#    l-et-m-api.<your-subdomain>.workers.dev, which is fine to start with.
+#    Uncomment once your domain's DNS is on Cloudflare. ────────────────────
+# routes = [
+#   { pattern = "api.your-domain.example/*", zone_name = "your-domain.example" }
+# ]
+
+# ── Plain (non-secret) config ───────────────────────────────────────────
+[vars]
+# Purely informational — R2 has no hard storage quota, this only drives the
+# admin dashboard's storage-usage bar (see routes/admin.js state()).
+STORAGE_SOFT_LIMIT_GB = "20"
+
+# ── Secrets — do NOT put these here. Set them with:
+#      wrangler secret put GUEST_TOKEN_SECRET
+#      wrangler secret put ADMIN_TOKEN_SECRET
+#      wrangler secret put ADMIN_PASSWORD
+#    (generate the two *_SECRET values with `openssl rand -hex 32`, pick
+#    your own ADMIN_PASSWORD). See cloudflare/README.md.

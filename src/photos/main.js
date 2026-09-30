@@ -1,16 +1,17 @@
-import { REMOTE_GALLERY_URL } from '../photos.js'
+import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
 import '../site-swipe-nav.js'
 
-// Guest photo upload, served from github.io but talking to the
+// Guest photo upload, served from github.io but talking to the Cloudflare
+// Worker in cloudflare/ (see cloudflare/README.md) — previously an
 // Infomaniak-hosted PHP API. A guest's identity is a bearer token in
-// localStorage (name + HMAC signature, verified server-side) instead of the
-// signed cookie this used to be — see infomaniak/guest/auth.php for why
-// (cross-site cookies get silently blocked by some browsers' privacy
-// modes). Per-browser identity, same as the cookie was: switching devices
-// still goes through the "Oui, c'est moi" collision flow.
-const API = REMOTE_GALLERY_URL + 'guest/'
+// localStorage (guest id + HMAC signature, verified server-side against
+// GUEST_TOKEN_SECRET) rather than a cookie, same reasoning as before this
+// migration: cross-site cookies get silently blocked by some browsers'
+// privacy modes. Per-browser identity, same as a cookie would be:
+// switching devices still goes through the "Oui, c'est moi" collision flow.
+const API = API_BASE_URL + 'guest/'
 const TOKEN_KEY = 'lm_guest_token'
-const IMG_BASE = REMOTE_GALLERY_URL + 'img/Invités/'
+const IMG_BASE = PHOTOS_BASE_URL + 'Invités/'
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 function setToken (token) { localStorage.setItem(TOKEN_KEY, token) }
@@ -118,7 +119,7 @@ nameForm.addEventListener('submit', async (e) => {
   nameError.hidden = true
   const name = document.getElementById('name').value
   try {
-    const data = await apiFetch('identify.php', { method: 'POST', json: { name } })
+    const data = await apiFetch('identify', { method: 'POST', json: { name } })
     if (data.status === 'collision') {
       showCollisionStep(data.pendingName)
     } else {
@@ -134,7 +135,7 @@ nameForm.addEventListener('submit', async (e) => {
 document.getElementById('collision-yes').addEventListener('click', async () => {
   const pendingName = document.getElementById('collision-name').textContent
   try {
-    const data = await apiFetch('identify.php', { method: 'POST', json: { confirm_name: pendingName } })
+    const data = await apiFetch('identify', { method: 'POST', json: { confirm_name: pendingName } })
     setToken(data.token)
     await enterUploadStep(data.name)
   } catch (err) {
@@ -201,7 +202,7 @@ function renderPhotos (photos) {
     delBtn.addEventListener('click', async () => {
       if (!confirm('Supprimer cette photo ?')) return
       try {
-        const data = await apiFetch('delete.php', { method: 'POST', json: { file } })
+        const data = await apiFetch('delete', { method: 'POST', json: { file } })
         toast('Photo supprimée.', true)
         renderPhotos(data.photos)
         renderQuota(data.remaining, currentMaxPerPerson)
@@ -220,7 +221,7 @@ let currentMaxPerPerson = 15
 function guestImgBase () { return IMG_BASE + encodeURIComponent(currentGuestName) + '/' }
 
 async function refreshMyPhotos () {
-  const data = await apiFetch('me.php')
+  const data = await apiFetch('me')
   currentGuestName = data.name
   currentMaxPerPerson = data.maxPerPerson
   renderQuota(data.remaining, data.maxPerPerson)
@@ -349,9 +350,9 @@ const uploadProgressText = document.getElementById('upload-progress-text')
 
 function sleep (ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
 
-// Mirrors safeUploadFilename()/uniqueTargetName() in infomaniak/shared.php:
-// matches the name(s) the server may have stored this upload under
-// ("IMG 01.JPG" → "IMG-01.jpg", or "IMG-01-2.jpg" on a collision).
+// Mirrors safeFilename()/uniqueFilename() in cloudflare/src/files.js: matches
+// the name(s) the server may have stored this upload under ("IMG 01.JPG" →
+// "IMG-01.jpg", or "IMG-01-2.jpg" on a collision).
 function serverNamePattern (originalName) {
   const dot = originalName.lastIndexOf('.')
   const rawBase = dot === -1 ? originalName : originalName.slice(0, dot)
@@ -397,7 +398,7 @@ async function uploadBatch (files) {
     try {
       const formData = new FormData()
       formData.append('photos[]', job.file)
-      const data = await apiFetch('upload.php', { method: 'POST', formData })
+      const data = await apiFetch('upload', { method: 'POST', formData })
       applyServerState(data)
       if (data.uploaded > 0) {
         job.status = 'done'
@@ -428,7 +429,7 @@ async function uploadBatch (files) {
     await sleep(delay)
 
     try {
-      const me = await apiFetch('me.php')
+      const me = await apiFetch('me')
       applyServerState(me)
       failed.forEach((job) => { if (claimArrival(job, me.photos)) job.status = 'done' })
     } catch (err) {
@@ -542,7 +543,7 @@ async function init () {
     return
   }
   try {
-    const data = await apiFetch('me.php')
+    const data = await apiFetch('me')
     currentGuestName = data.name
     currentMaxPerPerson = data.maxPerPerson
     showUploadStep(data.name)
