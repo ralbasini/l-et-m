@@ -92,25 +92,7 @@ export const PHOTOS_BASE_URL = 'https://<your-r2-public-domain>/'
 Then rebuild and redeploy the static site as usual (`npm run build`, commit
 `dist/` or however this project currently publishes to GitHub Pages).
 
-## 8. Migrate existing photos
-
-```
-node migrate.mjs
-```
-
-Downloads everything `photos-list.php` currently lists from Infomaniak,
-uploads it into the R2 bucket, and writes `migrate-seed.sql` (guests,
-photos, folders, tags) — **review that file**, then apply it:
-
-```
-npx wrangler d1 execute l-et-m --remote --file migrate-seed.sql
-```
-
-The script is untested against the real Infomaniak/Cloudflare endpoints
-(this environment can't reach either) — skim it before running, and run it
-against a small test bucket/database first if you want to be extra careful.
-
-## 9. Test end to end
+## 8. Test end to end
 
 - Load the main site, guest upload page, and admin panel against the new
   backend.
@@ -138,4 +120,3 @@ history on this branch).
 | `src/auth.js` | the bearer-token signing/verification both guest and admin auth used |
 | `src/files.js` | filename sanitization/uniqueness, folder registration |
 | `schema.sql` | the `img/` folder's directory structure (guests, photos, folders, tags now live in D1 instead of being derived from a filesystem scan) |
-| `migrate.mjs` | one-off: copies existing photos + metadata over |
