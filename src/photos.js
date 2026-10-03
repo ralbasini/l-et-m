@@ -19,6 +19,8 @@ export async function loadPhotos () {
       const file = typeof entry === 'string' ? entry : entry.file
       const alt = typeof entry === 'string' ? '' : (entry.alt || '')
       const tags = typeof entry === 'string' ? [] : (entry.tags || [])
+      // Who uploaded it (guest name), '' for the admin's own uploads.
+      const by = typeof entry === 'string' ? '' : (entry.by || '')
       // file may include folder segments (e.g. "ceremonie/photo.jpg') — encode
       // each segment separately so the '/' itself isn't escaped.
       const encodedPath = file.split('/').map(encodeURIComponent).join('/')
@@ -26,6 +28,7 @@ export async function loadPhotos () {
         src: PHOTOS_BASE_URL + encodedPath,
         alt: alt || 'Photo du mariage de Lobna et Martin',
         tags,
+        by,
       }
     })
   } catch {

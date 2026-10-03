@@ -319,6 +319,7 @@ button.add-btn:hover { background: #2a5951; }
 .grid figure {
   position: relative;
   margin: 0;
+  border: 1px solid rgba(37, 37, 37, 0.15);
   border-radius: 0.5rem;
   overflow: hidden;
 }

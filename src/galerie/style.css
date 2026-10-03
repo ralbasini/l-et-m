@@ -400,6 +400,28 @@
     border-radius: 0;
   }
 
+  /* Polaroid caption: the uploader's name, handwritten-style, centered
+     vertically between the photo and the card's bottom edge — same gap
+     above (margin) and below (the card's padding). */
+  .gallery-item.has-name { padding-bottom: 0.6rem; }
+
+  .gallery-item-name {
+    display: block;
+    margin-top: 0.6rem;
+    height: 1.1rem;
+    overflow: hidden;
+    font-family: 'MoreSugar-Thin', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.1rem;
+    color: rgba(37, 37, 37, 0.7);
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Keep the sheen on the photo only, not over the name. */
+  .gallery-item.has-name::after { bottom: calc(0.6rem + 0.6rem + 1.1rem); }
+
   .gallery-empty {
     text-align: center;
     font-family: 'Fraunces', Georgia, serif;

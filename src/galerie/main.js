@@ -91,6 +91,15 @@ function buildGallery (photos, openLightbox) {
     img.loading = 'lazy'
 
     btn.appendChild(img)
+
+    // Polaroid caption: who uploaded it, in the card's bottom margin.
+    if (photo.by) {
+      btn.classList.add('has-name')
+      const name = document.createElement('span')
+      name.className = 'gallery-item-name'
+      name.textContent = photo.by
+      btn.appendChild(name)
+    }
     btn.addEventListener('click', () => openLightbox(i))
     grid.appendChild(btn)
   })

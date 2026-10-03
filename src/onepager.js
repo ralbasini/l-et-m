@@ -109,7 +109,7 @@ if (window.parent !== window) {
     if (anchor) scrollPanelTo(page, anchor)
   })
 
-  // Scroll a panel to a section of its page (e.g. "Voir toutes les photos"
+  // Scroll a panel to a section of its page (e.g. "Voir les photos de tous les invités"
   // → the "La Galerie" section, below the photo header), once that panel's
   // page has loaded. The panel scrolls itself only — scrollIntoView() would
   // also try to scroll the (overflow: hidden) panel track here.

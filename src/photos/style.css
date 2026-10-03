@@ -97,7 +97,7 @@ main {
 .my-photos { text-align: center; }
 .my-photos label { text-align: left; }
 
-/* "Voir toutes les photos", above the guest's own photos. */
+/* "Voir les photos de tous les invités", above the guest's own photos. */
 .my-photos-link { margin: 0 0 1.25rem; }
 
 /* Scrolled to after an upload: land below the fixed menu bar. */
@@ -131,3 +131,6 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .quota-bar-fill { transition: none; }
 }
+
+/* The two-line greeting above the name field: a bit more room before it. */
+#name-form label[for="name"] { margin-bottom: 1rem; line-height: 1.5; }
