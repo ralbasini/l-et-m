@@ -1,6 +1,6 @@
 import { API_BASE_URL } from './photos.js'
 
-// Galerie / Photos / Admin menu entries (marked `data-admin-only`) are shown
+// Galerie / Photos menu entries (marked `data-admin-only`) are shown
 // when either:
 //   - this browser is logged in to the admin panel (html.is-admin), or
 //   - the admin switched "menu public" on in the dashboard (html.menu-public),

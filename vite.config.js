@@ -22,13 +22,16 @@ function redirectBarePhotosPath (request, response, next) {
 //
 // Menu links all point at the home page's swipe panels (/#galerie etc.,
 // see src/onepager.js), except Admin, which is its own page. Galerie /
-// Photos / Admin are `data-admin-only` (src/admin-access.js hides them for
-// visitors) — except on their own page, where the current entry always shows.
+// Photos are `data-admin-only`: shown to logged-in admins, and to everyone
+// once the dashboard switch makes the site public. Admin is
+// `data-logged-in-only`: logged-in admins only, public or not. (See
+// src/site-chrome.css + src/admin-access.js.) On its own page, the current
+// entry always shows.
 const NAV_ITEMS = [
   { page: 'mariage', label: 'Mariage', href: base },
   { page: 'galerie', label: 'Galerie', href: `${base}#galerie`, adminOnly: true },
   { page: 'photos', label: 'Photos', href: `${base}#photos`, adminOnly: true },
-  { page: 'admin', label: 'Admin', href: `${base}admin/`, adminOnly: true },
+  { page: 'admin', label: 'Admin', href: `${base}admin/`, loggedInOnly: true },
 ]
 
 // Which menu entry a page highlights, from its path under src/.
@@ -38,10 +41,11 @@ function currentPage (htmlPath) {
 }
 
 function siteNav (current) {
-  const links = NAV_ITEMS.map(({ page, label, href, adminOnly }) => {
+  const links = NAV_ITEMS.map(({ page, label, href, adminOnly, loggedInOnly }) => {
     const attrs = [`href="${href}"`, `data-page="${page}"`]
     if (page === current) attrs.push('class="is-current"', 'aria-current="page"')
     else if (adminOnly) attrs.push('data-admin-only')
+    else if (loggedInOnly) attrs.push('data-logged-in-only')
     return `<a ${attrs.join(' ')}>${label}</a>`
   })
   return `<nav class="site-nav" aria-label="Navigation">${links.join('')}</nav>`

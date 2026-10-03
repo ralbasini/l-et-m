@@ -105,9 +105,12 @@ html body {
    is the one shown. */
 html.is-embedded .site-nav { display: none; }
 
-/* Galerie / Photos / Admin entries: hidden unless logged in as admin or
-   made public from the dashboard (see src/admin-access.js). */
+/* Galerie / Photos: hidden unless logged in as admin or made public from
+   the dashboard (see src/admin-access.js). */
 html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none; }
+
+/* Admin: logged-in admins only, even when the site is public. */
+html:not(.is-admin) [data-logged-in-only] { display: none; }
 
 /* ── L&M footer ─────────────────────────────────────────────────── */
 .brand-footer {
