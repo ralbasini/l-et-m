@@ -10,6 +10,14 @@ export function photoUrl (path) {
   return PHOTOS_BASE_URL + path.split('/').map(encodeURIComponent).join('/')
 }
 
+// Grid thumbnail of a stored photo (see cloudflare/src/files.js). Falls back
+// to the original if it has none (older photos, or a file the uploader's
+// browser couldn't decode).
+export function loadThumb (img, path) {
+  img.src = photoUrl('_thumbs/' + path)
+  img.addEventListener('error', () => { img.src = photoUrl(path) }, { once: true })
+}
+
 // ── Photo source ────────────────────────────────────────────────
 // No manifest, no images committed to the repo: this asks the Worker's
 // /photos-list what's currently in the bucket. Upload a photo and it shows
@@ -17,12 +25,13 @@ export function photoUrl (path) {
 // (src/galerie/main.js) and the projector slideshow (src/diaporama/main.js).
 export async function loadPhotos () {
   try {
-    const res = await fetch(API_BASE_URL + 'photos-list', { cache: 'no-store' })
+    const res = await fetch(API_BASE_URL + 'photos-list')
     if (!res.ok) return []
     const data = await res.json()
     if (!Array.isArray(data)) return []
     // `by` is who uploaded it (guest name), '' for the admin's own uploads.
     return data.map(({ file, alt, tags = [], by = '' }) => ({
+      path: file,
       src: photoUrl(file),
       alt: alt || 'Photo du mariage de Lobna et Martin',
       tags,

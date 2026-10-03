@@ -1,4 +1,5 @@
-import { API_BASE_URL, photoUrl } from '../photos.js'
+import { API_BASE_URL, photoUrl, loadThumb } from '../photos.js'
+import { makeThumbnail } from '../thumbnail.js'
 import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
 
@@ -211,7 +212,7 @@ function renderPhotos (photos) {
     const figure = document.createElement('figure')
 
     const img = document.createElement('img')
-    img.src = guestPhotoUrl(file)
+    loadThumb(img, guestPhotoPath(file))
     img.alt = ''
     img.loading = 'lazy'
     img.addEventListener('click', () => openLightbox(i))
@@ -245,7 +246,8 @@ let currentMaxPerPerson = 15
 // From /guest/me when the server sends it; the Worker currently doesn't, so
 // this fallback is the effective client-side limit.
 let currentMaxFileBytes = 15 * 1024 * 1024
-function guestPhotoUrl (file) { return photoUrl(`Invités/${currentGuestName}/${file}`) }
+function guestPhotoPath (file) { return `Invités/${currentGuestName}/${file}` }
+function guestPhotoUrl (file) { return photoUrl(guestPhotoPath(file)) }
 
 function applyLimits (data) {
   currentGuestName = data.name
@@ -472,7 +474,7 @@ function formatMb (bytes) { return Math.round(bytes / (1024 * 1024)) }
 // XMLHttpRequest rather than fetch() for this one call: fetch() can't
 // report upload progress, which drives both the progress bar and the
 // stall detection.
-function sendPhoto (file, onProgress) {
+function sendPhoto (file, thumb, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     let stallTimer
@@ -509,6 +511,7 @@ function sendPhoto (file, onProgress) {
 
     const formData = new FormData()
     formData.append('photos[]', file)
+    if (thumb) formData.append('thumb', thumb, 'thumb.jpg')
     armStallTimer()
     xhr.send(formData)
   })
@@ -590,7 +593,8 @@ async function uploadBatch (files) {
       return
     }
     try {
-      const data = await sendPhoto(job.file, (fraction) => showBar(settledBytes + fraction * job.file.size))
+      if (job.thumb === undefined) job.thumb = await makeThumbnail(job.file) // once, kept across retries
+      const data = await sendPhoto(job.file, job.thumb, (fraction) => showBar(settledBytes + fraction * job.file.size))
       applyServerState(data)
       if (data.uploaded > 0) {
         job.status = 'done'

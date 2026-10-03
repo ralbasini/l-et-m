@@ -1,4 +1,5 @@
-import { API_BASE_URL, photoUrl } from '../photos.js'
+import { API_BASE_URL, photoUrl, loadThumb } from '../photos.js'
+import { makeThumbnail } from '../thumbnail.js'
 import { setMenuPublic, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
 import { toast } from '../toast.js'
 
@@ -317,9 +318,8 @@ function renderPhotos (photos, registry) {
     checkbox.value = photo.path
     selectWrap.appendChild(checkbox)
 
-    const src = photoUrl(photo.path)
     const img = document.createElement('img')
-    img.src = src
+    loadThumb(img, photo.path)
     img.alt = ''
     img.loading = 'lazy'
     // Clicking the photo selects/unselects it; full screen is the small
@@ -640,6 +640,8 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
       const formData = new FormData()
       formData.append('path', dest)
       formData.append('photos[]', file)
+      const thumb = await makeThumbnail(file)
+      if (thumb) formData.append('thumb', thumb, 'thumb.jpg')
       try {
         const data = await apiFetch('upload', { method: 'POST', formData })
         uploaded += data.uploaded

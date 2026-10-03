@@ -79,7 +79,7 @@ export async function upload (request, env, guest) {
   let uploaded = 0
 
   for (const file of files) {
-    const error = await storePhoto(env, folder, file, guest.id)
+    const error = await storePhoto(env, folder, file, guest.id, files.length === 1 ? formData.get('thumb') : null)
     if (error) errors.push(error)
     else uploaded += 1
   }

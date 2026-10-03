@@ -1,4 +1,4 @@
-import { loadPhotos } from '../photos.js'
+import { loadPhotos, loadThumb } from '../photos.js'
 import '../site-swipe-nav.js'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -38,34 +38,51 @@ function buildSlideshow (photos) {
   const stage = document.getElementById('slideshow')
   if (!photos.length) return
 
-  photos.forEach((photo, i) => {
+  // Two cross-fading layers, not one <img> per photo: only the visible
+  // photo and the next one are ever downloaded.
+  const layers = [0, 1].map(() => {
     const img = document.createElement('img')
-    img.src = photo.src
     img.alt = ''
     img.className = 'slide'
-    img.loading = i === 0 ? 'eager' : 'lazy'
-    if (i === 0) img.classList.add('is-active')
     stage.appendChild(img)
+    return img
   })
+  layers[0].src = layers[0].dataset.src = photos[0].src
+  layers[0].classList.add('is-active')
 
-  if (photos.length < 2) return
+  if (photos.length < 2 || reduceMotion) return
 
-  const slides = stage.querySelectorAll('.slide')
   let current = 0
+  let active = 0
+  let loading = false
 
   function goTo (index) {
-    slides[current].classList.remove('is-active')
-    current = index
-    slides[current].classList.add('is-active')
+    const incoming = layers[1 - active]
+    const done = () => {
+      incoming.onload = incoming.onerror = null
+      loading = false
+    }
+    incoming.onload = () => {
+      layers[active].classList.remove('is-active')
+      incoming.classList.add('is-active')
+      active = 1 - active
+      current = index
+      done()
+      new Image().src = photos[(current + 1) % photos.length].src // warm the next one
+    }
+    incoming.onerror = done // skip a photo that fails; try the next tick
+    loading = true
+    if (incoming.dataset.src === photos[index].src && incoming.complete) {
+      incoming.onload() // already showing this photo (only 2 photos): no load event would fire
+      return
+    }
+    incoming.dataset.src = photos[index].src
+    incoming.src = photos[index].src
   }
 
-  let timer
-  function resetTimer () {
-    clearInterval(timer)
-    if (reduceMotion) return
-    timer = setInterval(() => goTo((current + 1) % slides.length), 5500)
-  }
-  resetTimer()
+  setInterval(() => {
+    if (!loading) goTo((current + 1) % photos.length)
+  }, 5500)
 }
 
 // ── Gallery grid ──────────────────────────────────────────────
@@ -86,7 +103,7 @@ function buildGallery (photos, openLightbox) {
     btn.setAttribute('aria-label', `Agrandir la photo ${i + 1}`)
 
     const img = document.createElement('img')
-    img.src = photo.src
+    loadThumb(img, photo.path)
     img.alt = photo.alt
     img.loading = 'lazy'
 

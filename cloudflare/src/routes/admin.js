@@ -1,6 +1,6 @@
 import { json } from '../cors.js'
 import { signToken } from '../auth.js'
-import { registerFolderPath, TAG_LIST_SQL, splitTags, storePhoto, relocatePhoto, deletePhotoRows } from '../files.js'
+import { registerFolderPath, isReservedFolder, TAG_LIST_SQL, splitTags, storePhoto, relocatePhoto, deletePhotoRows } from '../files.js'
 
 // Every handler here except login/logout is wrapped in adminOnly() by the
 // route table in index.js.
@@ -125,14 +125,14 @@ export async function upload (request, env) {
   const rawPath = (formData.get('path') || '.').toString()
   const folder = rawPath === '.' ? '' : normalizePath(rawPath)
   // Photos always go into a folder, never loose at the top level.
-  if (!folder) return json({ error: 'Choisissez un dossier de destination.' }, { status: 400 })
+  if (!folder || isReservedFolder(folder)) return json({ error: 'Choisissez un dossier de destination.' }, { status: 400 })
   const files = formData.getAll('photos[]').filter((f) => f instanceof File)
   await registerFolderPath(env.DB, folder)
   const errors = []
   let uploaded = 0
 
   for (const file of files) {
-    const error = await storePhoto(env, folder, file)
+    const error = await storePhoto(env, folder, file, null, files.length === 1 ? formData.get('thumb') : null)
     if (error) errors.push(error)
     else uploaded += 1
   }
@@ -147,6 +147,7 @@ export async function createFolder (request, env) {
   if (!safeName) return json({ error: 'Nom de dossier invalide.' }, { status: 400 })
 
   const fullPath = base ? `${base}/${safeName}` : safeName
+  if (isReservedFolder(fullPath)) return json({ error: 'Nom de dossier invalide.' }, { status: 400 })
   await env.DB.prepare('INSERT OR IGNORE INTO folders (path) VALUES (?)').bind(fullPath).run()
   return json({ path: fullPath })
 }
@@ -208,6 +209,7 @@ export async function deletePhotos (request, env) {
 export async function movePhotos (request, env) {
   const { files = [], dest } = await request.json().catch(() => ({}))
   const folder = dest === '.' ? '' : normalizePath(dest)
+  if (isReservedFolder(folder)) return json({ error: 'Dossier de destination invalide.' }, { status: 400 })
   if (folder) await registerFolderPath(env.DB, folder)
   const photos = await findPhotos(env, files)
   for (const photo of photos) await relocatePhoto(env, photo, folder)

@@ -53,14 +53,32 @@ export function splitTags (tagList) {
   return tagList ? tagList.split(',') : []
 }
 
+// Each photo may have a small JPEG thumbnail (made by the uploader's browser,
+// see src/thumbnail.js) stored in R2 at THUMB_PREFIX + the photo's key. It has
+// no D1 row; the grids ask for it and fall back to the original if missing.
+// Photos can't live in a folder with this name, or keys could collide.
+const THUMB_PREFIX = '_thumbs/'
+const MAX_THUMB_BYTES = 300 * 1024
+
+export function thumbKey (key) {
+  return THUMB_PREFIX + key
+}
+
+export function isReservedFolder (folder) {
+  return folder === '_thumbs' || folder.startsWith(THUMB_PREFIX)
+}
+
 // Stores one uploaded file in R2 + D1 under `folder` (admin and guest
-// uploads alike; guestId is null for the admin's own). Returns an error
-// message, or null on success.
-export async function storePhoto (env, folder, file, guestId = null) {
+// uploads alike; guestId is null for the admin's own), plus its optional
+// thumbnail. Returns an error message, or null on success.
+export async function storePhoto (env, folder, file, guestId = null, thumb = null) {
   if (!file.type.startsWith('image/')) return `${file.name} : type de fichier non supporté.`
   const filename = await uniqueFilename(env.DB, folder, safeFilename(file.name))
   const key = joinKey(folder, filename)
   await env.PHOTOS_BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
+  if (thumb instanceof File && thumb.type === 'image/jpeg' && thumb.size <= MAX_THUMB_BYTES) {
+    await env.PHOTOS_BUCKET.put(thumbKey(key), thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } })
+  }
   await env.DB.prepare(
     'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes) VALUES (?, ?, ?, ?, ?)'
   ).bind(key, folder, filename, guestId, file.size).run()
@@ -72,22 +90,24 @@ export async function storePhoto (env, folder, file, guestId = null) {
 export async function relocatePhoto (env, photo, folder) {
   const filename = await uniqueFilename(env.DB, folder, photo.filename)
   const key = joinKey(folder, filename)
-  const object = await env.PHOTOS_BUCKET.get(photo.r2_key)
-  if (object) {
-    await env.PHOTOS_BUCKET.put(key, object.body, { httpMetadata: object.httpMetadata })
-    await env.PHOTOS_BUCKET.delete(photo.r2_key)
+  for (const [from, to] of [[photo.r2_key, key], [thumbKey(photo.r2_key), thumbKey(key)]]) {
+    const object = await env.PHOTOS_BUCKET.get(from)
+    if (!object) continue
+    await env.PHOTOS_BUCKET.put(to, object.body, { httpMetadata: object.httpMetadata })
+    await env.PHOTOS_BUCKET.delete(from)
   }
   await env.DB.prepare(
     'UPDATE photos SET r2_key = ?, folder = ?, filename = ? WHERE id = ?'
   ).bind(key, folder, filename, photo.id).run()
 }
 
-// Deletes photo rows ({ id, r2_key }) from R2 and D1 in bulk: R2 takes up to
-// 1000 keys per delete() call, and the D1 deletes go in one batch.
+// Deletes photo rows ({ id, r2_key }) and their thumbnails from R2 and D1 in
+// bulk: R2 takes up to 1000 keys per delete() call (2 per photo here), and
+// the D1 deletes go in one batch.
 export async function deletePhotoRows (env, photos) {
-  for (let i = 0; i < photos.length; i += 1000) {
-    const chunk = photos.slice(i, i + 1000)
-    await env.PHOTOS_BUCKET.delete(chunk.map((p) => p.r2_key))
+  for (let i = 0; i < photos.length; i += 500) {
+    const chunk = photos.slice(i, i + 500)
+    await env.PHOTOS_BUCKET.delete(chunk.flatMap((p) => [p.r2_key, thumbKey(p.r2_key)]))
     const del = env.DB.prepare('DELETE FROM photos WHERE id = ?')
     await env.DB.batch(chunk.map((p) => del.bind(p.id)))
   }

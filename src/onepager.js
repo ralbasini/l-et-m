@@ -71,7 +71,6 @@ if (window.parent !== window) {
     })
 
     ensureLoaded(page)
-    if ((page === 'mariage' || page === 'photos') && menuPages().includes('galerie')) ensureLoaded('galerie')
     if (page === 'galerie') ensureLoaded('mariage')
     document.body.classList.remove('is-preload')
   }
@@ -99,6 +98,18 @@ if (window.parent !== window) {
     event.preventDefault()
     location.hash = shownPages[nextIndex]
   })
+
+  // The Galerie panel is the heavy one (it lists and loads the photos), so
+  // it only starts loading once the visitor shows interest — a touch, a key
+  // press, or pointing at the menu — instead of on every visit. Navigating
+  // to it directly still loads it (render).
+  function preloadGalerie () {
+    if (menuPages().includes('galerie')) ensureLoaded('galerie')
+  }
+  for (const type of ['pointerdown', 'touchstart', 'keydown']) {
+    window.addEventListener(type, preloadGalerie, { once: true, passive: true })
+  }
+  nav.addEventListener('pointerover', preloadGalerie, { once: true })
 
   window.addEventListener('hashchange', render)
   window.addEventListener('message', (event) => {

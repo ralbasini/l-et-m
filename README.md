@@ -94,7 +94,8 @@ npm run deploy    # mise en ligne du Worker
 - Toujours dans un dossier (pas à la racine)
 - Dossiers = rangement uniquement, la galerie affiche tout
 - Tags : créés dans l'admin, plusieurs par photo, filtres dans la galerie
-- Rien à redéployer : une photo ajoutée apparaît au prochain chargement
+- Rien à redéployer : une photo ajoutée apparaît au prochain chargement (liste mise en cache ~10 s)
+- Une miniature (480 px) est créée à l'envoi pour les grilles ; l'original reste intact
 
 ## Invités (QR code)
 
