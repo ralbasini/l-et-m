@@ -861,6 +861,17 @@ lightbox.addEventListener('touchend', (e) => {
   lbShow(lbIndex + (dx < 0 ? 1 : -1))
 }, { passive: true })
 
+// ── Login: keep the button above the mobile keyboard ────────────
+// When the keyboard opens (focus, then the visual viewport shrinks), scroll
+// so "Se connecter" is visible, not hidden under it.
+const loginPassword = document.getElementById('password')
+const loginSubmit = document.querySelector('#login-form button[type="submit"]')
+function revealLoginButton () {
+  if (document.activeElement === loginPassword) loginSubmit.scrollIntoView({ block: 'end', behavior: 'smooth' })
+}
+loginPassword.addEventListener('focus', () => setTimeout(revealLoginButton, 300))
+window.visualViewport?.addEventListener('resize', revealLoginButton)
+
 // ── Init ────────────────────────────────────────────────────────
 if (getToken()) {
   showDashboard()
