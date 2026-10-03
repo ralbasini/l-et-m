@@ -53,6 +53,10 @@
 			}
 			body.is-preload #app-shell { opacity: 0; }
 			body:not(.is-preload) #app-shell { opacity: 1; transition: opacity 0.2s ease; }
+			/* No inline photo above "Lieu" (shown on small screens). The <img>
+			   stays in the page: on desktop the theme uses it as this section's
+			   background photo (main.js builds #lieu-bg from it). */
+			#lieu .image.primary { display: none !important; }
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in
