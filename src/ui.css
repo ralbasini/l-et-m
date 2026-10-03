@@ -28,9 +28,11 @@
   font-display: swap;
 }
 
+/* No height here: src/site-chrome.css makes the body fill the window so the
+   footer sits on the bottom edge — a `min-height` on body here would
+   override that (it loads later) and leave a gap under the footer. */
 html, body {
   margin: 0;
-  min-height: 100%;
   background: #d0dad1;
   color: #252525;
   font-family: 'Quicksand', system-ui, sans-serif;

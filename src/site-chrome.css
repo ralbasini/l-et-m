@@ -39,7 +39,9 @@
 
 /* Footer always on the bottom edge, even when a page is shorter than the
    window: the body is a column and the footer takes up the slack above it. */
-body {
+/* `html body` (not just `body`) so a page's own generic body rule — which
+   loads after this file — can't quietly override it. */
+html body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
