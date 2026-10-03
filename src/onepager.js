@@ -111,6 +111,15 @@ if (window.parent !== window) {
   }
   nav.addEventListener('pointerover', preloadGalerie, { once: true })
 
+  // Photos is light (no photo list), so it loads in the background once the
+  // Mariage panel has settled — switching to it is then instant instead of
+  // waiting on the page, its CSS and its first API call.
+  function preloadPhotos () {
+    if (menuPages().includes('photos')) ensureLoaded('photos')
+  }
+  const idle = window.requestIdleCallback || ((callback) => setTimeout(callback, 1000))
+  framesByPage.get('mariage').addEventListener('load', () => idle(preloadPhotos), { once: true })
+
   window.addEventListener('hashchange', render)
   window.addEventListener('message', (event) => {
     if (event.origin !== location.origin || !frames.some((frame) => frame.contentWindow === event.source)) return
