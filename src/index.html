@@ -9,7 +9,7 @@
 		<title>Mariage Lobna et Martin</title>
 		<meta charset="utf-8" />
 		<script>if (window.parent !== window) document.documentElement.classList.add('is-embedded')</script>
-		<script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin') } catch (e) {}</script>
+		<script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 		<meta name="robots" content="noindex, nofollow">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
@@ -118,17 +118,25 @@
 			body:not(.is-preload) #app-shell { opacity: 1; transition: opacity 0.2s ease; }
 			/* Galerie/Photos/Admin menu entries (hidden for visitors, see
 			   src/admin-access.js) and the small footer "admin" link. */
-			html:not(.is-admin) [data-admin-only] { display: none !important; }
-			.mariage-admin-footer { padding: 1.5rem 1rem; text-align: center; }
+			html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
+			/* Opaque on purpose: on desktop the theme paints each section's photo
+			   as a fixed full-screen layer behind the page (.main-bg), which
+			   would otherwise show straight through and hide the link. Same
+			   dark bar as the other pages' .brand-footer. */
+			.mariage-admin-footer {
+				padding: 1rem;
+				text-align: center;
+				background: #252525;
+			}
 			.mariage-admin-footer a {
 				font-family: 'Quicksand', sans-serif;
 				font-size: 0.6875rem;
 				letter-spacing: 0.1em;
-				color: rgba(37, 37, 37, 0.4);
+				color: rgba(171, 185, 162, 0.5);
 				border-bottom: 0;
 				text-decoration: none;
 			}
-			.mariage-admin-footer a:hover { color: #356d65; }
+			.mariage-admin-footer a:hover { color: #abb9a2; }
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in

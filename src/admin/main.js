@@ -1,4 +1,5 @@
 import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
+import { setMenuPublic } from '../admin-access.js'
 
 // Admin panel for the wedding photos, served from github.io but talking to
 // the Cloudflare Worker in cloudflare/ (see cloudflare/README.md) —
@@ -16,8 +17,15 @@ function encodeRelPath (relative) {
 }
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
-function setToken (token) { localStorage.setItem(TOKEN_KEY, token) }
-function clearToken () { localStorage.removeItem(TOKEN_KEY) }
+// html.is-admin reveals the Galerie/Photos menu entries (see src/admin-access.js).
+function setToken (token) {
+  localStorage.setItem(TOKEN_KEY, token)
+  document.documentElement.classList.add('is-admin')
+}
+function clearToken () {
+  localStorage.removeItem(TOKEN_KEY)
+  document.documentElement.classList.remove('is-admin')
+}
 
 // Every call attaches the bearer token (if any); a 401 always means the
 // token is missing/expired, so it uniformly bounces back to the login
@@ -85,7 +93,39 @@ function showDashboard () {
   // just stops that rejection from surfacing as an unhandled promise
   // rejection on top of it.
   loadState('').catch(() => {})
+  loadSettings()
 }
+
+// ── Site settings ───────────────────────────────────────────────
+// Read from the public /settings endpoint, written through the admin one.
+const menuPublicToggle = document.getElementById('menu-public-toggle')
+
+async function loadSettings () {
+  try {
+    const res = await fetch(API_BASE_URL + 'settings', { cache: 'no-store' })
+    const settings = await res.json()
+    menuPublicToggle.checked = Boolean(settings.menuPublic)
+    setMenuPublic(menuPublicToggle.checked)
+  } catch {}
+}
+
+menuPublicToggle.addEventListener('change', async () => {
+  const wanted = menuPublicToggle.checked
+  menuPublicToggle.disabled = true
+  try {
+    const settings = await apiFetch('settings', { method: 'POST', json: { menuPublic: wanted } })
+    menuPublicToggle.checked = Boolean(settings.menuPublic)
+    setMenuPublic(menuPublicToggle.checked)
+    toast(settings.menuPublic
+      ? 'Galerie et Photos sont maintenant visibles pour tous.'
+      : 'Galerie et Photos sont maintenant masquées pour les visiteurs.', true)
+  } catch (err) {
+    menuPublicToggle.checked = !wanted
+    toast(err.message)
+  } finally {
+    menuPublicToggle.disabled = false
+  }
+})
 
 // ── Login ───────────────────────────────────────────────────────
 const loginForm = document.getElementById('login-form')
@@ -98,8 +138,8 @@ loginForm.addEventListener('submit', async (e) => {
   try {
     const data = await apiFetch('login', { method: 'POST', json: { password } })
     setToken(data.token)
-    loginForm.reset()
-    showDashboard()
+    // Land on the gallery; the dashboard is one click away via the Admin menu.
+    location.assign('../#galerie')
   } catch (err) {
     loginError.textContent = err.message
     loginError.hidden = false

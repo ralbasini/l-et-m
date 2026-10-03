@@ -55,3 +55,10 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   failures INTEGER NOT NULL DEFAULT 0,
   locked_until INTEGER NOT NULL DEFAULT 0  -- epoch ms; 0 = not locked
 );
+
+-- Site-wide switches the admin dashboard can flip (routes/settings.js).
+-- Added after the initial deploy — apply the same way as login_attempts.
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);

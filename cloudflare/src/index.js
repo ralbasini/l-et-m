@@ -3,6 +3,7 @@ import { photosList } from './routes/photosList.js'
 import * as guest from './routes/guest.js'
 import * as admin from './routes/admin.js'
 import { isImgPath, serveImg } from './routes/img.js'
+import { getSettings, updateSettings } from './routes/settings.js'
 
 // One route table for the whole API. Paths intentionally mirror the old PHP
 // endpoints minus the ".php" (identify.php -> /guest/identify, etc.) so the
@@ -10,6 +11,7 @@ import { isImgPath, serveImg } from './routes/img.js'
 // src/photos.js, src/photos/main.js and src/admin/main.js on the main site.
 const routes = {
   'GET /photos-list': (request, env) => photosList(env),
+  'GET /settings': getSettings,
 
   'POST /guest/identify': guest.identify,
   'GET /guest/me': guest.me,
@@ -27,6 +29,7 @@ const routes = {
   'POST /admin/delete': admin.deletePhotos,
   'POST /admin/move': admin.movePhotos,
   'POST /admin/tag': admin.tagPhotos,
+  'POST /admin/settings': updateSettings,
 }
 
 export default {

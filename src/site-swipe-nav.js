@@ -1,6 +1,7 @@
-import './admin-access.js'
+import { isShown } from './admin-access.js'
 
-// The Admin link isn't one of the swipeable pages, so arrow keys skip it.
+// The Admin link isn't one of the swipeable pages, so arrow keys skip it —
+// as they do any entry admin-access.js currently hides.
 const nav = document.querySelector('.site-nav')
 const links = nav ? [...nav.querySelectorAll('a:not([data-admin-link])')] : []
 const embedded = window.parent !== window
@@ -53,15 +54,6 @@ if (embedded) {
 }
 
 if (links.length > 1) {
-  function navigateByDirection (direction) {
-    const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
-    if (currentIndex < 0) return
-
-    const nextIndex = currentIndex + direction
-    if (nextIndex < 0 || nextIndex >= links.length) return
-    navigate(links[nextIndex].href)
-  }
-
   document.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
     if (document.querySelector('#lightbox:not([hidden])')) return
@@ -72,10 +64,13 @@ if (links.length > 1) {
     const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
     if (!direction) return
 
-    const currentIndex = links.findIndex((link) => link.classList.contains('is-current'))
-    if (currentIndex + direction < 0 || currentIndex + direction >= links.length) return
+    const shown = links.filter(isShown)
+    const currentIndex = shown.findIndex((link) => link.classList.contains('is-current'))
+    if (currentIndex < 0) return
+    const nextIndex = currentIndex + direction
+    if (nextIndex < 0 || nextIndex >= shown.length) return
 
     event.preventDefault()
-    navigateByDirection(direction)
+    navigate(shown[nextIndex].href)
   })
 }

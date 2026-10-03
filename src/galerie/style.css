@@ -626,7 +626,7 @@
 
 /* Small "admin" entry point (see src/admin-access.js). Unlayered so it
    wins over the layered .site-nav rules. */
-html:not(.is-admin) [data-admin-only] { display: none !important; }
+html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
 
 .brand-footer { position: relative; }
 .brand-footer-admin {

@@ -150,18 +150,13 @@ button.secondary:hover { background: rgba(37, 37, 37, 0.2); }
 button.danger { background: #a34848; }
 button.danger:hover { background: #833636; }
 
-button.link-btn,
-a.link-btn {
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.03em;
+button.link-btn {
   background: none;
   color: #356d65;
   padding: 0.25rem 0;
   text-decoration: underline;
 }
-button.link-btn:hover,
-a.link-btn:hover { background: none; color: #2a5951; }
+button.link-btn:hover { background: none; color: #2a5951; }
 
 .error {
   color: #a34848;
@@ -481,4 +476,85 @@ a.link-btn:hover { background: none; color: #2a5951; }
   .card { padding: 1.25rem; }
 }
 
-.top-links { display: flex; gap: 1rem; align-items: center; }
+/* ── Site nav ────────────────────────────────────────────────────
+   Same fixed dark bar as src/galerie/style.css / src/photos/style.css /
+   the inline block in src/index.html — keep them in sync. Galerie and
+   Photos are hidden unless logged in or made public with the dashboard
+   switch (see src/admin-access.js). */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0.85rem 1rem;
+  padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
+  background: rgba(23, 23, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.site-nav a {
+  display: flex;
+  align-items: center;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(208, 218, 209, 0.75);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-nav a:hover { color: #d0dad1; }
+.site-nav a.is-current {
+  color: #ffffff !important;
+  background: #356d65;
+  padding: 0 0.6rem;
+  margin: -0.85rem 0;
+  font-weight: 600;
+}
+
+html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
+
+/* Clear the fixed bar (~55px). */
+.login-view { padding-top: 4.5rem; }
+.dashboard-view { padding-top: 5rem; }
+
+@media (max-width: 480px) {
+  .site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
+  .site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
+  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
+  .site-nav a.is-current { margin: -1rem 0; }
+}
+
+@media (max-width: 640px) {
+  .dashboard-view { padding-top: 4.5rem; }
+}
+
+/* ── Site settings card ──────────────────────────────────────── */
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+.setting-row input {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.1rem 0 0;
+  accent-color: #356d65;
+  cursor: pointer;
+}
+.setting-hint {
+  margin: 0.5rem 0 0 1.85rem;
+  font-size: 0.8125rem;
+  color: rgba(37, 37, 37, 0.6);
+}

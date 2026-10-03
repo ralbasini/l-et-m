@@ -12,9 +12,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+  <nav class="site-nav" aria-label="Navigation">
+    <a href="../">Mariage</a>
+    <a href="../#galerie" data-admin-only>Galerie</a>
+    <a href="../#photos" data-admin-only>Photos</a>
+    <a href="./" class="is-current" aria-current="page">Admin</a>
+  </nav>
+
   <div id="toast-host" class="toast-host"></div>
 
   <!-- ── Login screen ── -->
@@ -37,8 +45,6 @@
     <div class="top-row">
       <h1>Photos du mariage</h1>
       <span class="top-links">
-        <a href="../#galerie" class="link-btn">Galerie</a>
-        <a href="../#photos" class="link-btn">Photos</a>
         <button type="button" id="logout-btn" class="link-btn">Se déconnecter</button>
       </span>
     </div>
@@ -46,6 +52,14 @@
     <div class="storage-meter">
       <div class="storage-bar"><div id="storage-bar-fill" class="storage-bar-fill"></div></div>
       <p id="storage-label" class="storage-label"></p>
+    </div>
+
+    <div class="card">
+      <label class="setting-row">
+        <input type="checkbox" id="menu-public-toggle">
+        <span>Afficher <strong>Galerie</strong> et <strong>Photos</strong> dans le menu pour tous les visiteurs</span>
+      </label>
+      <p class="setting-hint">Désactivé : seuls les administrateurs connectés voient ces entrées. Les pages restent accessibles par lien direct ou QR code.</p>
     </div>
 
     <nav id="breadcrumb" class="breadcrumb"></nav>

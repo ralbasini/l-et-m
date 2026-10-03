@@ -10,7 +10,7 @@
       location.replace('../#photos')
     }
   </script>
-  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin') } catch (e) {}</script>
+  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
   <meta name="robots" content="noindex, nofollow">
   <title>Ajoutez vos photos — Lobna &amp; Martin</title>
 

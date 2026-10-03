@@ -1,4 +1,4 @@
-import './admin-access.js'
+import { isShown } from './admin-access.js'
 
 const pages = ['mariage', 'galerie', 'photos']
 const shell = document.getElementById('app-shell')
@@ -35,10 +35,13 @@ if (window.parent !== window) {
   const track = document.getElementById('panel-track')
   const frames = [...track.querySelectorAll('iframe[data-page]')]
   const framesByPage = new Map(frames.map((frame) => [frame.dataset.page, frame]))
-  // Pages still in the menu (admin-access.js drops Galerie/Photos for
-  // visitors). Only these are reachable with arrow keys or preloaded; a
-  // direct #galerie / #photos link still opens its panel for anyone.
-  const menuPages = pages.filter((page) => links.some((link) => link.hash === `#${page}`))
+  // Pages currently in the menu (admin-access.js may hide Galerie/Photos).
+  // Only these are reachable with arrow keys or preloaded; a direct
+  // #galerie / #photos link still opens its panel for anyone. Computed on
+  // demand since the site-wide setting can arrive after the first render.
+  function menuPages () {
+    return pages.filter((page) => links.some((link) => link.hash === `#${page}` && isShown(link)))
+  }
 
   function ensureLoaded (page) {
     const frame = framesByPage.get(page)
@@ -66,7 +69,7 @@ if (window.parent !== window) {
     })
 
     ensureLoaded(page)
-    if ((page === 'mariage' || page === 'photos') && menuPages.includes('galerie')) ensureLoaded('galerie')
+    if ((page === 'mariage' || page === 'photos') && menuPages().includes('galerie')) ensureLoaded('galerie')
     if (page === 'galerie') ensureLoaded('mariage')
     document.body.classList.remove('is-preload')
   }
@@ -85,13 +88,14 @@ if (window.parent !== window) {
     const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
     if (!direction) return
 
-    const currentIndex = menuPages.indexOf(location.hash.slice(1))
+    const shownPages = menuPages()
+    const currentIndex = shownPages.indexOf(location.hash.slice(1))
     if (currentIndex < 0) return
     const nextIndex = currentIndex + direction
-    if (nextIndex < 0 || nextIndex >= menuPages.length) return
+    if (nextIndex < 0 || nextIndex >= shownPages.length) return
 
     event.preventDefault()
-    location.hash = menuPages[nextIndex]
+    location.hash = shownPages[nextIndex]
   })
 
   window.addEventListener('hashchange', render)
