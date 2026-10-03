@@ -41,6 +41,9 @@ CREATE TABLE tags (
   name TEXT PRIMARY KEY
 );
 
+-- Default tags (the admin can add/remove more from the dashboard).
+INSERT OR IGNORE INTO tags (name) VALUES ('apéro'), ('souper'), ('soirée');
+
 CREATE TABLE photo_tags (
   photo_id INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
   tag_name TEXT NOT NULL REFERENCES tags(name) ON DELETE CASCADE,
