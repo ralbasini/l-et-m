@@ -1,5 +1,4 @@
-@import url("fontawesome-all.min.css");
-@import url("https://fonts.googleapis.com/css?family=Raleway:400,400italic,700,800");
+/* Raleway is linked from the page (src/index.html) so it loads in parallel, not behind this file. */
 
 /*
 	Highlights by HTML5 UP
@@ -2854,7 +2853,7 @@ input[type="submit"].button.padded {   /* <-- make sure this line exists */
     background-position: top center;
     background-repeat: no-repeat;
     background-size: cover; /* Ou 'cover' si vous avez recadré l'image en format portrait comme discuté */
-    background-attachment: fixed; /* Garde l'effet fixe si désiré */
+    background-attachment: scroll; /* fixed repaints the whole header on every scroll frame */
     /* -------------------------- */
 	}
 

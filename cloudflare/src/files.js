@@ -58,7 +58,7 @@ export function splitTags (tagList) {
 // no D1 row; the grids ask for it and fall back to the original if missing.
 // Photos can't live in a folder with this name, or keys could collide.
 const THUMB_PREFIX = '_thumbs/'
-const MAX_THUMB_BYTES = 300 * 1024
+export const MAX_THUMB_BYTES = 300 * 1024
 
 export function thumbKey (key) {
   return THUMB_PREFIX + key

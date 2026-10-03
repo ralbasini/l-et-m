@@ -12,7 +12,25 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 		<meta name="robots" content="noindex, nofollow">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
-		<link rel="stylesheet" href="/mariage/assets/css/main.css" />
+		<!-- The theme CSS + Raleway are only for the page shown inside the
+		     home panel (?embed=mariage); the top-level shell doesn't need them,
+		     so it doesn't download them. -->
+		<script>
+			if (window.parent !== window) {
+				var head = document.head
+				var pre = document.createElement('link')
+				pre.rel = 'preconnect'
+				pre.href = 'https://fonts.gstatic.com'
+				pre.crossOrigin = ''
+				head.appendChild(pre)
+				;['mariage/assets/css/main.css', 'https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;0,800;1,400&display=swap'].forEach(function (href) {
+					var link = document.createElement('link')
+					link.rel = 'stylesheet'
+					link.href = href
+					head.appendChild(link)
+				})
+			}
+		</script>
 		<!-- Quicksand is the site's sans-serif typeface. -->
 		<!-- The top menu and the L&M footer come from src/site-chrome.css +
 		     the site-chrome plugin in vite.config.js, like every page. -->
@@ -143,16 +161,16 @@
 				background-size: cover;
 				background-color: #171717;
 				opacity: 0;
-				transform: scale(1.03);
 				transition: opacity 1.5s ease-in-out;
 			}
 			#header .mariage-hero-image.is-active { opacity: 1; }
+			/* First photo straight from CSS, so it shows without waiting for the scripts. */
+			#header .mariage-hero-image:first-child { background-image: url('/mariage/images/Bizerte.jpg'); }
 			/* Portrait screens: header takes the photo's 4:3 ratio (Bizerte.jpg,
 			   2048x1536) so the whole picture shows, without bars. */
 			@media (max-aspect-ratio: 1/1) {
 				#header, #header:after { height: 75vw; }
 				#header header { padding-bottom: 0; }
-				#header .mariage-hero-image { transform: none; }
 			}
 			#header .mariage-hero-veil {
 				position: absolute;
@@ -224,7 +242,7 @@
 		<div id="app-shell">
 			<main id="panel-viewport" aria-label="Contenu du site">
 				<div id="panel-track">
-					<iframe title="Mariage" data-page="mariage" data-src="./?embed=mariage"></iframe>
+					<iframe title="Mariage" data-page="mariage" src="./?embed=mariage" data-src="./?embed=mariage"></iframe>
 					<iframe title="Galerie" data-page="galerie" data-src="galerie/?embed=1"></iframe>
 					<iframe title="Photos" data-page="photos" data-src="photos/?embed=1"></iframe>
 				</div>

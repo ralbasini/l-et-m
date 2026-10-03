@@ -44,7 +44,7 @@ npx wrangler secret put ADMIN_PASSWORD
 ## Base de données
 
 ```bash
-npx wrangler d1 execute l-et-m --remote --file schema.sql
+npx wrangler d1 execute lobna-et-martin --remote --file schema.sql
 ```
 
 ## Fichiers

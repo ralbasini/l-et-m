@@ -27,6 +27,7 @@ const routes = {
   'POST /admin/add-tag': adminOnly(admin.addTag),
   'POST /admin/delete-tag': adminOnly(admin.deleteTag),
   'POST /admin/delete': adminOnly(admin.deletePhotos),
+  'POST /admin/thumb': adminOnly(admin.setThumb),
   'POST /admin/move': adminOnly(admin.movePhotos),
   'POST /admin/tag': adminOnly(admin.tagPhotos),
   'POST /admin/settings': adminOnly(updateSettings),

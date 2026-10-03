@@ -1,4 +1,4 @@
-import { API_BASE_URL, photoUrl, loadThumb } from '../photos.js'
+import { API_BASE_URL, photoUrl } from '../photos.js'
 import { makeThumbnail } from '../thumbnail.js'
 import { setMenuPublic, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
 import { toast } from '../toast.js'
@@ -67,12 +67,46 @@ function showLogin () {
 function showDashboard () {
   loginView.hidden = true
   dashboardView.hidden = false
+  document.getElementById('photos-grid').innerHTML = '<p class="grid-loading">Chargement…</p>'
   // Swallowed here specifically: an expired/invalid token 401s, and
   // apiFetch already reacts to that by calling showLogin() itself — this
   // just stops that rejection from surfacing as an unhandled promise
   // rejection on top of it.
   loadState('').catch(() => {})
   loadSettings()
+}
+
+// ── Missing thumbnails ──────────────────────────────────────────
+// A photo with no stored thumbnail would load at full size in the grid. Show
+// the original once, and meanwhile make the thumbnail here and send it to the
+// Worker (one at a time) so the next load is light.
+const thumbQueue = []
+let thumbWorking = false
+
+function loadAdminThumb (img, path) {
+  img.src = photoUrl('_thumbs/' + path)
+  img.addEventListener('error', () => {
+    img.src = photoUrl(path)
+    thumbQueue.push(path)
+    if (!thumbWorking) backfillThumbs()
+  }, { once: true })
+}
+
+async function backfillThumbs () {
+  thumbWorking = true
+  while (thumbQueue.length) {
+    const path = thumbQueue.shift()
+    try {
+      const res = await fetch(photoUrl(path))
+      const thumb = res.ok ? await makeThumbnail(await res.blob()) : null
+      if (!thumb) continue
+      const formData = new FormData()
+      formData.append('path', path)
+      formData.append('thumb', thumb, 'thumb.jpg')
+      await apiFetch('thumb', { method: 'POST', formData })
+    } catch {}
+  }
+  thumbWorking = false
 }
 
 // ── Site settings ───────────────────────────────────────────────
@@ -319,7 +353,7 @@ function renderPhotos (photos, registry) {
     selectWrap.appendChild(checkbox)
 
     const img = document.createElement('img')
-    loadThumb(img, photo.path)
+    loadAdminThumb(img, photo.path)
     img.alt = ''
     img.loading = 'lazy'
     // Clicking the photo selects/unselects it; full screen is the small

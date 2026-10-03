@@ -5,13 +5,13 @@ compatibility_date = "2026-09-30"
 # ── R2 bucket (photo storage) ──────────────────────────────────────────────
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
-bucket_name = "l-et-m-photos"
+bucket_name = "lobna-et-martin"
 
 # ── D1 database (guests, photos, folders, tags) ─────────────────────────────
 [[d1_databases]]
 binding = "DB"
-database_name = "l-et-m"
-database_id = "c80a7d6f-9e12-4784-a74a-ac529cf4fae3"
+database_name = "lobna-et-martin"
+database_id = "0842eef8-8175-4014-b4ce-b781aa01a933"
 
 # ── Custom domain(s) — optional, but without one the API lives at
 #    l-et-m-api.<your-subdomain>.workers.dev, which is fine to start with.

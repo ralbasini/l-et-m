@@ -14,15 +14,15 @@ async function initializeWeddingEmbed () {
     'main.js',
   ].map((file) => `${import.meta.env.BASE_URL}mariage/assets/js/${file}`)
 
-  for (const src of themeScripts) {
-    await new Promise((resolve) => {
-      const script = document.createElement('script')
-      script.src = src
-      script.onload = resolve
-      script.onerror = resolve
-      document.body.appendChild(script)
-    })
-  }
+  // All requested at once; async = false keeps them executing in order.
+  await Promise.all(themeScripts.map((src) => new Promise((resolve) => {
+    const script = document.createElement('script')
+    script.src = src
+    script.async = false
+    script.onload = resolve
+    script.onerror = resolve
+    document.body.appendChild(script)
+  })))
 
   await import('./site-swipe-nav.js')
 }

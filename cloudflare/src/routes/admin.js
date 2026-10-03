@@ -1,6 +1,6 @@
 import { json } from '../cors.js'
 import { signToken } from '../auth.js'
-import { registerFolderPath, isReservedFolder, TAG_LIST_SQL, splitTags, storePhoto, relocatePhoto, deletePhotoRows } from '../files.js'
+import { registerFolderPath, isReservedFolder, TAG_LIST_SQL, splitTags, storePhoto, relocatePhoto, deletePhotoRows, thumbKey, MAX_THUMB_BYTES } from '../files.js'
 
 // Every handler here except login/logout is wrapped in adminOnly() by the
 // route table in index.js.
@@ -204,6 +204,21 @@ export async function deletePhotos (request, env) {
   const photos = await findPhotos(env, files)
   await deletePhotoRows(env, photos)
   return json({ deleted: photos.length, skipped: files.length - photos.length })
+}
+
+// Backfills the thumbnail of an existing photo that has none (the admin
+// dashboard makes it in the browser when a grid thumbnail 404s).
+export async function setThumb (request, env) {
+  const formData = await request.formData()
+  const path = (formData.get('path') || '').toString()
+  const thumb = formData.get('thumb')
+  if (!(thumb instanceof File) || thumb.type !== 'image/jpeg' || thumb.size > MAX_THUMB_BYTES) {
+    return json({ error: 'Miniature invalide.' }, { status: 400 })
+  }
+  const [photo] = await findPhotos(env, [path])
+  if (!photo) return json({ error: 'Photo introuvable.' }, { status: 404 })
+  await env.PHOTOS_BUCKET.put(thumbKey(photo.r2_key), thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } })
+  return json({ ok: true })
 }
 
 export async function movePhotos (request, env) {

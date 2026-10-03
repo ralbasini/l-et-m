@@ -1,5 +1,5 @@
 -- D1 schema for the Cloudflare backend. Apply with:
---   wrangler d1 execute l-et-m --remote --file schema.sql
+--   wrangler d1 execute lobna-et-martin --remote --file schema.sql
 
 -- Folders are tracked explicitly rather than derived from photo paths, so
 -- an empty folder created via the admin panel (create-folder) still shows
@@ -50,7 +50,7 @@ CREATE TABLE photo_tags (
 
 -- Failed admin logins per client IP, for the lockout in routes/admin.js
 -- login(). Added after the initial deploy — apply to an existing database
--- with: wrangler d1 execute l-et-m --remote --command "<this statement>"
+-- with: wrangler d1 execute lobna-et-martin --remote --command "<this statement>"
 CREATE TABLE IF NOT EXISTS login_attempts (
   ip TEXT PRIMARY KEY,
   failures INTEGER NOT NULL DEFAULT 0,
