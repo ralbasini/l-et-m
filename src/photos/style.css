@@ -27,67 +27,15 @@ html, body {
 }
 
 main {
+  /* width: the body is a flex column (src/site-chrome.css), where auto
+     side margins would otherwise shrink this to its content. */
+  width: 100%;
   max-width: 32rem;
   margin: 0 auto;
-  /* Top padding cleared past the fixed .site-nav bar (~55px, less on
-     mobile) so it doesn't sit over the monogram. */
-  padding: 4.5rem 1.5rem 4rem;
+  /* Top padding clears the fixed menu bar so it doesn't sit over the
+     monogram. */
+  padding: calc(var(--site-nav-offset) + 1.4rem) 1.5rem 4rem;
   text-align: center;
-}
-
-/* Exact match with src/galerie/style.css's .site-nav — same fixed dark
-   translucent bar on every page that has one, not a page-specific variant. */
-.site-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 2rem;
-  padding: 0.85rem 1rem;
-  padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
-  background: rgba(23, 23, 23, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-html.is-embedded .site-nav { display: none; }
-
-.site-nav a {
-  display: flex;
-  align-items: center;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.75rem;
-  /* Explicit, not inherited — see the matching comment in
-     src/galerie/style.css for why (Tailwind Preflight vs. no Tailwind here
-     made the bar render at two different heights despite identical
-     padding/font-size). */
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(208, 218, 209, 0.75);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.site-nav a:hover { color: #d0dad1; }
-.site-nav a.is-current {
-  color: #ffffff !important;
-  background: #356d65;
-  padding: 0 0.6rem;
-  margin: -0.85rem 0;
-  font-weight: 600;
-}
-
-@media (max-width: 480px) {
-  .site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
-  .site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
-  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
-  .site-nav a.is-current { margin: -1rem 0; }
 }
 
 .monogram {
@@ -220,6 +168,42 @@ input[type="text"], input[type="file"] {
 /* Previews aren't clickable to zoom (unlike the "Vos photos" grid below),
    so don't borrow its zoom-in cursor. */
 .preview-grid figure img { cursor: default; }
+
+/* "Envoyer" sits between the dropzone and the selected photos. */
+#upload-submit { margin: 0 0 1rem; }
+
+/* Selected but not sent yet: dotted gray border + clock badge top-left
+   (the × to remove it stays top-right). */
+.preview-grid figure.is-pending {
+  border: 2px dotted rgba(37, 37, 37, 0.45);
+  padding: 2px;
+}
+.preview-grid figure.is-pending img { border-radius: 0.3rem; }
+
+.pending-badge {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: rgba(23, 23, 23, 0.65);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.pending-badge svg { width: 1.1rem; height: 1.1rem; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
 .warning {
   margin: 0 0 1rem;
@@ -432,28 +416,6 @@ button.link-btn:hover, button.link-inline:hover { background: none; color: #2a59
 .toast.toast-ok { background: #356d65; }
 .toast.toast-hide { opacity: 0; }
 
-.brand-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding: 0.55rem 1rem;
-  background: #252525;
-}
-
-.brand-footer-logo {
-  font-family: 'MoreSugar-Thin', Georgia, serif;
-  font-size: 1.125rem;
-  line-height: 1;
-  color: #abb9a2;
-}
-
-.brand-footer-logo span {
-  font-family: 'Apricot', cursive;
-  color: #abb9a2;
-  margin: 0;
-}
-
 /* ── Lightbox ────────────────────────────────────────────────────── */
 .lightbox {
   position: fixed;
@@ -519,21 +481,3 @@ button.link-btn:hover, button.link-inline:hover { background: none; color: #2a59
 .lightbox-nav { top: 50%; transform: translateY(-50%); }
 .lightbox-prev { left: 1.25rem; }
 .lightbox-next { right: 1.25rem; }
-
-/* Small "admin" entry point (see src/admin-access.js). */
-html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
-
-.brand-footer { position: relative; }
-.brand-footer-admin {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  color: rgba(171, 185, 162, 0.5);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.brand-footer-admin:hover { color: #abb9a2; }

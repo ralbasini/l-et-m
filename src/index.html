@@ -9,7 +9,6 @@
 		<title>Mariage Lobna et Martin</title>
 		<meta charset="utf-8" />
 		<script>if (window.parent !== window) document.documentElement.classList.add('is-embedded')</script>
-		<script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 		<meta name="robots" content="noindex, nofollow">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
@@ -18,72 +17,19 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-		<!-- .site-nav matches the nav on /galerie/ and /photos/ byte-for-byte
-		     (see src/galerie/style.css) — kept inline here rather than in a
-		     linked stylesheet since this page otherwise only loads the
-		     vendored HTML5 UP theme, not the rest of the site's own CSS. -->
+		<!-- The top menu and the L&M footer come from src/site-chrome.css +
+		     the site-chrome plugin in vite.config.js, like every page. -->
 		<style>
-			.site-nav {
-				position: fixed;
-				top: 0;
-				left: 0;
-				right: 0;
-				z-index: 10002;
-				display: flex;
-				align-items: stretch;
-				justify-content: center;
-				gap: 2rem;
-				padding: 0.85rem 1rem;
-				padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
-				background: rgba(23, 23, 23, 0.72);
-				backdrop-filter: blur(8px);
-				-webkit-backdrop-filter: blur(8px);
-			}
-			.site-nav a {
-				display: flex;
-				align-items: center;
-				font-family: 'Quicksand', sans-serif;
-				font-size: 0.75rem;
-				line-height: 1;
-				font-weight: 500;
-				letter-spacing: 0.12em;
-				text-transform: uppercase;
-				color: rgba(208, 218, 209, 0.75);
-				text-decoration: none;
-				/* This theme's base `a` rule (main.css) fakes an underline with
-				   border-bottom, not text-decoration — text-decoration:none above
-				   never touched it. */
-				border-bottom: none;
-				transition: color 0.2s;
-			}
-			.site-nav a:hover { color: #d0dad1; }
-			.site-nav a.is-current {
-				color: #ffffff !important;
-				background: #356d65;
-				padding: 0 0.6rem;
-				margin: -0.85rem 0;
-				font-weight: 600;
-			}
+			/* The swipe panels sit under the shared fixed menu bar. */
 			#app-shell {
-				--nav-height: calc(3.1rem + env(safe-area-inset-top, 0px));
 				position: fixed;
 				inset: 0;
 				z-index: 10001;
 				display: flex;
 				flex-direction: column;
+				padding-top: var(--site-nav-offset);
 				background: #171717;
 			}
-			#app-shell > .site-nav {
-				position: relative;
-				top: auto;
-				left: auto;
-				right: auto;
-				flex: 0 0 var(--nav-height);
-				height: var(--nav-height);
-				padding: env(safe-area-inset-top, 0px) 1rem 0;
-				align-items: stretch;
-			}
-			#app-shell > .site-nav a.is-current { margin: 0; }
 			#panel-viewport { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 			#panel-track {
 				display: flex;
@@ -102,44 +48,11 @@
 			#wedding-site { display: none; }
 			html.is-embedded #app-shell { display: none; }
 			html.is-embedded #wedding-site { display: block; }
-			html.is-embedded .site-nav { display: none; }
 			@media (prefers-reduced-motion: reduce) {
 				#panel-track { transition: none; }
 			}
-			@media (max-width: 480px) {
-				.site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
-				.site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
-				.site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
-				.site-nav a.is-current { margin: -1rem 0; }
-				#app-shell > .site-nav { padding: env(safe-area-inset-top, 0px) 0.5rem 0; }
-				#app-shell > .site-nav a.is-current { margin: 0; }
-			}
 			body.is-preload #app-shell { opacity: 0; }
 			body:not(.is-preload) #app-shell { opacity: 1; transition: opacity 0.2s ease; }
-			/* Galerie/Photos/Admin menu entries (hidden for visitors, see
-			   src/admin-access.js) and the small footer "admin" link. */
-			html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
-			/* On desktop the theme paints each section's photo as a fixed
-			   full-screen layer (.main-bg, z-index 0 below), which covers
-			   anything not positioned above it — hence position + z-index,
-			   same as #header/.main. Same dark bar as the other pages'
-			   .brand-footer. */
-			.mariage-admin-footer {
-				position: relative;
-				z-index: 1;
-				padding: 1rem;
-				text-align: center;
-				background: #252525;
-			}
-			.mariage-admin-footer a {
-				font-family: 'Quicksand', sans-serif;
-				font-size: 0.6875rem;
-				letter-spacing: 0.1em;
-				color: rgba(171, 185, 162, 0.5);
-				border-bottom: 0;
-				text-decoration: none;
-			}
-			.mariage-admin-footer a:hover { color: #abb9a2; }
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in
@@ -321,13 +234,8 @@
 	</head>
 	<body class="is-preload">
 
+		<!-- site-nav -->
 		<div id="app-shell">
-			<nav class="site-nav" aria-label="Navigation">
-				<a href="#mariage" class="is-current" aria-current="page">Mariage</a>
-				<a href="#galerie" data-admin-only>Galerie</a>
-				<a href="#photos" data-admin-only>Photos</a>
-				<a href="admin/" data-admin-only data-admin-link>Admin</a>
-			</nav>
 			<main id="panel-viewport" aria-label="Contenu du site">
 				<div id="panel-track">
 					<iframe title="Mariage" data-page="mariage" data-src="./?embed=mariage"></iframe>
@@ -338,12 +246,6 @@
 		</div>
 
 		<div id="wedding-site">
-		<nav class="site-nav" aria-label="Navigation">
-			<a href="./" class="is-current" aria-current="page">Mariage</a>
-			<a href="galerie/" data-admin-only>Galerie</a>
-			<a href="photos/" data-admin-only>Photos</a>
-			<a href="admin/" data-admin-only data-admin-link>Admin</a>
-		</nav>
 
 		<!-- Header -->
 			<section id="header">
@@ -445,9 +347,7 @@
 					</div>
 				</div>
 			</section>
-			<footer class="mariage-admin-footer">
-				<a href="admin/">admin</a>
-			</footer>
+			<!-- site-footer -->
 		</div>
 		<script type="module" src="./onepager.js"></script>
 

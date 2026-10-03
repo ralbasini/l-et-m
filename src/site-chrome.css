@@ -1,0 +1,175 @@
+/* ================================================================
+   SITE CHROME — the top menu (.site-nav) and the L&M footer
+   (.brand-footer), shared by every page. The single source for both:
+   - markup: generated at build time by the `site-chrome` plugin in
+     vite.config.js (each page has <!-- site-nav --> / <!-- site-footer -->
+     placeholders) — edit it there, never in a page;
+   - styles: this file, linked from every page — no page restyles them.
+
+   Unlayered on purpose: on /galerie/ (Tailwind) unlayered rules outrank
+   every @layer, and on / it's linked after the HTML5 UP theme's main.css,
+   so nothing page-specific can drift these out of sync.
+   ================================================================ */
+
+/* Self-hosted logo fonts (free-for-personal-use licenses — see the notes
+   in src/galerie/style.css). */
+@font-face {
+  font-family: 'MoreSugar-Thin';
+  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apricot';
+  src: url('/fonts/Apricot.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Height of the menu bar, excluding the iPhone notch inset. Pages use
+     var(--site-nav-offset) to clear it. */
+  --site-nav-height: 3.1rem;
+  --site-nav-offset: calc(var(--site-nav-height) + env(safe-area-inset-top, 0px));
+  --site-footer-height: 3rem;
+}
+
+/* Footer always on the bottom edge, even when a page is shorter than the
+   window: the body is a column and the footer takes up the slack above it. */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ── Top menu ───────────────────────────────────────────────────── */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10002;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  box-sizing: border-box;
+  height: var(--site-nav-offset);
+  margin: 0;
+  padding: env(safe-area-inset-top, 0px) 1rem 0;
+  background: rgba(23, 23, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.site-nav a {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.75rem;
+  /* Explicit rather than inherited: each page has a different base
+     line-height (Tailwind Preflight, the HTML5 UP theme, browser default). */
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(208, 218, 209, 0.75);
+  text-decoration: none;
+  border: 0;
+  transition: color 0.2s;
+}
+
+/* !important: the home page theme forces `a:hover { color: … !important }`. */
+.site-nav a:hover { color: #d0dad1 !important; }
+
+.site-nav a.is-current {
+  color: #ffffff !important;
+  background: #356d65;
+  padding: 0 0.6rem;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .site-nav { gap: 1.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
+}
+
+/* Inside the home page's swipe panels (iframes), the top page's own menu
+   is the one shown. */
+html.is-embedded .site-nav { display: none; }
+
+/* Galerie / Photos / Admin entries: hidden unless logged in as admin or
+   made public from the dashboard (see src/admin-access.js). */
+html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none; }
+
+/* ── L&M footer ─────────────────────────────────────────────────── */
+.brand-footer {
+  position: relative;
+  /* Above the home page theme's fixed section backgrounds (.main-bg). */
+  z-index: 1;
+  flex: none;
+  margin-top: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--site-footer-height);
+  padding: 0.55rem 1rem;
+  background: #252525;
+}
+
+.brand-footer-logo {
+  font-family: 'MoreSugar-Thin', Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: #abb9a2;
+}
+
+.brand-footer-logo span {
+  font-family: 'Apricot', cursive;
+  color: #abb9a2;
+  margin: 0;
+  padding: 0;
+}
+
+/* "login" (a link) and "logout" (a button) look the same. Scoped under
+   .brand-footer so it outranks the pages' own generic `button` /
+   `button:hover` rules (teal background, padding, the theme's uppercase…). */
+.brand-footer .brand-footer-action {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: none;
+  color: rgba(171, 185, 162, 0.5);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.brand-footer .brand-footer-action:hover {
+  background: none;
+  color: #abb9a2 !important; /* see .site-nav a:hover */
+}
+
+/* Exactly one shows: login when logged out, logout when logged in. */
+html.is-admin .brand-footer-login,
+html:not(.is-admin) .brand-footer-logout { display: none; }

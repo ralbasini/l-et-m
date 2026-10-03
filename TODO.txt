@@ -6,3 +6,6 @@ ADMIN
 - same upload layout as on the photos upload page
 - displayed photos should be smaller, same as photos upload page
 - if no folder is selected (default) all pictures should be displayed
+
+Bucket
+- rename bucket from l-et-m-photos to lobna-et-martin

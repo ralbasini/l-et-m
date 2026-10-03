@@ -324,11 +324,20 @@ function renderPreview () {
     const url = URL.createObjectURL(file)
     previewUrls.push(url)
 
+    // Dotted border + clock badge: selected, not sent yet.
     const figure = document.createElement('figure')
+    figure.className = 'is-pending'
     const img = document.createElement('img')
     img.src = url
     img.alt = ''
     figure.appendChild(img)
+
+    const pendingBadge = document.createElement('span')
+    pendingBadge.className = 'pending-badge'
+    pendingBadge.title = 'En attente d’envoi'
+    pendingBadge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' +
+      '<span class="visually-hidden">En attente d’envoi</span>'
+    figure.appendChild(pendingBadge)
 
     const removeBtn = document.createElement('button')
     removeBtn.type = 'button'
@@ -358,15 +367,23 @@ function setSelectedFiles (files) {
 // already chosen.
 photosInput.addEventListener('change', () => {
   const existingKeys = new Set(selectedFiles.map(fileKey))
+  let added = 0
   Array.from(photosInput.files).forEach((file) => {
     const key = fileKey(file)
     if (!existingKeys.has(key)) {
       selectedFiles.push(file)
       existingKeys.add(key)
+      added += 1
     }
   })
   syncInputFiles()
   renderPreview()
+  // Bring "Envoyer" into view so the next step is obvious — centered, so
+  // the fixed menu bar can't cover it.
+  if (added > 0) {
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    uploadSubmitBtn.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
+  }
 })
 
 renderPreview()

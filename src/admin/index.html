@@ -12,16 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <nav class="site-nav" aria-label="Navigation">
-    <a href="../">Mariage</a>
-    <a href="../#galerie" data-admin-only>Galerie</a>
-    <a href="../#photos" data-admin-only>Photos</a>
-    <a href="./" class="is-current" aria-current="page">Admin</a>
-  </nav>
+  <!-- site-nav -->
 
   <div id="toast-host" class="toast-host"></div>
 
@@ -120,9 +114,7 @@
     </div>
   </main>
 
-  <footer class="brand-footer" aria-label="Lobna et Martin">
-    <span class="brand-footer-logo">L<span>&amp;</span>M</span>
-  </footer>
+  <!-- site-footer -->
 
   <div id="lightbox" class="lightbox" hidden>
     <div class="lightbox-overlay" id="lightbox-overlay"></div>

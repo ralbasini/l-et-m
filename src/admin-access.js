@@ -9,7 +9,8 @@ import { API_BASE_URL } from './photos.js'
 // by direct link or QR code either way. Purely cosmetic — every admin API
 // call checks its token server-side.
 //
-// Each page's <head> sets both classes before first paint (menu-public from
+// The site-chrome plugin (vite.config.js) sets both classes in every page's
+// <head> before first paint (menu-public from
 // the last value cached here), and CSS hides
 // `html:not(.is-admin):not(.menu-public) [data-admin-only]`, so nothing
 // flashes in; this module then refreshes menu-public from the server.
@@ -27,6 +28,29 @@ export function setMenuPublic (on) {
 export function isShown (link) {
   return getComputedStyle(link).display !== 'none'
 }
+
+// The footer's "logout" button (only shown when logged in — see
+// src/site-chrome.css). Same as the admin dashboard's "Se déconnecter":
+// tell the server (best effort, tokens are stateless anyway), forget the
+// token, then reload the whole site so every admin-only entry hides again —
+// the top page too when clicked inside one of the home page's panels.
+async function logout () {
+  let token = ''
+  try { token = localStorage.getItem(ADMIN_TOKEN_KEY) || '' } catch {}
+  try {
+    await fetch(API_BASE_URL + 'admin/logout', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+    })
+  } catch {}
+  try { localStorage.removeItem(ADMIN_TOKEN_KEY) } catch {}
+  document.documentElement.classList.remove('is-admin')
+  window.top.location.reload()
+}
+
+document.addEventListener('click', (event) => {
+  if (event.target instanceof Element && event.target.closest('.brand-footer-logout')) logout()
+})
 
 // Embedded panels (iframes of the one-pager) share localStorage with the
 // top page, which does the fetch — no need for one request per panel.

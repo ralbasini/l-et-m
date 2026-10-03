@@ -42,36 +42,15 @@ html, body {
   margin: 0;
 }
 
-.brand-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding: 0.55rem 1rem;
-  background: #252525;
-}
-
-.brand-footer-logo {
-  font-family: 'MoreSugar-Thin', Georgia, serif;
-  font-size: 1.125rem;
-  line-height: 1;
-  color: #abb9a2;
-}
-
-.brand-footer-logo span {
-  font-family: 'Apricot', cursive;
-  color: #abb9a2;
-  margin: 0;
-}
-
 /* ── Login ───────────────────────────────────────────────────── */
 .login-view {
-  min-height: calc(100vh - 3rem);
-  min-height: calc(100dvh - 3rem);
+  /* Fills the space between the menu bar and the footer (the body is a
+     flex column, see src/site-chrome.css). */
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: calc(var(--site-nav-offset) + 1.5rem) 1.5rem 1.5rem;
 }
 
 /* `display: flex` above otherwise overrides the browser's default
@@ -165,7 +144,7 @@ button.link-btn:hover { background: none; color: #2a5951; }
 }
 
 /* ── Dashboard shell ─────────────────────────────────────────────── */
-.dashboard-view { padding: 2.5rem 1.5rem 4rem; }
+.dashboard-view { padding: calc(var(--site-nav-offset) + 2rem) 1.5rem 4rem; }
 
 .top-row {
   max-width: 60rem;
@@ -472,70 +451,8 @@ button.link-btn:hover { background: none; color: #2a5951; }
 .lightbox-next { right: 1.25rem; }
 
 @media (max-width: 640px) {
-  .dashboard-view { padding: 1.5rem 1rem 3rem; }
+  .dashboard-view { padding: calc(var(--site-nav-offset) + 1.5rem) 1rem 3rem; }
   .card { padding: 1.25rem; }
-}
-
-/* ── Site nav ────────────────────────────────────────────────────
-   Same fixed dark bar as src/galerie/style.css / src/photos/style.css /
-   the inline block in src/index.html — keep them in sync. Galerie and
-   Photos are hidden unless logged in or made public with the dashboard
-   switch (see src/admin-access.js). */
-.site-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  gap: 2rem;
-  padding: 0.85rem 1rem;
-  padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
-  background: rgba(23, 23, 23, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.site-nav a {
-  display: flex;
-  align-items: center;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.75rem;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(208, 218, 209, 0.75);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.site-nav a:hover { color: #d0dad1; }
-.site-nav a.is-current {
-  color: #ffffff !important;
-  background: #356d65;
-  padding: 0 0.6rem;
-  margin: -0.85rem 0;
-  font-weight: 600;
-}
-
-html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
-
-/* Clear the fixed bar (~55px). */
-.login-view { padding-top: 4.5rem; }
-.dashboard-view { padding-top: 5rem; }
-
-@media (max-width: 480px) {
-  .site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
-  .site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
-  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
-  .site-nav a.is-current { margin: -1rem 0; }
-}
-
-@media (max-width: 640px) {
-  .dashboard-view { padding-top: 4.5rem; }
 }
 
 /* ── Site settings card ──────────────────────────────────────── */

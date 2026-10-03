@@ -10,7 +10,6 @@
       location.replace('../#photos')
     }
   </script>
-  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin'); if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public') } catch (e) {}</script>
   <meta name="robots" content="noindex, nofollow">
   <title>Ajoutez vos photos — Lobna &amp; Martin</title>
 
@@ -23,12 +22,7 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <nav class="site-nav" aria-label="Navigation">
-    <a href="../">Mariage</a>
-    <a href="../galerie/" data-admin-only>Galerie</a>
-    <a href="./" class="is-current" aria-current="page">Photos</a>
-    <a href="../admin/" data-admin-only data-admin-link>Admin</a>
-  </nav>
+  <!-- site-nav -->
 
   <div id="toast-host" class="toast-host"></div>
   <div id="upload-progress" class="upload-progress" role="status" aria-live="polite" hidden>
@@ -79,9 +73,9 @@
           <span class="dropzone-icon" aria-hidden="true">+</span>
           <span id="dropzone-text" class="dropzone-text">Touchez pour choisir des photos</span>
         </label>
-        <div id="preview-grid" class="grid preview-grid" hidden></div>
-        <p id="preview-warning" class="warning" hidden></p>
         <button type="submit" id="upload-submit" disabled>Envoyer</button>
+        <p id="preview-warning" class="warning" hidden></p>
+        <div id="preview-grid" class="grid preview-grid" hidden></div>
       </form>
     </div>
 
@@ -91,10 +85,7 @@
     </div>
   </main>
 
-  <footer class="brand-footer" aria-label="Lobna et Martin">
-    <span class="brand-footer-logo">L<span>&amp;</span>M</span>
-    <a href="../admin/" class="brand-footer-admin">admin</a>
-  </footer>
+  <!-- site-footer -->
 
   <div id="lightbox" class="lightbox" hidden>
     <div class="lightbox-overlay" id="lightbox-overlay"></div>

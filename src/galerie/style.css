@@ -4,8 +4,8 @@
 
 /* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com),
    file lives in public/fonts/ so every page needing it declares its own
-   @font-face against the same root-absolute path (no CSS is shared between
-   pages anywhere in this project — see CLAUDE.md). */
+   @font-face against the same root-absolute path (only the menu/footer CSS,
+   src/site-chrome.css, is shared between pages). */
 @font-face {
   font-family: 'MoreSugar-Thin';
   src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
@@ -74,65 +74,6 @@
   .delay-1 { transition-delay: 0.1s; }
   .delay-2 { transition-delay: 0.2s; }
   .delay-3 { transition-delay: 0.3s; }
-}
-
-/* ================================================================
-  SITE NAV — shared across /, galerie/, photos/ (not /diaporama/, which
-   deliberately hides all chrome for unattended projector use)
-   ================================================================ */
-@layer components {
-  .site-nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    gap: 2rem;
-    padding: 0.85rem 1rem;
-    padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
-    background: rgba(23, 23, 23, 0.72);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  html.is-embedded .site-nav { display: none; }
-
-  .site-nav a {
-    display: flex;
-    align-items: center;
-    font-family: 'Quicksand', sans-serif;
-    font-size: 0.75rem;
-    /* Explicit, not inherited: Tailwind's Preflight sets html{line-height:1.5}
-       on this page, but /photos/ (no Tailwind) falls back to the browser's
-       own default line-height instead — left implicit, the nav bar rendered
-       at a different height on each page despite identical padding/font-size. */
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(208, 218, 209, 0.75);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .site-nav a:hover { color: #d0dad1; }
-  .site-nav a.is-current {
-    color: #ffffff !important;
-    background: #356d65;
-    padding: 0 0.6rem;
-    margin: -0.85rem 0;
-    font-weight: 600;
-  }
-
-  @media (max-width: 480px) {
-    .site-nav { gap: 1.5rem; padding: 1rem 0.5rem; }
-    .site-nav { padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
-    .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
-    .site-nav a.is-current { margin: -1rem 0; }
-  }
 }
 
 /* ================================================================
@@ -570,33 +511,6 @@
 }
 
 /* ================================================================
-   BRAND FOOTER
-   ================================================================ */
-@layer components {
-  .brand-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 3rem;
-    padding: 0.55rem 1rem;
-    background: #252525;
-  }
-
-  .brand-footer-logo {
-    font-family: 'MoreSugar-Thin', Georgia, serif;
-    font-size: 1.125rem;
-    line-height: 1;
-    color: #abb9a2;
-  }
-
-  .brand-footer-logo span {
-    font-family: 'Apricot', cursive;
-    color: #abb9a2;
-    margin: 0;
-  }
-}
-
-/* ================================================================
    GALLERY ITEM TILT — deliberately OUTSIDE any @layer block.
    ================================================================
    .fade-in / .fade-in.visible (in @layer utilities, near the top of this
@@ -623,22 +537,3 @@
 .gallery-item.fade-in.visible:focus-visible {
   transform: translateY(-4px) scale(1.015) rotateZ(0deg);
 }
-
-/* Small "admin" entry point (see src/admin-access.js). Unlayered so it
-   wins over the layered .site-nav rules. */
-html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
-
-.brand-footer { position: relative; }
-.brand-footer-admin {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  color: rgba(171, 185, 162, 0.5);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.brand-footer-admin:hover { color: #abb9a2; }

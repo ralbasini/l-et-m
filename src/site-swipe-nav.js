@@ -3,7 +3,7 @@ import { isShown } from './admin-access.js'
 // The Admin link isn't one of the swipeable pages, so arrow keys skip it —
 // as they do any entry admin-access.js currently hides.
 const nav = document.querySelector('.site-nav')
-const links = nav ? [...nav.querySelectorAll('a:not([data-admin-link])')] : []
+const links = nav ? [...nav.querySelectorAll('a[data-page]:not([data-page="admin"])')] : []
 const embedded = window.parent !== window
 
 function getSection (href) {
@@ -12,7 +12,11 @@ function getSection (href) {
   const siteRoot = new URL('.', parentUrl).pathname
 
   if (target.origin !== location.origin) return null
-  if (target.pathname === siteRoot) return 'mariage'
+  // Menu links point at the home page's panels: /l-et-m/#galerie etc.
+  if (target.pathname === siteRoot) {
+    const panel = target.hash.slice(1)
+    return ['galerie', 'photos'].includes(panel) ? panel : 'mariage'
+  }
   if (target.pathname === `${siteRoot}galerie/`) return 'galerie'
   if (target.pathname === `${siteRoot}photos/`) return 'photos'
   return null

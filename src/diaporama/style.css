@@ -137,28 +137,6 @@ html, body {
   object-fit: contain;
 }
 
-.brand-footer {
-  position: fixed;
-  z-index: 2;
-  right: 1.5rem;
-  bottom: 1.25rem;
-  pointer-events: none;
-}
-
-.brand-footer-logo {
-  font-family: 'MoreSugar-Thin', cursive;
-  font-size: 1.25rem;
-  line-height: 1;
-  color: #abb9a2;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-}
-
-.brand-footer-logo span {
-  font-family: 'Apricot', cursive;
-  color: #abb9a2;
-  margin: 0;
-}
-
 .empty {
   position: fixed;
   inset: 0;
@@ -184,7 +162,7 @@ html, body {
   position: fixed;
   z-index: 3;
   top: auto;
-  bottom: 1.25rem;
+  bottom: calc(var(--site-footer-height) + 1.25rem);
   left: 1.25rem;
   width: 2.75rem;
   height: 2.75rem;
@@ -220,7 +198,7 @@ html, body {
 .back-link {
   position: fixed;
   z-index: 3;
-  top: 1.25rem;
+  top: calc(var(--site-nav-offset) + 1rem);
   left: 1.25rem;
   display: inline-flex;
   align-items: center;
@@ -267,7 +245,7 @@ html, body {
   position: fixed;
   z-index: 3;
   top: auto;
-  bottom: 4.5rem;
+  bottom: calc(var(--site-footer-height) + 4.5rem);
   left: 1.25rem;
   width: 15rem;
   max-height: calc(100dvh - 6rem);
@@ -334,5 +312,15 @@ html, body {
 
 :fullscreen .settings-panel,
 :-webkit-full-screen .settings-panel {
+  display: none;
+}
+
+/* The shared menu and L&M footer (src/site-chrome.css) are for setting up
+   the display; projecting fullscreen shows only the photos, like the
+   controls above. */
+:fullscreen .site-nav,
+:-webkit-full-screen .site-nav,
+:fullscreen .brand-footer,
+:-webkit-full-screen .brand-footer {
   display: none;
 }
