@@ -270,3 +270,16 @@ async function init () {
 }
 
 init()
+
+// Top buttons (close, fullscreen) sit just under the menu bar, wherever its
+// bottom edge really is (measured, not assumed from a CSS variable).
+function placeTopButtons () {
+  const nav = document.querySelector('.site-nav')
+  if (!nav) return
+  const bottom = nav.getBoundingClientRect().bottom
+  document.documentElement.style.setProperty('--diaporama-top', `${Math.ceil(bottom) + 16}px`)
+}
+placeTopButtons()
+window.addEventListener('resize', placeTopButtons)
+window.addEventListener('load', placeTopButtons)
+document.fonts?.ready.then(placeTopButtons)

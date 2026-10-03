@@ -1,5 +1,7 @@
 import { loadPhotos, loadThumb } from '../photos.js'
 import '../site-swipe-nav.js'
+import { API_BASE_URL } from '../photos.js'
+import { toast } from '../toast.js'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -176,7 +178,7 @@ function buildTagFilters (allPhotos, onChange) {
 }
 
 // ── Lightbox — returns { open, setPhotos } for the gallery to call ──
-function initLightbox (initialPhotos) {
+function initLightbox (initialPhotos, { onDelete } = {}) {
   const lightbox = document.getElementById('lightbox')
   const imgEl = document.getElementById('lightbox-img')
   const countEl = document.getElementById('lightbox-count')
@@ -187,12 +189,100 @@ function initLightbox (initialPhotos) {
   let photos = initialPhotos
   let index = 0
 
+  // ── Admin tools (tag / delete), only when logged in as admin ──
+  const adminBar = document.getElementById('lightbox-admin')
+  const tagsEl = document.getElementById('lightbox-tags')
+  const deleteBtn = document.getElementById('lightbox-delete')
+  let registry = null
+
+  const adminToken = () => { try { return localStorage.getItem('lm_admin_token') || '' } catch { return '' } }
+
+  async function adminFetch (path, json) {
+    const res = await fetch(API_BASE_URL + 'admin/' + path, {
+      method: json ? 'POST' : 'GET',
+      headers: { Authorization: 'Bearer ' + adminToken(), ...(json ? { 'Content-Type': 'application/json' } : {}) },
+      body: json ? JSON.stringify(json) : undefined,
+    })
+    if (res.status === 401) {
+      try { localStorage.removeItem('lm_admin_token') } catch {}
+      document.documentElement.classList.remove('is-admin')
+      throw new Error('Session expirée, merci de vous reconnecter.')
+    }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.error || 'Erreur.')
+    return data
+  }
+
+  function renderAdmin () {
+    const isAdmin = Boolean(adminToken())
+    lightbox.classList.toggle('is-admin', isAdmin)
+    adminBar.hidden = !isAdmin
+    if (!isAdmin) return
+    const photo = photos[index]
+    tagsEl.innerHTML = ''
+    if (registry === null) {
+      // The tag list lives behind the admin API; a made-up folder keeps the
+      // response small (only the tags matter here).
+      registry = []
+      adminFetch('state?path=_').then((data) => { registry = data.registry || []; renderAdmin() }).catch(() => { registry = null })
+      return
+    }
+    registry.forEach((tag) => {
+      const on = photo.tags.includes(tag)
+      const chip = document.createElement('button')
+      chip.type = 'button'
+      chip.className = 'lightbox-tag' + (on ? ' is-on' : '')
+      chip.textContent = tag
+      chip.addEventListener('click', async () => {
+        const tags = on ? photo.tags.filter((t) => t !== tag) : [...photo.tags, tag]
+        chip.disabled = true
+        try {
+          await adminFetch('tag', { updates: [{ path: photo.path, tags }] })
+          photo.tags = tags
+        } catch (err) {
+          toast(err.message, false)
+        }
+        if (photos[index] === photo) renderAdmin()
+      })
+      tagsEl.appendChild(chip)
+    })
+  }
+
+  deleteBtn.addEventListener('click', async () => {
+    const photo = photos[index]
+    if (!confirm('Supprimer cette photo ?')) return
+    deleteBtn.disabled = true
+    try {
+      await adminFetch('delete', { files: [photo.path] })
+      toast('Photo supprimée.', true)
+      onDelete?.(photo)
+      if (!photos.length) close()
+      else show(Math.min(index, photos.length - 1))
+    } catch (err) {
+      toast(err.message, false)
+    } finally {
+      deleteBtn.disabled = false
+    }
+  })
+
+  // Click the photo: show it at its real resolution (scrollable); click again to fit.
+  function setZoom (on) {
+    lightbox.classList.toggle('is-zoomed', on)
+    if (on) {
+      lightbox.scrollLeft = (lightbox.scrollWidth - lightbox.clientWidth) / 2
+      lightbox.scrollTop = (lightbox.scrollHeight - lightbox.clientHeight) / 2
+    }
+  }
+  imgEl.addEventListener('click', () => setZoom(!lightbox.classList.contains('is-zoomed')))
+
   function show (i) {
+    setZoom(false)
     index = (i + photos.length) % photos.length
     const photo = photos[index]
     imgEl.src = photo.src
     imgEl.alt = photo.alt
     countEl.textContent = `${index + 1} / ${photos.length}`
+    renderAdmin()
   }
 
   function open (i) {
@@ -226,7 +316,7 @@ function initLightbox (initialPhotos) {
   lightbox.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].clientX }, { passive: true })
   lightbox.addEventListener('touchend', (e) => {
     const dx = e.changedTouches[0].clientX - touchStartX
-    if (Math.abs(dx) < 40) return
+    if (Math.abs(dx) < 40 || lightbox.classList.contains('is-zoomed')) return
     show(index + (dx < 0 ? 1 : -1))
   }, { passive: true })
 
@@ -238,14 +328,23 @@ async function init () {
   buildStars()
   observeReveal()
 
-  const photos = await loadPhotos()
+  let photos = await loadPhotos()
   buildSlideshow(photos)
-  const lightbox = initLightbox(photos)
-
-  buildTagFilters(photos, (filtered) => {
-    lightbox.setPhotos(filtered)
-    buildGallery(filtered, lightbox.open)
+  const lightbox = initLightbox(photos, {
+    // Deleted from the lightbox (admin): drop it from the page too.
+    onDelete (photo) {
+      photos = photos.filter((p) => p !== photo)
+      showFilters()
+    },
   })
+
+  function showFilters () {
+    buildTagFilters(photos, (filtered) => {
+      lightbox.setPhotos(filtered)
+      buildGallery(filtered, lightbox.open)
+    })
+  }
+  showFilters()
 }
 
 init()

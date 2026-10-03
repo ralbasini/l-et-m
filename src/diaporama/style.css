@@ -144,10 +144,12 @@ html, body {
   width: 2.75rem;
   height: 2.75rem;
   padding: 0;
-  border: 1px solid rgba(208, 218, 209, 0.25);
+  border: 1px solid rgba(208, 218, 209, 0.45);
   border-radius: 50%;
-  background: rgba(208, 218, 209, 0.08);
-  color: rgba(208, 218, 209, 0.85);
+  /* Dark backing: readable over any photo, bright ones included. */
+  background: rgba(23, 23, 23, 0.65);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  color: #d0dad1;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -156,8 +158,8 @@ html, body {
 }
 
 .menu-toggle:hover {
-  background: rgba(208, 218, 209, 0.18);
-  border-color: rgba(208, 218, 209, 0.5);
+  background: rgba(23, 23, 23, 0.85);
+  border-color: rgba(208, 218, 209, 0.7);
   color: #d0dad1;
 }
 
@@ -191,7 +193,7 @@ html, body {
 
 /* Fullscreen button: same look, top right corner. */
 .fullscreen-corner {
-  top: calc(var(--site-nav-offset) + 1rem);
+  top: var(--diaporama-top, calc(var(--site-nav-offset) + 1rem));
   bottom: auto;
   left: auto;
   right: 1.25rem;
@@ -207,50 +209,17 @@ html, body {
   display: none;
 }
 
-.back-link {
-  position: fixed;
-  z-index: 3;
-  top: calc(var(--site-nav-offset) + 1rem);
+/* Close (back to the gallery): same round button as the others, top left. */
+.close-link {
+  top: var(--diaporama-top, calc(var(--site-nav-offset) + 1rem));
+  bottom: auto;
   left: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  /* Padding grows the tap target well past the text's own small footprint;
-     the matching negative margin keeps the visible corner offset the same
-     as before instead of visually pushing the link inward. */
-  padding: 0.5rem 0.75rem;
-  margin: -0.5rem -0.75rem;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.8125rem;
-  color: rgba(208, 218, 209, 0.6);
   text-decoration: none;
-  transition: color 0.2s;
 }
 
-.back-link-arrow {
-  /* An SVG icon (like the scroll-cue chevron on the main page) rather
-     than a "←" text glyph: a font's arrow character has its own baked-in
-     vertical metrics that don't necessarily sit centered in its em box,
-     so no amount of line-height/font-size tuning made it look centered
-     next to "Retour" — an SVG's box is exactly what flexbox centers. */
-  width: 1em;
-  height: 1em;
-  flex-shrink: 0;
-}
-
-.back-link:hover { color: #d0dad1; }
-
-@media (max-width: 640px) {
-  .back-link {
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-    margin: -0.75rem -1rem;
-  }
-}
-
-:fullscreen .back-link,
-:-webkit-full-screen .back-link {
-  display: none;
+.close-link svg {
+  width: 1.375rem;
+  height: 1.375rem;
 }
 
 .settings-panel {

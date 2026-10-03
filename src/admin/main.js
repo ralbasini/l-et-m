@@ -534,7 +534,7 @@ function renderSelectionTags () {
     chip.title = all
       ? `Retirer « ${tag} » des photos sélectionnées`
       : `Ajouter « ${tag} » aux photos sélectionnées`
-    chip.textContent = (all ? '✓ ' : '+ ') + tag
+    chip.textContent = tag
     chip.addEventListener('click', () => applyTagToSelection(tag, !all))
     chips.appendChild(chip)
   })
