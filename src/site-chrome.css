@@ -33,8 +33,10 @@
 
 /* An explicit `display` on an element also carrying `hidden` would otherwise
    beat the browser's `[hidden] { display: none }` (author CSS wins ties with
-   the UA stylesheet) — this keeps `hidden` meaning hidden everywhere. */
-[hidden] { display: none; }
+   the UA stylesheet) — this keeps `hidden` meaning hidden everywhere.
+   `!important` because the bundle loads this file BEFORE each page's own CSS
+   (e.g. `.lightbox { display: flex }`), so source order can't be relied on. */
+[hidden] { display: none !important; }
 
 :root {
   /* Height of the menu bar, excluding the iPhone notch inset. Pages use
