@@ -1,5 +1,8 @@
+import './admin-access.js'
+
+// The Admin link isn't one of the swipeable pages, so arrow keys skip it.
 const nav = document.querySelector('.site-nav')
-const links = nav ? [...nav.querySelectorAll('a')] : []
+const links = nav ? [...nav.querySelectorAll('a:not([data-admin-link])')] : []
 const embedded = window.parent !== window
 
 function getSection (href) {

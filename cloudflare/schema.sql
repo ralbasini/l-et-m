@@ -46,3 +46,12 @@ CREATE TABLE photo_tags (
   tag_name TEXT NOT NULL REFERENCES tags(name) ON DELETE CASCADE,
   PRIMARY KEY (photo_id, tag_name)
 );
+
+-- Failed admin logins per client IP, for the lockout in routes/admin.js
+-- login(). Added after the initial deploy — apply to an existing database
+-- with: wrangler d1 execute l-et-m --remote --command "<this statement>"
+CREATE TABLE IF NOT EXISTS login_attempts (
+  ip TEXT PRIMARY KEY,
+  failures INTEGER NOT NULL DEFAULT 0,
+  locked_until INTEGER NOT NULL DEFAULT 0  -- epoch ms; 0 = not locked
+);

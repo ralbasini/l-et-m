@@ -623,3 +623,22 @@
 .gallery-item.fade-in.visible:focus-visible {
   transform: translateY(-4px) scale(1.015) rotateZ(0deg);
 }
+
+/* Small "admin" entry point (see src/admin-access.js). Unlayered so it
+   wins over the layered .site-nav rules. */
+html:not(.is-admin) [data-admin-only] { display: none !important; }
+
+.brand-footer { position: relative; }
+.brand-footer-admin {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: rgba(171, 185, 162, 0.5);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.brand-footer-admin:hover { color: #abb9a2; }

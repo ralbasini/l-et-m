@@ -12,11 +12,48 @@ function unauthorized () {
   return json({ error: 'Non autorisé.' }, { status: 401 })
 }
 
+// The admin password is short and shared, so guessing is throttled per IP:
+// MAX_LOGIN_FAILURES wrong tries lock that IP out for LOGIN_LOCK_MS.
+const MAX_LOGIN_FAILURES = 5
+const LOGIN_LOCK_MS = 15 * 60 * 1000
+
+async function sha256 (text) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+}
+
+// Hashing first gives both sides the same length, which timingSafeEqual
+// requires, without leaking the real password's length.
+async function passwordMatches (given, expected) {
+  if (!given || !expected) return false
+  return crypto.subtle.timingSafeEqual(await sha256(given), await sha256(expected))
+}
+
 export async function login (request, env) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown'
+  const now = Date.now()
+  const attempts = await env.DB.prepare(
+    'SELECT failures, locked_until FROM login_attempts WHERE ip = ?'
+  ).bind(ip).first()
+
+  if (attempts && attempts.locked_until > now) {
+    const minutes = Math.ceil((attempts.locked_until - now) / 60000)
+    return json({ error: `Trop de tentatives. Réessayez dans ${minutes} min.` }, { status: 429 })
+  }
+
   const { password } = await request.json().catch(() => ({}))
-  if (!password || password !== env.ADMIN_PASSWORD) {
+  if (!(await passwordMatches(password, env.ADMIN_PASSWORD))) {
+    // A lock that has expired starts a fresh count.
+    const previous = attempts && attempts.locked_until === 0 ? attempts.failures : 0
+    const failures = previous + 1
+    const lockedUntil = failures >= MAX_LOGIN_FAILURES ? now + LOGIN_LOCK_MS : 0
+    await env.DB.prepare(
+      `INSERT INTO login_attempts (ip, failures, locked_until) VALUES (?, ?, ?)
+       ON CONFLICT(ip) DO UPDATE SET failures = excluded.failures, locked_until = excluded.locked_until`
+    ).bind(ip, lockedUntil ? 0 : failures, lockedUntil).run()
     return json({ error: 'Mot de passe incorrect.' }, { status: 401 })
   }
+
+  await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run()
   const token = await signToken(env.ADMIN_TOKEN_SECRET, { role: 'admin' })
   return json({ token })
 }

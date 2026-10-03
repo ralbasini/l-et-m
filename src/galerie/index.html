@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <script>if (window.parent !== window) document.documentElement.classList.add('is-embedded')</script>
+  <script>try { if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin') } catch (e) {}</script>
   <meta name="description" content="Lobna & Martin se marient — retrouvez le diaporama et la galerie photo de notre mariage.">
   <meta name="robots" content="noindex, nofollow">
   <title>Lobna &amp; Martin — Notre mariage</title>
@@ -21,7 +22,8 @@
   <nav class="site-nav" aria-label="Navigation">
     <a href="../">Mariage</a>
     <a href="./" class="is-current" aria-current="page">Galerie</a>
-    <a href="../photos/">Photos</a>
+    <a href="../photos/" data-admin-only>Photos</a>
+    <a href="../admin/" data-admin-only data-admin-link>Admin</a>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════════════
@@ -68,6 +70,7 @@
 
   <footer class="brand-footer" aria-label="Lobna et Martin">
     <span class="brand-footer-logo">L<span>&amp;</span>M</span>
+    <a href="../admin/" class="brand-footer-admin">admin</a>
   </footer>
 
   <!-- ══════════════════════════════════════════════════════════════

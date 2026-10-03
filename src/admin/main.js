@@ -37,7 +37,9 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
 
   const res = await fetch(API + path, { method, headers, body })
 
-  if (res.status === 401) {
+  // A 401 from login itself is just a wrong password — let its own message
+  // through below instead of treating it as an expired session.
+  if (res.status === 401 && path !== 'login') {
     clearToken()
     showLogin()
     throw new Error('Session expirée, merci de vous reconnecter.')

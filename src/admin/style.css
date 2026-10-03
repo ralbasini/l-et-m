@@ -150,13 +150,18 @@ button.secondary:hover { background: rgba(37, 37, 37, 0.2); }
 button.danger { background: #a34848; }
 button.danger:hover { background: #833636; }
 
-button.link-btn {
+button.link-btn,
+a.link-btn {
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
   background: none;
   color: #356d65;
   padding: 0.25rem 0;
   text-decoration: underline;
 }
-button.link-btn:hover { background: none; color: #2a5951; }
+button.link-btn:hover,
+a.link-btn:hover { background: none; color: #2a5951; }
 
 .error {
   color: #a34848;
@@ -475,3 +480,5 @@ button.link-btn:hover { background: none; color: #2a5951; }
   .dashboard-view { padding: 1.5rem 1rem 3rem; }
   .card { padding: 1.25rem; }
 }
+
+.top-links { display: flex; gap: 1rem; align-items: center; }
