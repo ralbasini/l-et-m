@@ -1,18 +1,11 @@
 import { json } from '../cors.js'
-import { signToken, verifyToken, getBearerToken } from '../auth.js'
-import { safeFilename, uniqueFilename, joinKey, registerFolderPath } from '../files.js'
+import { signToken } from '../auth.js'
+import { registerFolderPath, storePhoto, deletePhotoRows } from '../files.js'
 
-// Kept in sync with slideshow_style/duration-style constants on the main
-// site — there's no shared config file between the two projects, so if this
-// changes, also update the label text in src/photos/index.html.
+// Sent to the client as maxPerPerson (src/photos/main.js builds its label
+// from it). Every handler except identify is wrapped in guestOnly() by the
+// route table in index.js, which passes the guest row as the third argument.
 const MAX_PER_PERSON = 15
-
-async function requireGuest (request, env) {
-  const token = getBearerToken(request)
-  const payload = await verifyToken(env.GUEST_TOKEN_SECRET, token)
-  if (!payload || !payload.guestId) return null
-  return env.DB.prepare('SELECT id, name FROM guests WHERE id = ?').bind(payload.guestId).first()
-}
 
 // Scoped by *folder*, not by guest_id: the README documents the original
 // PHP behavior as recalculating the quota from what's actually left in the
@@ -65,19 +58,14 @@ export async function identify (request, env) {
   return json({ token, name: guest.name })
 }
 
-export async function me (request, env) {
-  const guest = await requireGuest(request, env)
-  if (!guest) return json({ error: 'Session expirée, merci de recommencer.' }, { status: 401 })
+export async function me (request, env, guest) {
   return json(await guestState(env, guest))
 }
 
 // The client already sends one file per request (see the comment on
 // uploadBatch() in src/photos/main.js) and pre-checks its own quota before
 // calling — the check here is just defense in depth, not the primary gate.
-export async function upload (request, env) {
-  const guest = await requireGuest(request, env)
-  if (!guest) return json({ error: 'Session expirée, merci de recommencer.' }, { status: 401 })
-
+export async function upload (request, env, guest) {
   const before = await guestState(env, guest)
   if (before.remaining <= 0) {
     return json({ uploaded: 0, errors: [`Limite de ${MAX_PER_PERSON} photos par personne atteinte.`], ...before })
@@ -91,26 +79,15 @@ export async function upload (request, env) {
   let uploaded = 0
 
   for (const file of files) {
-    if (!file.type.startsWith('image/')) {
-      errors.push(`${file.name} : type de fichier non supporté.`)
-      continue
-    }
-    const filename = await uniqueFilename(env.DB, folder, safeFilename(file.name))
-    const key = joinKey(folder, filename)
-    await env.PHOTOS_BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
-    await env.DB.prepare(
-      'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes) VALUES (?, ?, ?, ?, ?)'
-    ).bind(key, folder, filename, guest.id, file.size).run()
-    uploaded += 1
+    const error = await storePhoto(env, folder, file, guest.id)
+    if (error) errors.push(error)
+    else uploaded += 1
   }
 
   return json({ uploaded, errors, ...(await guestState(env, guest)) })
 }
 
-export async function deletePhoto (request, env) {
-  const guest = await requireGuest(request, env)
-  if (!guest) return json({ error: 'Session expirée, merci de recommencer.' }, { status: 401 })
-
+export async function deletePhoto (request, env, guest) {
   const { file } = await request.json().catch(() => ({}))
   const folder = guestFolder(guest.name)
   // Folder-scoped, not guest_id-scoped (see the comment on guestState): a
@@ -122,10 +99,7 @@ export async function deletePhoto (request, env) {
     'SELECT id, r2_key FROM photos WHERE folder = ? AND filename = ?'
   ).bind(folder, file).first()
 
-  if (row) {
-    await env.PHOTOS_BUCKET.delete(row.r2_key)
-    await env.DB.prepare('DELETE FROM photos WHERE id = ?').bind(row.id).run()
-  }
+  if (row) await deletePhotoRows(env, [row])
 
   return json(await guestState(env, guest))
 }

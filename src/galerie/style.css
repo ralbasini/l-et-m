@@ -2,29 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com),
-   file lives in public/fonts/ so every page needing it declares its own
-   @font-face against the same root-absolute path (only the menu/footer CSS,
-   src/site-chrome.css, is shared between pages). */
-@font-face {
-  font-family: 'MoreSugar-Thin';
-  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Script font used only for the "&" in "Lobna & Martin" (.hero-amp below) —
-   free-for-personal-use license (befonts.com), same self-hosting pattern as
-   MoreSugar-Thin above. */
-@font-face {
-  font-family: 'Apricot';
-  src: url('/fonts/Apricot.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ================================================================
    BASE
    ================================================================ */
@@ -444,8 +421,6 @@
     align-items: center;
     justify-content: center;
   }
-
-  .lightbox[hidden] { display: none; }
 
   .lightbox-overlay {
     position: absolute;

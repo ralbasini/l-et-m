@@ -15,11 +15,6 @@
   padding: calc(var(--site-nav-offset) + 1.5rem) 1.5rem 1.5rem;
 }
 
-/* `display: flex` above otherwise overrides the browser's default
-   `[hidden] { display: none }` at equal specificity — author CSS beats the
-   UA stylesheet regardless of the tie. */
-.login-view[hidden] { display: none; }
-
 .login-card {
   width: 100%;
   max-width: 24rem;
@@ -111,7 +106,6 @@
 .tags-row { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; }
 .tags-row .tags-list,
 .tags-row .empty { flex: 1; margin: 0; }
-.tags-row .empty[hidden] { display: none; }
 .tags-row button { flex-shrink: 0; }
 
 /* Folder selector with the + button on its right. */
@@ -122,7 +116,6 @@
 .folder-form { margin: 0 0 1rem; }
 
 .folder-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 1rem; }
-.folder-actions[hidden] { display: none; }
 
 .folder-form-row { display: flex; gap: 0.5rem; }
 .folder-form-row input { margin: 0; flex: 1; }
@@ -215,7 +208,6 @@
   border-radius: 0.5rem;
   background: rgba(53, 109, 101, 0.07);
 }
-.selection-tags[hidden] { display: none; }
 
 .selection-count { font-size: 0.8125rem; font-weight: 600; }
 

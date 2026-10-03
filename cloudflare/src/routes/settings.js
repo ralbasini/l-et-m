@@ -1,5 +1,4 @@
 import { json } from '../cors.js'
-import { verifyToken, getBearerToken } from '../auth.js'
 
 // Site-wide switches, stored in D1 so every visitor sees the same value.
 // menuPublic: whether Galerie / Photos show in the site menu for everyone,
@@ -20,14 +19,9 @@ export async function getSettings (request, env) {
   return json(await readSettings(env), { headers: { 'Cache-Control': 'no-store' } })
 }
 
-// POST { menuPublic: boolean } — admin only. Only known keys with the
-// right type are stored; anything else is ignored.
+// POST { menuPublic: boolean } — admin only (adminOnly() in index.js). Only
+// known keys with the right type are stored; anything else is ignored.
 export async function updateSettings (request, env) {
-  const payload = await verifyToken(env.ADMIN_TOKEN_SECRET, getBearerToken(request))
-  if (!payload || payload.role !== 'admin') {
-    return json({ error: 'Non autorisé.' }, { status: 401 })
-  }
-
   const body = await request.json().catch(() => ({}))
   for (const [key, fallback] of Object.entries(DEFAULTS)) {
     if (typeof body[key] !== typeof fallback) continue

@@ -104,6 +104,12 @@ if (window.parent !== window) {
   window.addEventListener('message', (event) => {
     if (event.origin !== location.origin || !frames.some((frame) => frame.contentWindow === event.source)) return
     const { type, page, anchor } = event.data || {}
+    if (type === 'gallery-stale') {
+      // Reload the (already loaded) galerie so it lists the new/removed photos.
+      const gallery = framesByPage.get('galerie')
+      if (gallery?.hasAttribute('src')) gallery.contentWindow.location.reload()
+      return
+    }
     if (type !== 'site-nav' || !pages.includes(page)) return
     if (location.hash !== `#${page}`) location.hash = page
     if (anchor) scrollPanelTo(page, anchor)

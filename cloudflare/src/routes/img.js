@@ -1,9 +1,10 @@
+import { corsHeaders } from '../cors.js'
+
 // Public, no auth — serves photos straight out of R2 at /img/<r2_key>, so
 // PHOTOS_BASE_URL on the main site is just this Worker's URL + 'img/'.
-// Chosen over connecting a custom domain to the bucket (would need
-// ralbasini.ch's DNS moved to Cloudflare) and over the bucket's r2.dev URL
-// (rate-limited, not meant for production — risky with a projector
-// slideshow and a room full of phones hitting it at once).
+// Chosen over the bucket's r2.dev URL (rate-limited, not meant for
+// production — risky with a projector slideshow and a room full of phones
+// hitting it at once).
 const PREFIX = '/img/'
 
 export function isImgPath (pathname) {
@@ -28,7 +29,7 @@ export async function serveImg (request, env) {
   })
   if (!object) return new Response('Not found', { status: 404 })
 
-  const headers = new Headers()
+  const headers = new Headers(corsHeaders())
   object.writeHttpMetadata(headers)
   headers.set('ETag', object.httpEtag)
   // A photo at a given key never changes in place (a move or re-upload gets
@@ -36,7 +37,6 @@ export async function serveImg (request, env) {
   // reasonably quickly while still letting browsers skip re-downloading
   // during a slideshow loop.
   headers.set('Cache-Control', 'public, max-age=3600')
-  headers.set('Access-Control-Allow-Origin', '*')
   // The stored Content-Type is whatever the uploader's browser claimed
   // (only checked to start with "image/"), so an uploaded SVG could carry
   // script. Sandboxing + nosniff means opening one directly can't run

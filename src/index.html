@@ -62,27 +62,7 @@
 			html, body, #wrapper { scrollbar-width: none; -ms-overflow-style: none; }
 			html::-webkit-scrollbar, body::-webkit-scrollbar, #wrapper::-webkit-scrollbar { display: none; }
 
-			/* Self-hosted — not a Google Font. Free-for-personal-use license
-			   (dafont.com); see the matching declaration in
-			   src/galerie/style.css for the full note. */
-			@font-face {
-				font-family: 'MoreSugar-Thin';
-				src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
-				font-weight: 400;
-				font-style: normal;
-				font-display: swap;
-			}
-
-			/* Script font for just the "&" below — same logo treatment as
-			   .hero-amp on /galerie/ (see src/galerie/style.css for the full
-			   note on its license/source). */
-			@font-face {
-				font-family: 'Apricot';
-				src: url('/fonts/Apricot.woff') format('woff');
-				font-weight: 400;
-				font-style: normal;
-				font-display: swap;
-			}
+			/* Script font for just the "&" below (declared in src/site-chrome.css). */
 			#header header h1 .hero-amp {
 				font-family: 'Apricot', cursive;
 				color: #abb9a2;

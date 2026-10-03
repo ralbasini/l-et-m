@@ -2,15 +2,12 @@ name = "l-et-m-api"
 main = "src/index.js"
 compatibility_date = "2026-09-30"
 
-# ── R2 bucket (photo storage — replaces Infomaniak's img/ folder) ──────────
+# ── R2 bucket (photo storage) ──────────────────────────────────────────────
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "l-et-m-photos"
-# TODO once created: `wrangler r2 bucket create l-et-m-photos` (or pick your
-# own name here, doesn't have to match). See cloudflare/README.md.
 
-# ── D1 database (guests, photos, folders, tags — replaces the filesystem
-#    bookkeeping the PHP scripts did) ───────────────────────────────────────
+# ── D1 database (guests, photos, folders, tags) ─────────────────────────────
 [[d1_databases]]
 binding = "DB"
 database_name = "l-et-m"

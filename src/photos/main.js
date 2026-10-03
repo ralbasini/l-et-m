@@ -1,4 +1,5 @@
-import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
+import { API_BASE_URL, photoUrl } from '../photos.js'
+import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
 
 // Guest photo upload, served from github.io but talking to the Cloudflare
@@ -9,7 +10,6 @@ import '../site-swipe-nav.js'
 // switching devices still goes through the "Oui, c'est moi" collision flow.
 const API = API_BASE_URL + 'guest/'
 const TOKEN_KEY = 'lm_guest_token'
-const IMG_BASE = PHOTOS_BASE_URL + 'Invités/'
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 function setToken (token) { localStorage.setItem(TOKEN_KEY, token) }
@@ -18,7 +18,7 @@ function clearToken () { localStorage.removeItem(TOKEN_KEY) }
 // `retryable` marks failures worth trying again as-is: the connection
 // dropped, or the server/proxy was overloaded (5xx, 408, 429). Note that a
 // raw fetch() "Failed to fetch" TypeError also covers errors produced before
-// PHP runs (proxy 413/502/504…) — those carry no CORS headers, so the
+// the Worker runs (proxy 413/502/504…) — those carry no CORS headers, so the
 // browser hides them behind a generic network error.
 class ApiError extends Error {
   constructor (message, { status = 0, retryable = false } = {}) {
@@ -51,7 +51,7 @@ function checkResponse (status, data) {
       retryable: status >= 500 || status === 408 || status === 429
     })
   }
-  // A success status that isn't our JSON: a PHP crash page, a venue Wi-Fi
+  // A success status that isn't our JSON: a proxy error page, a venue Wi-Fi
   // login portal answering in the server's place… worth another try.
   if (data === null) {
     throw new ApiError('Réponse inattendue du serveur.', { status, retryable: true })
@@ -86,20 +86,6 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
   }
 
   return checkResponse(res.status, data)
-}
-
-// ── Toasts ──────────────────────────────────────────────────────
-function toast (message, ok, durationMs = 4000) {
-  if (!message) return
-  const host = document.getElementById('toast-host')
-  const el = document.createElement('div')
-  el.className = 'toast' + (ok ? ' toast-ok' : '')
-  el.textContent = message
-  host.appendChild(el)
-  setTimeout(() => {
-    el.classList.add('toast-hide')
-    setTimeout(() => el.remove(), 400)
-  }, durationMs)
 }
 
 // ── Steps ─────────────────────────────────────────────────────
@@ -225,7 +211,7 @@ function renderPhotos (photos) {
     const figure = document.createElement('figure')
 
     const img = document.createElement('img')
-    img.src = guestImgBase() + encodeURIComponent(file)
+    img.src = guestPhotoUrl(file)
     img.alt = ''
     img.loading = 'lazy'
     img.addEventListener('click', () => openLightbox(i))
@@ -241,6 +227,7 @@ function renderPhotos (photos) {
       try {
         const data = await apiFetch('delete', { method: 'POST', json: { file } })
         toast('Photo supprimée.', true)
+        notifyGalleryStale()
         renderPhotos(data.photos)
         renderQuota(data.remaining, currentMaxPerPerson)
       } catch (err) {
@@ -258,7 +245,7 @@ let currentMaxPerPerson = 15
 // From /guest/me when the server sends it; the Worker currently doesn't, so
 // this fallback is the effective client-side limit.
 let currentMaxFileBytes = 15 * 1024 * 1024
-function guestImgBase () { return IMG_BASE + encodeURIComponent(currentGuestName) + '/' }
+function guestPhotoUrl (file) { return photoUrl(`Invités/${currentGuestName}/${file}`) }
 
 function applyLimits (data) {
   currentGuestName = data.name
@@ -544,6 +531,12 @@ function applyServerState (data) {
   renderQuota(data.remaining, currentMaxPerPerson)
 }
 
+// When embedded in the home page's panels, the galerie iframe is loaded once
+// and never reloaded — tell the shell to refresh it so the change shows up.
+function notifyGalleryStale () {
+  if (window.parent !== window) window.parent.postMessage({ type: 'gallery-stale' }, location.origin)
+}
+
 async function uploadBatch (files) {
   const jobs = files.map((file) => ({
     file,
@@ -601,6 +594,7 @@ async function uploadBatch (files) {
       applyServerState(data)
       if (data.uploaded > 0) {
         job.status = 'done'
+        notifyGalleryStale()
         claimArrival(job, data.photos)
       } else {
         job.status = 'rejected'
@@ -759,7 +753,7 @@ let lbIndex = 0
 
 function lbShow (i) {
   lbIndex = (i + lightboxFiles.length) % lightboxFiles.length
-  lightboxImg.src = guestImgBase() + encodeURIComponent(lightboxFiles[lbIndex])
+  lightboxImg.src = guestPhotoUrl(lightboxFiles[lbIndex])
   lightboxCount.textContent = `${lbIndex + 1} / ${lightboxFiles.length}`
 }
 

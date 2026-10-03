@@ -1,20 +1,12 @@
-import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
-import { setMenuPublic } from '../admin-access.js'
+import { API_BASE_URL, photoUrl } from '../photos.js'
+import { setMenuPublic, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
+import { toast } from '../toast.js'
 
 // Admin panel for the wedding photos, served from github.io but talking to
-// the Cloudflare Worker in cloudflare/ (see cloudflare/README.md) —
-// previously an Infomaniak-hosted PHP API. Auth is a bearer token in
-// localStorage rather than a cookie, same reasoning as before this
-// migration: cross-site cookies get silently blocked by some browsers'
-// privacy modes.
+// the Cloudflare Worker in cloudflare/ (see cloudflare/README.md). Auth is a
+// bearer token in localStorage rather than a cookie: cross-site cookies get
+// silently blocked by some browsers' privacy modes.
 const API = API_BASE_URL + 'admin/'
-const TOKEN_KEY = 'lm_admin_token'
-const IMG_BASE = PHOTOS_BASE_URL
-
-function encodeRelPath (relative) {
-  if (!relative) return ''
-  return relative.split('/').map(encodeURIComponent).join('/')
-}
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 // html.is-admin reveals the Galerie/Photos menu entries (see src/admin-access.js).
@@ -60,20 +52,6 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
     throw new Error((data && data.error) || 'Une erreur est survenue.')
   }
   return data
-}
-
-// ── Toasts ──────────────────────────────────────────────────────
-function toast (message, ok) {
-  if (!message) return
-  const host = document.getElementById('toast-host')
-  const el = document.createElement('div')
-  el.className = 'toast' + (ok ? ' toast-ok' : '')
-  el.textContent = message
-  host.appendChild(el)
-  setTimeout(() => {
-    el.classList.add('toast-hide')
-    setTimeout(() => el.remove(), 400)
-  }, 4000)
 }
 
 // ── View switching ────────────────────────────────────────────
@@ -320,7 +298,6 @@ function renderMoveDest (allFolders) {
 function renderPhotos (photos, registry) {
   const grid = document.getElementById('photos-grid')
   grid.innerHTML = ''
-  document.getElementById('photos-empty').hidden = photos.length > 0
   lightboxPaths = photos.map((p) => p.path)
 
   photos.forEach((photo, i) => {
@@ -340,7 +317,7 @@ function renderPhotos (photos, registry) {
     checkbox.value = photo.path
     selectWrap.appendChild(checkbox)
 
-    const src = IMG_BASE + encodeRelPath(photo.path)
+    const src = photoUrl(photo.path)
     const img = document.createElement('img')
     img.src = src
     img.alt = ''
@@ -779,10 +756,6 @@ document.getElementById('select-all').addEventListener('change', (e) => {
 
 document.getElementById('delete-photos-btn').addEventListener('click', async () => {
   const files = selectedPhotoPaths()
-  if (!files.length) {
-    alert('Sélectionnez au moins une photo.')
-    return
-  }
   if (!confirm('Supprimer les photos sélectionnées ?')) return
   try {
     const data = await apiFetch('delete', { method: 'POST', json: { files } })
@@ -795,10 +768,6 @@ document.getElementById('delete-photos-btn').addEventListener('click', async () 
 
 document.getElementById('move-btn').addEventListener('click', async () => {
   const files = selectedPhotoPaths()
-  if (!files.length) {
-    alert('Sélectionnez au moins une photo.')
-    return
-  }
   const dest = document.getElementById('move-dest').value
   if (!dest) {
     toast('Choisissez le dossier de destination.', false)
@@ -821,7 +790,7 @@ let lbIndex = 0
 
 function lbShow (i) {
   lbIndex = (i + lightboxPaths.length) % lightboxPaths.length
-  lightboxImg.src = IMG_BASE + encodeRelPath(lightboxPaths[lbIndex])
+  lightboxImg.src = photoUrl(lightboxPaths[lbIndex])
   lightboxCount.textContent = `${lbIndex + 1} / ${lightboxPaths.length}`
 }
 

@@ -1,23 +1,5 @@
 * { box-sizing: border-box; }
 
-/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
-   see the matching declaration in src/galerie/style.css for the full note. */
-@font-face {
-  font-family: 'MoreSugar-Thin';
-  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Apricot';
-  src: url('/fonts/Apricot.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 html, body {
   margin: 0;
   height: 100%;
@@ -151,11 +133,6 @@ html, body {
   color: rgba(208, 218, 209, 0.6);
 }
 
-/* `display: flex` above otherwise overrides the browser's default
-   `[hidden] { display: none }` at equal specificity — without this, the
-   message stays visible even after JS sets emptyEl.hidden = true. */
-.empty[hidden] { display: none; }
-
 /* ── Settings menu — for setting up the display, not for use mid-projection,
    so it hides itself once the page is actually fullscreen. ── */
 .menu-toggle {
@@ -259,8 +236,6 @@ html, body {
   color: rgba(208, 218, 209, 0.9);
 }
 
-.settings-panel[hidden] { display: none; }
-
 .settings-panel h2 {
   margin: 0 0 1rem;
   font-size: 0.9375rem;
@@ -315,12 +290,3 @@ html, body {
   display: none;
 }
 
-/* The shared menu and L&M footer (src/site-chrome.css) are for setting up
-   the display; projecting fullscreen shows only the photos, like the
-   controls above. */
-:fullscreen .site-nav,
-:-webkit-full-screen .site-nav,
-:fullscreen .brand-footer,
-:-webkit-full-screen .brand-footer {
-  display: none;
-}

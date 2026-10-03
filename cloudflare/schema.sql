@@ -1,5 +1,4 @@
--- D1 schema for the Cloudflare backend that replaces the Infomaniak PHP
--- scripts. Apply with:
+-- D1 schema for the Cloudflare backend. Apply with:
 --   wrangler d1 execute l-et-m --remote --file schema.sql
 
 -- Folders are tracked explicitly rather than derived from photo paths, so
@@ -12,8 +11,7 @@ CREATE TABLE folders (
 );
 
 -- One row per guest identity (their display name). No password: identity is
--- just "which name did you type", same trust model as the PHP version — the
--- guest_token_secret's job is only to make the bearer token unforgeable, not
+-- just "which name did you type". GUEST_TOKEN_SECRET's job is only to make the bearer token unforgeable, not
 -- to authenticate a person.
 CREATE TABLE guests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

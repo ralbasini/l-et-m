@@ -6,7 +6,7 @@ const base = '/l-et-m/'
 
 function redirectBarePhotosPath (request, response, next) {
   const pathname = new URL(request.url || '/', 'http://vite.local').pathname
-  if (pathname !== `${base}photos`.replace(/\/$/, '')) return next()
+  if (pathname !== `${base}photos`) return next()
 
   response.statusCode = 302
   response.setHeader('Location', `${base}#photos`)

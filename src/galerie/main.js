@@ -108,7 +108,7 @@ function buildGallery (photos, openLightbox) {
 }
 
 // ── Tag filter ──────────────────────────────────────────────
-// Folders are purely organizational (see infomaniak/); tags are independent
+// Folders are purely organizational (see cloudflare/); tags are independent
 // metadata a photo can carry any number of. Selecting several tags shows
 // photos matching ANY of them (union, not intersection).
 function buildTagFilters (allPhotos, onChange) {

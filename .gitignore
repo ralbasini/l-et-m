@@ -1,6 +1,5 @@
 node_modules
 dist
-infomaniak
 CLAUDE.md
 .wrangler
 cloudflare/.dev.vars

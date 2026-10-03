@@ -10,24 +10,6 @@
 
 * { box-sizing: border-box; }
 
-/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
-   see the matching declaration in src/galerie/style.css for the full note. */
-@font-face {
-  font-family: 'MoreSugar-Thin';
-  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Apricot';
-  src: url('/fonts/Apricot.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* No height here: src/site-chrome.css makes the body fill the window so the
    footer sits on the bottom edge — a `min-height` on body here would
    override that (it loads later) and leave a gap under the footer. */
@@ -389,8 +371,6 @@ button.add-btn:hover { background: #2a5951; }
   align-items: center;
   justify-content: center;
 }
-
-.lightbox[hidden] { display: none; }
 
 .lightbox-overlay {
   position: absolute;

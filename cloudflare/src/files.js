@@ -1,8 +1,6 @@
-// Mirrors safeUploadFilename()/uniqueTargetName() from the old PHP backend
-// (see the "serverNamePattern" comment in src/photos/main.js on the main
-// site, which pattern-matches against exactly this sanitization): the
-// basename gets non [a-zA-Z0-9_-] characters replaced with '-', and the
-// extension is lowercased.
+// The basename gets non [a-zA-Z0-9_-] characters replaced with '-', and the
+// extension is lowercased (src/photos/main.js's serverNamePattern matches
+// exactly this sanitization).
 export function safeFilename (originalName) {
   const dot = originalName.lastIndexOf('.')
   const rawBase = dot === -1 ? originalName : originalName.slice(0, dot)
@@ -42,9 +40,55 @@ export function joinKey (folder, filename) {
 export async function registerFolderPath (db, folder) {
   if (!folder) return
   const segments = folder.split('/')
-  for (let i = 1; i <= segments.length; i++) {
-    const ancestor = segments.slice(0, i).join('/')
-    // eslint-disable-next-line no-await-in-loop -- at most a handful of segments, and this only runs on upload
-    await db.prepare('INSERT OR IGNORE INTO folders (path) VALUES (?)').bind(ancestor).run()
+  const insert = db.prepare('INSERT OR IGNORE INTO folders (path) VALUES (?)')
+  await db.batch(segments.map((_, i) => insert.bind(segments.slice(0, i + 1).join('/'))))
+}
+
+// A photo's tags as one comma-joined column (split back with splitTags()).
+// Used by both /admin/state and /photos-list, which select from "photos p".
+export const TAG_LIST_SQL =
+  "COALESCE((SELECT GROUP_CONCAT(tag_name) FROM photo_tags WHERE photo_id = p.id), '') AS tagList"
+
+export function splitTags (tagList) {
+  return tagList ? tagList.split(',') : []
+}
+
+// Stores one uploaded file in R2 + D1 under `folder` (admin and guest
+// uploads alike; guestId is null for the admin's own). Returns an error
+// message, or null on success.
+export async function storePhoto (env, folder, file, guestId = null) {
+  if (!file.type.startsWith('image/')) return `${file.name} : type de fichier non supporté.`
+  const filename = await uniqueFilename(env.DB, folder, safeFilename(file.name))
+  const key = joinKey(folder, filename)
+  await env.PHOTOS_BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
+  await env.DB.prepare(
+    'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes) VALUES (?, ?, ?, ?, ?)'
+  ).bind(key, folder, filename, guestId, file.size).run()
+  return null
+}
+
+// Moves one photo row ({ id, r2_key, filename }) into `folder`, renaming
+// it on collision. R2 has no rename, so it's a copy + delete.
+export async function relocatePhoto (env, photo, folder) {
+  const filename = await uniqueFilename(env.DB, folder, photo.filename)
+  const key = joinKey(folder, filename)
+  const object = await env.PHOTOS_BUCKET.get(photo.r2_key)
+  if (object) {
+    await env.PHOTOS_BUCKET.put(key, object.body, { httpMetadata: object.httpMetadata })
+    await env.PHOTOS_BUCKET.delete(photo.r2_key)
+  }
+  await env.DB.prepare(
+    'UPDATE photos SET r2_key = ?, folder = ?, filename = ? WHERE id = ?'
+  ).bind(key, folder, filename, photo.id).run()
+}
+
+// Deletes photo rows ({ id, r2_key }) from R2 and D1 in bulk: R2 takes up to
+// 1000 keys per delete() call, and the D1 deletes go in one batch.
+export async function deletePhotoRows (env, photos) {
+  for (let i = 0; i < photos.length; i += 1000) {
+    const chunk = photos.slice(i, i + 1000)
+    await env.PHOTOS_BUCKET.delete(chunk.map((p) => p.r2_key))
+    const del = env.DB.prepare('DELETE FROM photos WHERE id = ?')
+    await env.DB.batch(chunk.map((p) => del.bind(p.id)))
   }
 }

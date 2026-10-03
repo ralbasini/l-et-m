@@ -1,9 +1,5 @@
-- remove in upload popup the text "gardez cette page ouverte..."
-- link "voir toutes les photos" should scroll not to the header, but to the "la galerie" text menu
-ADMIN
-- same upload layout as on the photos upload page
-- displayed photos should be smaller, same as photos upload page
-- if no folder is selected (default) all pictures should be displayed
+- Website title should be Lobna & Martin
 
 Bucket
 - rename bucket from l-et-m-photos to lobna-et-martin
+- rename database lobna-et-martin

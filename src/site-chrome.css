@@ -11,8 +11,10 @@
    so nothing page-specific can drift these out of sync.
    ================================================================ */
 
-/* Self-hosted logo fonts (free-for-personal-use licenses — see the notes
-   in src/galerie/style.css). */
+/* Self-hosted logo fonts (public/fonts/) — declared once here, since this
+   stylesheet is on every page. Free-for-personal-use licenses: MoreSugar-Thin
+   from dafont.com, Apricot (script, used for the "&" in "Lobna & Martin")
+   from befonts.com. */
 @font-face {
   font-family: 'MoreSugar-Thin';
   src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
@@ -28,6 +30,11 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* An explicit `display` on an element also carrying `hidden` would otherwise
+   beat the browser's `[hidden] { display: none }` (author CSS wins ties with
+   the UA stylesheet) — this keeps `hidden` meaning hidden everywhere. */
+[hidden] { display: none; }
 
 :root {
   /* Height of the menu bar, excluding the iPhone notch inset. Pages use
@@ -178,3 +185,12 @@ html:not(.is-admin) [data-logged-in-only] { display: none; }
 /* Exactly one shows: login when logged out, logout when logged in. */
 html.is-admin .brand-footer-login,
 html:not(.is-admin) .brand-footer-logout { display: none; }
+
+/* The menu and footer are for setting up the slideshow display; projecting
+   fullscreen shows only the photos. */
+:fullscreen .site-nav,
+:-webkit-full-screen .site-nav,
+:fullscreen .brand-footer,
+:-webkit-full-screen .brand-footer {
+  display: none;
+}

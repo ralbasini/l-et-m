@@ -6,10 +6,11 @@ const nav = document.querySelector('.site-nav')
 const links = nav ? [...nav.querySelectorAll('a[data-page]:not([data-page="admin"])')] : []
 const embedded = window.parent !== window
 
+// The site's base path ('/l-et-m/'), the same for every page.
+const siteRoot = import.meta.env.BASE_URL
+
 function getSection (href) {
   const target = new URL(href, location.href)
-  const parentUrl = new URL(document.referrer || location.href)
-  const siteRoot = new URL('.', parentUrl).pathname
 
   if (target.origin !== location.origin) return null
   // Menu links point at the home page's panels: /l-et-m/#galerie etc.
@@ -34,14 +35,13 @@ function navigate (href) {
     // page to scroll that panel to it. Not for /#galerie-style menu links,
     // where the hash is the panel name itself.
     const target = new URL(href, location.href)
-    const siteRoot = new URL('.', new URL(document.referrer || location.href)).pathname
     const anchor = target.pathname !== siteRoot ? target.hash.slice(1) : ''
     window.parent.postMessage({ type: 'site-nav', page, anchor }, location.origin)
     return
   }
 
   const target = new URL(href, location.href)
-  if (target.origin === location.origin && target.pathname.startsWith(new URL(document.referrer || location.href).pathname.replace(/[^/]*$/, ''))) {
+  if (target.origin === location.origin && target.pathname.startsWith(siteRoot)) {
     window.top.location.assign(target.href)
   }
 }

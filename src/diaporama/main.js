@@ -1,7 +1,7 @@
 import { loadPhotos } from '../photos.js'
 
 // Meant to run unattended on a projector all evening: advances slowly, and
-// re-polls photos-list.php periodically so photos guests upload live (via
+// re-polls the photo list periodically so photos guests upload live (via
 // the QR code / photos/ page) join the rotation without anyone touching it.
 const DEFAULT_ADVANCE_MS = 7000
 const REFRESH_MS = 60000
@@ -73,7 +73,6 @@ function preload (src) {
 // ── Standard renderer: full-bleed photo cross-fading over a blurred copy
 // of itself (fills the object-fit:contain letterbox gaps). ──────────────
 function makeStandardRenderer () {
-  const view = document.getElementById('view-standard')
   const slideA = document.getElementById('slide-a')
   const slideB = document.getElementById('slide-b')
   const bgA = document.getElementById('bg-a')
@@ -81,7 +80,6 @@ function makeStandardRenderer () {
   let a = true
 
   return {
-    view,
     init (photo) {
       a = true
       slideB.classList.remove('is-active')
@@ -132,7 +130,6 @@ function placeOffscreen (el, side) {
 // ── Polaroid renderer: one card at a time, slid across like printed
 // photos being pulled out from under the next. ──────────────────────────
 function makePolaroidRenderer () {
-  const view = document.getElementById('view-polaroid')
   const cardA = document.getElementById('polaroid-a')
   const cardB = document.getElementById('polaroid-b')
   const imgA = document.getElementById('polaroid-img-a')
@@ -140,7 +137,6 @@ function makePolaroidRenderer () {
   let a = true
 
   return {
-    view,
     init (photo) {
       a = true
       imgA.src = photo.src
