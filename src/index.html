@@ -57,6 +57,10 @@
 			   stays in the page: on desktop the theme uses it as this section's
 			   background photo (main.js builds #lieu-bg from it). */
 			#lieu .image.primary { display: none !important; }
+			/* Scrollable, but without a visible scrollbar (this page only).
+			   #wrapper is the theme's own scroll container in touch mode. */
+			html, body, #wrapper { scrollbar-width: none; -ms-overflow-style: none; }
+			html::-webkit-scrollbar, body::-webkit-scrollbar, #wrapper::-webkit-scrollbar { display: none; }
 
 			/* Self-hosted — not a Google Font. Free-for-personal-use license
 			   (dafont.com); see the matching declaration in

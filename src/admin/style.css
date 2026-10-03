@@ -142,7 +142,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.5rem 0.35rem 0.75rem;
-  background: #f4f6f2;
+  /* Per-tag colors, set from main.js (setTagColor). */
+  background: var(--tag-bg, #f4f6f2);
+  color: var(--tag-fg, #252525);
   border-radius: 999px;
   font-size: 0.8125rem;
 }
@@ -180,40 +182,10 @@
 
 .photo-select { position: relative; }
 
-.photo-select .select-file {
-  position: absolute;
-  top: 0.4rem;
-  left: 0.4rem;
-  z-index: 1;
-  width: 1.1rem;
-  height: 1.1rem;
-}
-
 .photo-card figcaption {
   padding: 0.45rem 0.6rem 0;
   font-size: 0.6875rem;
   word-break: break-word;
-}
-
-.tag-checks {
-  padding: 0.4rem 0.6rem 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-}
-
-.tag-check {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin: 0;
-  font-size: 0.6875rem;
-}
-
-.tag-check-empty {
-  margin: 0.4rem 0.6rem 0;
-  font-size: 0.6875rem;
-  color: rgba(37, 37, 37, 0.45);
 }
 
 .photo-folder {
@@ -274,3 +246,85 @@ button.tag-chip.is-on {
   color: #FFFFFF;
 }
 button.tag-chip.is-on:hover { background: #2a5951; }
+
+/* A photo's tags, as pills under its file name. */
+.photo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem 0;
+}
+
+.photo-tag {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--tag-bg, rgba(53, 109, 101, 0.14));
+  color: var(--tag-fg, #356d65);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* "aucun tag": gray, dashed outline. */
+.photo-tag.is-none {
+  background: none;
+  border: 1px dashed rgba(37, 37, 37, 0.3);
+  color: rgba(37, 37, 37, 0.5);
+  font-weight: 500;
+}
+
+/* Clicking a photo selects it (not zoom), so a plain pointer. */
+.photo-card .photo-select img { cursor: pointer; }
+
+/* Small full-screen button, top-right of each photo. */
+button.photo-zoom {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(23, 23, 23, 0.65);
+  color: #FFFFFF;
+}
+button.photo-zoom:hover { background: #356d65; }
+.photo-zoom svg { width: 0.95rem; height: 0.95rem; }
+
+/* Selected photo: check badge top-left, on top of the teal outline. */
+.photo-card.is-selected .photo-select::before {
+  content: '✓';
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #356d65;
+  color: #FFFFFF;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* Tags row: the name is a filter toggle (teal when active), × deletes. */
+.tags-list li.is-active { background: var(--tag-solid, #356d65); color: #FFFFFF; }
+.tags-list li.is-active .tag-remove { color: rgba(255, 255, 255, 0.7); }
+.tags-list li.is-active .tag-remove:hover { color: #FFFFFF; }
+
+button.tag-filter {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+button.tag-filter:hover { background: none; text-decoration: underline; }

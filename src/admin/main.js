@@ -253,11 +253,30 @@ function renderTags (registry) {
   list.innerHTML = ''
   document.getElementById('tags-empty').hidden = registry.length > 0
 
+  // Forget filters on tags that no longer exist.
+  activeTagFilters.forEach((tag) => { if (!registry.includes(tag)) activeTagFilters.delete(tag) })
+
   registry.forEach((tag) => {
     const li = document.createElement('li')
-    const span = document.createElement('span')
-    span.textContent = tag
-    li.appendChild(span)
+    li.classList.toggle('is-active', activeTagFilters.has(tag))
+    setTagColor(li, tag)
+
+    // The tag's name filters the photos shown (see applyTagFilter()).
+    const filterBtn = document.createElement('button')
+    filterBtn.type = 'button'
+    filterBtn.className = 'tag-filter'
+    filterBtn.textContent = tag
+    filterBtn.title = `N’afficher que les photos « ${tag} »`
+    filterBtn.setAttribute('aria-pressed', String(activeTagFilters.has(tag)))
+    filterBtn.addEventListener('click', () => {
+      if (activeTagFilters.has(tag)) activeTagFilters.delete(tag)
+      else activeTagFilters.add(tag)
+      const on = activeTagFilters.has(tag)
+      li.classList.toggle('is-active', on)
+      filterBtn.setAttribute('aria-pressed', String(on))
+      applyTagFilter()
+    })
+    li.appendChild(filterBtn)
 
     const removeBtn = document.createElement('button')
     removeBtn.type = 'button'
@@ -315,6 +334,9 @@ function renderPhotos (photos, registry) {
     const checkbox = document.createElement('input')
     checkbox.type = 'checkbox'
     checkbox.className = 'select-file'
+    // No visible checkbox: clicking the photo toggles it (below), and a
+    // selected photo gets a teal outline + check badge. It just holds the state.
+    checkbox.hidden = true
     checkbox.value = photo.path
     selectWrap.appendChild(checkbox)
 
@@ -323,47 +345,120 @@ function renderPhotos (photos, registry) {
     img.src = src
     img.alt = ''
     img.loading = 'lazy'
-    img.addEventListener('click', () => openLightbox(i))
+    // Clicking the photo selects/unselects it; full screen is the small
+    // icon in its top-right corner.
+    img.addEventListener('click', () => {
+      checkbox.checked = !checkbox.checked
+      checkbox.dispatchEvent(new Event('change', { bubbles: true }))
+    })
     selectWrap.appendChild(img)
+
+    const zoomBtn = document.createElement('button')
+    zoomBtn.type = 'button'
+    zoomBtn.className = 'photo-zoom'
+    zoomBtn.setAttribute('aria-label', 'Afficher en plein écran')
+    zoomBtn.title = 'Afficher en plein écran'
+    zoomBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>'
+    zoomBtn.addEventListener('click', () => openLightbox(i))
+    selectWrap.appendChild(zoomBtn)
+
     figure.appendChild(selectWrap)
 
     const caption = document.createElement('figcaption')
     caption.textContent = photo.filename
     figure.appendChild(caption)
 
-    if (registry.length) {
-      const tagChecks = document.createElement('div')
-      tagChecks.className = 'tag-checks'
-      registry.forEach((tag) => {
-        const label = document.createElement('label')
-        label.className = 'tag-check'
-        const cb = document.createElement('input')
-        cb.type = 'checkbox'
-        cb.value = tag
-        cb.checked = photo.tags.includes(tag)
-        label.appendChild(cb)
-        label.appendChild(document.createTextNode(tag))
-        tagChecks.appendChild(label)
-      })
-      figure.appendChild(tagChecks)
-    } else {
-      const p = document.createElement('p')
-      p.className = 'tag-check-empty'
-      p.textContent = 'Aucun tag défini'
-      figure.appendChild(p)
-    }
+    // The photo's tags, as pills under its file name. Tagging itself is
+    // done by selecting photos (see below).
+    const tagPills = document.createElement('div')
+    tagPills.className = 'photo-tags'
+    figure.appendChild(tagPills)
+    setFigureTags(figure, photo.tags)
 
     const folderLabel = document.createElement('p')
     folderLabel.className = 'photo-folder'
     folderLabel.textContent = photo.folder === '' ? '📁 img/ (racine)' : '📁 ' + photo.folder
     figure.appendChild(folderLabel)
 
-    figure.dataset.savedTags = checkedTags(figure)
     grid.appendChild(figure)
   })
   currentRegistry = registry
+  applyTagFilter()
+}
+
+// ── Tag filter ───────────────────────────────────────────────────
+// Clicking a tag in the Tags row shows only the displayed photos that have
+// it; several active tags show photos with any of them (same as the
+// gallery's filters). Kept across folder changes. Photos it hides are
+// unselected, so actions never apply to photos out of sight. Re-run after
+// tagging from the selection bar, once that selection has been cleared.
+const activeTagFilters = new Set()
+
+function applyTagFilter () {
+  const figures = Array.from(photosGrid.querySelectorAll('figure.photo-card'))
+  let shown = 0
+  figures.forEach((figure) => {
+    const visible = activeTagFilters.size === 0 ||
+      figureTags(figure).some((tag) => activeTagFilters.has(tag))
+    figure.hidden = !visible
+    if (!visible) figure.querySelector('.select-file').checked = false
+    if (visible) shown += 1
+  })
+  const empty = document.getElementById('photos-empty')
+  empty.hidden = shown > 0
+  empty.textContent = figures.length && activeTagFilters.size
+    ? 'Aucune photo avec ce tag ici.'
+    : 'Aucune photo pour l’instant.'
   renderSelectionTags()
-  updateSaveTagsBtn()
+}
+
+// A photo card's tags live in data-tags (comma-separated) and are drawn as
+// the pills on its thumbnail.
+function figureTags (figure) {
+  return figure.dataset.tags ? figure.dataset.tags.split(',') : []
+}
+
+function setFigureTags (figure, tags) {
+  figure.dataset.tags = tags.join(',')
+  const pills = figure.querySelector('.photo-tags')
+  pills.innerHTML = ''
+  tags.forEach((tag) => {
+    const pill = document.createElement('span')
+    pill.className = 'photo-tag'
+    pill.textContent = tag
+    setTagColor(pill, tag)
+    pills.appendChild(pill)
+  })
+  // Untagged photos say so, which makes them easy to spot.
+  if (!tags.length) {
+    const none = document.createElement('span')
+    none.className = 'photo-tag is-none'
+    none.textContent = 'aucun tag'
+    pills.appendChild(none)
+  }
+}
+
+// Each tag gets its own color, picked from its name (so it stays the same
+// when other tags are added or removed): a soft background + dark text, and
+// a solid shade for the active filter. Used through --tag-* in style.css.
+const TAG_PALETTE = [
+  ['#d7e7e3', '#2a5951', '#356d65'], // teal
+  ['#f3dde0', '#8a3846', '#a34858'], // rose
+  ['#f5e6cc', '#7a5212', '#b07a1f'], // amber
+  ['#e4def2', '#4e3f80', '#6a59a8'], // lavender
+  ['#d8e8f3', '#2c5878', '#3c76a0'], // sky
+  ['#e3ead2', '#4f5f22', '#6c8030'], // olive
+  ['#f6e0d4', '#8a4425', '#b65a32'], // peach
+  ['#e0e3e6', '#3e4852', '#5a6672'], // slate
+]
+
+function setTagColor (el, tag) {
+  let hash = 5381
+  for (const char of tag.normalize('NFC')) hash = ((hash * 33) ^ char.codePointAt(0)) >>> 0
+  const [bg, fg, solid] = TAG_PALETTE[hash % TAG_PALETTE.length]
+  el.style.setProperty('--tag-bg', bg)
+  el.style.setProperty('--tag-fg', fg)
+  el.style.setProperty('--tag-solid', solid)
 }
 
 function selectedPhotoPaths () {
@@ -371,11 +466,10 @@ function selectedPhotoPaths () {
 }
 
 // ── Tagging several photos at once ──────────────────────────────
-// While photos are selected, a chip per tag sits above the grid. Clicking
-// one adds that tag to every selected photo — or, if they all have it
-// already, removes it from all of them — and saves right away. Works from
-// each photo card's own tag checkboxes, so they stay in sync and any
-// unsaved per-photo edits elsewhere in the grid are left untouched.
+// The only way to tag: select photos, then click a tag in the bar above the
+// grid. That adds it to every selected photo — or, if they all have it
+// already, removes it from all of them — saves right away, and updates the
+// pills on their thumbnails.
 let currentRegistry = []
 let hasFolders = false
 const photosGrid = document.getElementById('photos-grid')
@@ -383,10 +477,6 @@ const photosGrid = document.getElementById('photos-grid')
 function selectedFigures () {
   return Array.from(photosGrid.querySelectorAll('figure.photo-card'))
     .filter((figure) => figure.querySelector('.select-file').checked)
-}
-
-function tagBox (figure, tag) {
-  return Array.from(figure.querySelectorAll('.tag-check input')).find((cb) => cb.value === tag)
 }
 
 function renderSelectionTags () {
@@ -415,7 +505,7 @@ function renderSelectionTags () {
   }
 
   currentRegistry.forEach((tag) => {
-    const withTag = figures.filter((figure) => tagBox(figure, tag)?.checked).length
+    const withTag = figures.filter((figure) => figureTags(figure).includes(tag)).length
     const all = withTag === figures.length
     const chip = document.createElement('button')
     chip.type = 'button'
@@ -433,37 +523,34 @@ function renderSelectionTags () {
 async function applyTagToSelection (tag, add) {
   const figures = selectedFigures()
   if (!figures.length) return
-  // Remember each box's state so a failed save can be undone.
-  const previous = figures.map((figure) => [figure, tagBox(figure, tag)?.checked])
+  // Update the cards right away (kept in registry order); undo if the save fails.
+  const previous = figures.map((figure) => [figure, figureTags(figure)])
   figures.forEach((figure) => {
-    const box = tagBox(figure, tag)
-    if (box) box.checked = add
+    const tags = figureTags(figure).filter((t) => t !== tag)
+    if (add) tags.push(tag)
+    setFigureTags(figure, currentRegistry.filter((t) => tags.includes(t)))
   })
   renderSelectionTags()
 
-  const updates = figures.map((figure) => ({
-    path: figure.dataset.path,
-    tags: Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value),
-  }))
+  const updates = figures.map((figure) => ({ path: figure.dataset.path, tags: figureTags(figure) }))
   try {
     await apiFetch('tag', { method: 'POST', json: { updates } })
-    markTagsSaved(figures)
+    // Done with this selection: clear it, and re-apply any tag filter now
+    // that these photos' tags changed.
+    photosGrid.querySelectorAll('.select-file').forEach((cb) => { cb.checked = false })
+    document.getElementById('select-all').checked = false
+    applyTagFilter()
     toast(`« ${tag} » ${add ? 'ajouté à' : 'retiré de'} ${figures.length} photo${figures.length > 1 ? 's' : ''}.`, true)
   } catch (err) {
-    previous.forEach(([figure, checked]) => {
-      const box = tagBox(figure, tag)
-      if (box) box.checked = checked
-    })
+    previous.forEach(([figure, tags]) => setFigureTags(figure, tags))
     renderSelectionTags()
     toast(err.message, false)
   }
 }
 
-// Selecting/unselecting a photo, or ticking a tag on a selected one,
-// refreshes the chips.
+// Selecting/unselecting a photo refreshes the tag bar.
 photosGrid.addEventListener('change', (e) => {
-  if (e.target.matches('.select-file, .tag-check input')) renderSelectionTags()
-  if (e.target.matches('.tag-check input')) updateSaveTagsBtn()
+  if (e.target.matches('.select-file')) renderSelectionTags()
 })
 
 // ── Upload ────────────────────────────────────────────────────
@@ -685,7 +772,8 @@ addTagForm.addEventListener('submit', async (e) => {
 
 // ── Photos: select all, delete, move, save tags ──────────────────
 document.getElementById('select-all').addEventListener('change', (e) => {
-  document.querySelectorAll('.select-file').forEach((cb) => { cb.checked = e.target.checked })
+  // Only the photos currently shown (the tag filter may hide some).
+  photosGrid.querySelectorAll('figure.photo-card:not([hidden]) .select-file').forEach((cb) => { cb.checked = e.target.checked })
   renderSelectionTags()
 })
 
@@ -720,46 +808,6 @@ document.getElementById('move-btn').addEventListener('click', async () => {
     const data = await apiFetch('move', { method: 'POST', json: { files, dest } })
     toast(data.moved > 0 ? `${data.moved} photo(s) déplacée(s).` : 'Aucune photo déplacée.', data.moved > 0 && data.skipped === 0)
     await loadState(currentPath)
-  } catch (err) {
-    toast(err.message, false)
-  }
-})
-
-// "Enregistrer les tags" only shows while a photo card's tag checkboxes
-// differ from what's saved, and only sends those photos.
-const saveTagsBtn = document.getElementById('save-tags-btn')
-
-function checkedTags (figure) {
-  return Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value).join(',')
-}
-
-function unsavedFigures () {
-  return Array.from(photosGrid.querySelectorAll('figure.photo-card'))
-    .filter((figure) => checkedTags(figure) !== figure.dataset.savedTags)
-}
-
-function markTagsSaved (figures) {
-  figures.forEach((figure) => { figure.dataset.savedTags = checkedTags(figure) })
-  updateSaveTagsBtn()
-}
-
-function updateSaveTagsBtn () {
-  const count = unsavedFigures().length
-  saveTagsBtn.hidden = count === 0
-  saveTagsBtn.textContent = `Enregistrer les tags (${count} photo${count > 1 ? 's' : ''})`
-}
-
-saveTagsBtn.addEventListener('click', async () => {
-  const figures = unsavedFigures()
-  if (!figures.length) return
-  const updates = figures.map((figure) => ({
-    path: figure.dataset.path,
-    tags: Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value),
-  }))
-  try {
-    const data = await apiFetch('tag', { method: 'POST', json: { updates } })
-    markTagsSaved(figures)
-    toast(data.updated > 0 ? `${data.updated} photo(s) mise(s) à jour.` : 'Aucune photo mise à jour.', data.updated > 0)
   } catch (err) {
     toast(err.message, false)
   }
