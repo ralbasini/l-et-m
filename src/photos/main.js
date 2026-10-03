@@ -135,6 +135,16 @@ function showUploadStep (guestName) {
 const nameForm = document.getElementById('name-form')
 const nameError = document.getElementById('name-error')
 
+// "Continuer" only shows once a name has been typed (Enter works anyway).
+const nameInput = document.getElementById('name')
+const nameSubmitBtn = document.getElementById('name-submit')
+function updateNameSubmit () {
+  nameSubmitBtn.hidden = nameInput.value.trim() === ''
+}
+nameInput.addEventListener('input', updateNameSubmit)
+// After a reset (e.g. "ce n'est pas moi"), once the field is actually cleared.
+nameForm.addEventListener('reset', () => setTimeout(updateNameSubmit))
+
 nameForm.addEventListener('submit', async (e) => {
   e.preventDefault()
   nameError.hidden = true
@@ -195,7 +205,13 @@ function renderQuota (remaining, maxPerPerson) {
   } else {
     form.hidden = false
     full.hidden = true
-    label.textContent = `Choisir des photos (${remaining} restante${remaining > 1 ? 's' : ''} sur ${maxPerPerson})`
+    label.textContent = `${remaining} photo${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} sur ${maxPerPerson}`
+    // The bar shows what's used so far: full = no photos left.
+    const used = Math.max(0, maxPerPerson - remaining)
+    const bar = document.getElementById('quota-bar')
+    bar.setAttribute('aria-valuemax', String(maxPerPerson))
+    bar.setAttribute('aria-valuenow', String(used))
+    document.getElementById('quota-bar-fill').style.width = `${(100 * used) / maxPerPerson}%`
   }
 }
 
@@ -303,11 +319,13 @@ function renderPreview () {
   const count = selectedFiles.length
   previewGrid.hidden = count === 0
   uploadSubmitBtn.disabled = count === 0
+  // Only shown once there is something to send.
+  uploadSubmitBtn.hidden = count === 0
   const onlyLeftovers = leftovers && count > 0 && selectedFiles.every((f) => leftovers.files.has(f))
   uploadSubmitBtn.textContent = onlyLeftovers ? `Réessayer l’envoi (${count})` : 'Envoyer'
   dropzoneText.textContent = count === 0
-    ? 'Touchez pour choisir des photos'
-    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
+    ? 'Choisir des photos'
+    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — en ajouter d’autres`
 
   const warnings = []
   if (count > currentRemaining) {
@@ -682,6 +700,13 @@ async function runUpload () {
     toast(parts.join(' '), failed.length === 0 && rejected.length === 0, failed.length ? 10000 : 4000)
 
     setSelectedFiles(failed.map((j) => j.file))
+
+    // Show the guest their photos once they're all in. Not while some are
+    // still pending: "Réessayer l’envoi" should stay in view then.
+    if (done.length && !failed.length && !myPhotosCard.hidden) {
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      myPhotosCard.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
+    }
   } catch (err) {
     // Only a 401 gets here — apiFetch already sent the guest back to the
     // name step. Keep the selection so they can send it once re-identified.

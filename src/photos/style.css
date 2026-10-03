@@ -89,7 +89,6 @@ main {
   .upload-bar-fill { transition: none; }
 }
 
-#not-me-btn { font-style: italic; }
 
 #collision-step button:first-of-type { margin-right: 0.75rem; margin-bottom: 0.5rem; }
 
@@ -97,3 +96,38 @@ main {
 
 .my-photos { text-align: center; }
 .my-photos label { text-align: left; }
+
+/* "Voir toutes les photos", above the guest's own photos. */
+.my-photos-link { margin: 0 0 1.25rem; }
+
+/* Scrolled to after an upload: land below the fixed menu bar. */
+.my-photos { scroll-margin-top: calc(var(--site-nav-offset) + 1rem); }
+
+/* Guest quota: bar of photos used, "N photos restantes sur 15" under it —
+   same look as the admin storage bar. */
+.quota-meter { margin: 0 0 1rem; }
+
+.quota-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(37, 37, 37, 0.12);
+  overflow: hidden;
+}
+
+.quota-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #356d65;
+  transition: width 0.4s ease;
+}
+
+.quota-label {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+  color: rgba(37, 37, 37, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quota-bar-fill { transition: none; }
+}

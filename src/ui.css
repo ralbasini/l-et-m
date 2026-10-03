@@ -182,6 +182,15 @@ button.link-btn, button.link-inline {
 }
 button.link-btn:hover, button.link-inline:hover { background: none; color: #2a5951; }
 
+/* A link inside a sentence ("— ce n'est pas moi", "— se déconnecter"):
+   exactly the surrounding text's font, size, weight and spacing — only
+   the color and underline say it's clickable. */
+button.link-inline {
+  font: inherit;
+  letter-spacing: inherit;
+  vertical-align: baseline;
+}
+
 /* ── Upload: dropzone, "Envoyer", pending previews ──────────────── */
 /* The real <input type="file"> sits on top, fully transparent, so every
    click/tap anywhere in the box opens the native picker — more reliable

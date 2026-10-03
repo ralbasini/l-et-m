@@ -41,15 +41,13 @@
     <h1>Ajoutez vos photos</h1>
     <p class="subtitle">Partagez vos souvenirs de la journée,<br>Merci !</p>
 
-    <a href="../galerie/#galerie" class="btn-link">Voir toutes les photos</a>
-
     <!-- Step 1: just a name. -->
     <div id="name-step" class="card">
       <form id="name-form">
         <p id="name-error" class="error" hidden></p>
-        <label for="name">Votre nom</label>
-        <input type="text" id="name" name="name" placeholder="ex. Camille" required>
-        <button type="submit">Continuer</button>
+        <label for="name">Bien le bonjour très cher invité&nbsp;!<br>À qui ai-je l’honneur&nbsp;?</label>
+        <input type="text" id="name" name="name" placeholder="Merci de renseigner ton nom" required>
+        <button type="submit" id="name-submit" hidden>Continuer</button>
       </form>
     </div>
 
@@ -63,16 +61,20 @@
 
     <!-- Step 2: identity known — upload + own photos. -->
     <div id="upload-step" class="card" hidden>
-      <p class="guest-name">Vous envoyez en tant que <strong id="guest-name-label"></strong> — <button type="button" id="not-me-btn" class="link-inline">ce n'est pas moi</button></p>
+      <p class="guest-name">Salut <strong id="guest-name-label"></strong>&nbsp;! — <button type="button" id="not-me-btn" class="link-inline">ce n'est pas moi</button></p>
       <p id="quota-full" class="empty" hidden></p>
       <form id="upload-form">
-        <label id="photos-label" for="photos"></label>
+        <!-- How many of the guest's photos are used: the bar fills as they send. -->
+        <div class="quota-meter">
+          <div id="quota-bar" class="quota-bar" role="progressbar" aria-valuemin="0" aria-labelledby="photos-label"><div id="quota-bar-fill" class="quota-bar-fill"></div></div>
+          <p id="photos-label" class="quota-label"></p>
+        </div>
         <label id="dropzone" for="photos" class="dropzone">
           <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
           <span class="dropzone-icon" aria-hidden="true">+</span>
-          <span id="dropzone-text" class="dropzone-text">Touchez pour choisir des photos</span>
+          <span id="dropzone-text" class="dropzone-text">Choisir des photos</span>
         </label>
-        <button type="submit" id="upload-submit" class="upload-submit" disabled>Envoyer</button>
+        <button type="submit" id="upload-submit" class="upload-submit" disabled hidden>Envoyer</button>
         <p id="preview-warning" class="warning" hidden></p>
         <div id="preview-grid" class="grid preview-grid" hidden></div>
       </form>
@@ -80,6 +82,7 @@
 
     <div id="my-photos" class="card my-photos" hidden>
       <label>Vos photos</label>
+      <a href="../galerie/#galerie" class="btn-link my-photos-link">Voir toutes les photos</a>
       <div id="photos-grid" class="grid"></div>
     </div>
   </main>

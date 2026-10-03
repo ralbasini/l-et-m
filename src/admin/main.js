@@ -491,9 +491,11 @@ function renderPreview () {
   const count = selectedFiles.length
   previewGrid.hidden = count === 0
   uploadSubmitBtn.disabled = count === 0
+  // Only shown once there is something to send.
+  uploadSubmitBtn.hidden = count === 0
   dropzoneText.textContent = count === 0
-    ? 'Touchez pour choisir des photos'
-    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
+    ? 'Choisir des photos'
+    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — en ajouter d’autres`
 
   selectedFiles.forEach((file, i) => {
     const url = URL.createObjectURL(file)
