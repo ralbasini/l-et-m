@@ -82,7 +82,7 @@
 				$window.on('load.hl_scrolly', function() {
 
 					$('.scrolly').scrolly({
-						speed: 1500,
+						speed: 100,
 						parent: $wrapper,
 						pollOnce: true
 					});
@@ -99,7 +99,7 @@
 
 			// Scrolly.
 				$('.scrolly').scrolly({
-					speed: 1500
+					speed: 100
 				});
 
 		}

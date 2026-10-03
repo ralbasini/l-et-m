@@ -34,7 +34,8 @@ html, body {
 .monogram span {
   font-family: 'Apricot', cursive;
   color: #abb9a2;
-  margin: 0;
+  /* The script "&" has wide side bearings: pull it in against the letters. */
+  margin: 0 -0.12em;
 }
 
 h1 {

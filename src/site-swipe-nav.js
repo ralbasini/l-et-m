@@ -49,6 +49,8 @@ if (embedded) {
     if (!link || link.target && link.target !== '_self') return
 
     const target = new URL(link.href, location.href)
+    // In-page anchor (#programme…): the page handles it, not the shell.
+    if (target.pathname === location.pathname && target.hash && !['#galerie', '#photos', '#admin'].includes(target.hash)) return
     const page = getSection(target.href)
     if (page) {
       event.preventDefault()

@@ -89,7 +89,8 @@ html body {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 2rem;
+  /* Each entry has 1.1rem side padding (room for its hover/current background); entries touch. */
+  gap: 0;
   box-sizing: border-box;
   height: var(--site-nav-offset);
   margin: 0;
@@ -101,7 +102,7 @@ html body {
 .site-nav a {
   display: flex;
   align-items: center;
-  padding: 0;
+  padding: 0 1.1rem;
   font-family: 'Quicksand', sans-serif;
   font-size: 0.75rem;
   /* Explicit rather than inherited: each page has a different base
@@ -113,22 +114,21 @@ html body {
   color: rgba(208, 218, 209, 0.75);
   text-decoration: none;
   border: 0;
-  transition: color 0.2s;
+  transition: color 0.2s, background-color 0.2s;
 }
 
 /* !important: the home page theme forces `a:hover { color: … !important }`. */
-.site-nav a:hover { color: #d0dad1 !important; }
+.site-nav a:hover { color: #d0dad1 !important; background: #2b2b2b; }
 
 .site-nav a.is-current {
   color: #ffffff !important;
   background: #356d65;
-  padding: 0 0.6rem;
   font-weight: 600;
 }
 
 @media (max-width: 480px) {
-  .site-nav { gap: 1.5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; }
+  .site-nav { gap: 0; padding-left: 0.5rem; padding-right: 0.5rem; }
+  .site-nav a { font-size: 0.8125rem; letter-spacing: 0.04em; padding: 0 0.7rem; }
 }
 
 /* Inside the home page's swipe panels (iframes), the top page's own menu
