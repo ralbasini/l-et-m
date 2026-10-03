@@ -119,11 +119,14 @@
 			/* Galerie/Photos/Admin menu entries (hidden for visitors, see
 			   src/admin-access.js) and the small footer "admin" link. */
 			html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none !important; }
-			/* Opaque on purpose: on desktop the theme paints each section's photo
-			   as a fixed full-screen layer behind the page (.main-bg), which
-			   would otherwise show straight through and hide the link. Same
-			   dark bar as the other pages' .brand-footer. */
+			/* On desktop the theme paints each section's photo as a fixed
+			   full-screen layer (.main-bg, z-index 0 below), which covers
+			   anything not positioned above it — hence position + z-index,
+			   same as #header/.main. Same dark bar as the other pages'
+			   .brand-footer. */
 			.mariage-admin-footer {
+				position: relative;
+				z-index: 1;
 				padding: 1rem;
 				text-align: center;
 				background: #252525;
