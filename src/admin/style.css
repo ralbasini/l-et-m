@@ -1,5 +1,8 @@
 @import '../ui.css';
 
+/* The page behind is light, so the translucent menu would read gray. */
+body .site-nav { background: #171717; }
+
 /* Admin page — only what's specific to it. The shared look (heading,
    cards, fields, buttons, dropzone, previews, grids, toasts, lightbox) is
    in src/ui.css, shared with the guest upload page (src/photos/). */
