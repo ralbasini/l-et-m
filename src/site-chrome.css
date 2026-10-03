@@ -135,12 +135,23 @@ html body {
    is the one shown. */
 html.is-embedded .site-nav { display: none; }
 
+/* Logged out (and the site not made public from the dashboard): no menu bar
+   at all, and the space reserved for it goes away too. */
+html:not(.is-admin):not(.menu-public) .site-nav { display: none; }
+html:not(.is-admin):not(.menu-public) {
+  --site-nav-height: 0px;
+  --site-nav-offset: 0px;
+}
+
 /* Galerie / Photos: hidden unless logged in as admin or made public from
    the dashboard (see src/admin-access.js). */
 html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none; }
 
 /* Admin: logged-in admins only, even when the site is public. */
 html:not(.is-admin) [data-logged-in-only] { display: none; }
+
+/* Inside the home page's panels the shell's own footer is the one shown. */
+html.is-embedded .brand-footer { display: none; }
 
 /* ── L&M footer ─────────────────────────────────────────────────── */
 .brand-footer {

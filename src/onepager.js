@@ -85,6 +85,12 @@ if (window.parent !== window) {
     document.body.classList.remove('is-preload')
   }
 
+  // The footer's "login" link opens the Admin panel instead of leaving the page.
+  document.querySelector('.brand-footer-login')?.addEventListener('click', (event) => {
+    event.preventDefault()
+    if (location.hash !== '#admin') location.hash = 'admin'
+  })
+
   nav.addEventListener('click', (event) => {
     const link = event.target.closest('a[data-page]')
     if (!link || !links.includes(link)) return

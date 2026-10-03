@@ -183,7 +183,8 @@ loginForm.addEventListener('submit', async (e) => {
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try { await apiFetch('logout', { method: 'POST' }) } catch {}
   clearToken()
-  showLogin()
+  // Back to the base page (a full load of the top window, so the menu resets).
+  window.top.location.replace(import.meta.env.BASE_URL)
 })
 
 // ── Dashboard state ───────────────────────────────────────────────

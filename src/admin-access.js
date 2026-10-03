@@ -32,8 +32,8 @@ export function isShown (link) {
 // The footer's "logout" button (only shown when logged in — see
 // src/site-chrome.css). Same as the admin dashboard's "Se déconnecter":
 // tell the server (best effort, tokens are stateless anyway), forget the
-// token, then reload the whole site so every admin-only entry hides again —
-// the top page too when clicked inside one of the home page's panels.
+// token, then go to the home page (a full load, so every admin-only entry
+// hides again) — the top page too when clicked inside one of its panels.
 async function logout () {
   let token = ''
   try { token = localStorage.getItem(ADMIN_TOKEN_KEY) || '' } catch {}
@@ -45,7 +45,8 @@ async function logout () {
   } catch {}
   try { localStorage.removeItem(ADMIN_TOKEN_KEY) } catch {}
   document.documentElement.classList.remove('is-admin')
-  window.top.location.reload()
+  // Back to the base page, whichever panel this was clicked in.
+  window.top.location.replace(import.meta.env.BASE_URL)
 }
 
 document.addEventListener('click', (event) => {
