@@ -267,7 +267,7 @@ button.add-btn:hover { background: #2a5951; }
 }
 
 /* Previews aren't clickable to zoom, so don't borrow the zoom-in cursor. */
-.preview-grid figure img { cursor: default; }
+.preview-grid figure img { cursor: pointer; }
 
 /* Selected but not sent yet: dotted gray border + clock badge top-left
    (the × to remove it stays top-right). */

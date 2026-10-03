@@ -337,6 +337,7 @@ function renderPreview () {
     const img = document.createElement('img')
     img.src = url
     img.alt = ''
+    img.addEventListener('click', () => openLightbox(i, true))
     figure.appendChild(img)
 
     const pendingBadge = document.createElement('span')
@@ -754,14 +755,24 @@ const lightbox = document.getElementById('lightbox')
 const lightboxImg = document.getElementById('lightbox-img')
 const lightboxCount = document.getElementById('lightbox-count')
 let lbIndex = 0
+// Which list the lightbox browses: uploaded photos or the pending selection
+// (object URLs, read live since renderPreview() regenerates them).
+let lbPending = false
 
-function lbShow (i) {
-  lbIndex = (i + lightboxFiles.length) % lightboxFiles.length
-  lightboxImg.src = guestPhotoUrl(lightboxFiles[lbIndex])
-  lightboxCount.textContent = `${lbIndex + 1} / ${lightboxFiles.length}`
+function lbUrls () {
+  return lbPending ? previewUrls : lightboxFiles.map(guestPhotoUrl)
 }
 
-function openLightbox (i) {
+function lbShow (i) {
+  const urls = lbUrls()
+  if (!urls.length) { closeLightbox(); return }
+  lbIndex = (i + urls.length) % urls.length
+  lightboxImg.src = urls[lbIndex]
+  lightboxCount.textContent = `${lbIndex + 1} / ${urls.length}`
+}
+
+function openLightbox (i, pending = false) {
+  lbPending = pending
   lbShow(i)
   lightbox.hidden = false
   document.body.style.overflow = 'hidden'

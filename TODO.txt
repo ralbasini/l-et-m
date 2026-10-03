@@ -1,5 +1,5 @@
 - Website title should be Lobna & Martin
-
+- On Mariage, there are black bars on top and bottom of the header picture
 Bucket
 - rename bucket from l-et-m-photos to lobna-et-martin
 - rename database lobna-et-martin
