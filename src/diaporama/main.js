@@ -248,7 +248,7 @@ durationInput.addEventListener('input', () => {
   resetTimer()
 })
 
-fullscreenBtn.addEventListener('click', () => {
+for (const btn of [fullscreenBtn, document.getElementById('fullscreen-corner')]) btn.addEventListener('click', () => {
   document.documentElement.requestFullscreen?.().catch(() => {})
 })
 

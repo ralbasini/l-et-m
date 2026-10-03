@@ -1,6 +1,6 @@
 import { isShown } from './admin-access.js'
 
-const pages = ['mariage', 'galerie', 'photos']
+const pages = ['mariage', 'galerie', 'photos', 'admin']
 const shell = document.getElementById('app-shell')
 
 async function initializeWeddingEmbed () {
@@ -80,23 +80,6 @@ if (window.parent !== window) {
     if (!link || !links.includes(link)) return
     event.preventDefault()
     if (location.hash !== `#${link.dataset.page}`) location.hash = link.dataset.page
-  })
-
-  window.addEventListener('keydown', (event) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
-    if (event.target instanceof Element && event.target.closest('input, textarea, select, button, [contenteditable="true"]')) return
-
-    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
-    if (!direction) return
-
-    const shownPages = menuPages()
-    const currentIndex = shownPages.indexOf(location.hash.slice(1))
-    if (currentIndex < 0) return
-    const nextIndex = currentIndex + direction
-    if (nextIndex < 0 || nextIndex >= shownPages.length) return
-
-    event.preventDefault()
-    location.hash = shownPages[nextIndex]
   })
 
   // The Galerie panel is the heavy one (it lists and loads the photos), so

@@ -21,7 +21,7 @@ function redirectBarePhotosPath (request, response, next) {
 // page at once.
 //
 // Menu links all point at the home page's swipe panels (/#galerie etc.,
-// see src/onepager.js), except Admin, which is its own page. Galerie /
+// see src/onepager.js), including Admin. Galerie /
 // Photos are `data-admin-only`: shown to logged-in admins, and to everyone
 // once the dashboard switch makes the site public. Admin is
 // `data-logged-in-only`: logged-in admins only, public or not. (See
@@ -31,7 +31,7 @@ const NAV_ITEMS = [
   { page: 'mariage', label: 'Mariage', href: base },
   { page: 'galerie', label: 'Galerie', href: `${base}#galerie`, adminOnly: true },
   { page: 'photos', label: 'Photos', href: `${base}#photos`, adminOnly: true },
-  { page: 'admin', label: 'Admin', href: `${base}admin/`, loggedInOnly: true },
+  { page: 'admin', label: 'Admin', href: `${base}#admin`, loggedInOnly: true },
 ]
 
 // Which menu entry a page highlights, from its path under src/.

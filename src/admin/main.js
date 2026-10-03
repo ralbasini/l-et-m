@@ -2,6 +2,7 @@ import { API_BASE_URL, photoUrl } from '../photos.js'
 import { makeThumbnail } from '../thumbnail.js'
 import { setMenuPublic, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
 import { toast } from '../toast.js'
+import '../site-swipe-nav.js'
 
 // Admin panel for the wedding photos, served from github.io but talking to
 // the Cloudflare Worker in cloudflare/ (see cloudflare/README.md). Auth is a
@@ -11,13 +12,19 @@ const API = API_BASE_URL + 'admin/'
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 // html.is-admin reveals the Galerie/Photos menu entries (see src/admin-access.js).
+// The home page (the top window) holds the menu, so it gets the class too.
+function setAdminClass (on) {
+  for (const win of new Set([window, window.top])) {
+    try { win.document.documentElement.classList.toggle('is-admin', on) } catch {}
+  }
+}
 function setToken (token) {
   localStorage.setItem(TOKEN_KEY, token)
-  document.documentElement.classList.add('is-admin')
+  setAdminClass(true)
 }
 function clearToken () {
   localStorage.removeItem(TOKEN_KEY)
-  document.documentElement.classList.remove('is-admin')
+  setAdminClass(false)
 }
 
 // Every call attaches the bearer token (if any); a 401 always means the
@@ -163,8 +170,10 @@ loginForm.addEventListener('submit', async (e) => {
   try {
     const data = await apiFetch('login', { method: 'POST', json: { password } })
     setToken(data.token)
-    // Land on the gallery; the dashboard is one click away via the Admin menu.
-    location.assign('../#galerie')
+    // Land on the gallery (reloading the whole site so the menu updates); the
+    // dashboard is one click away via the Admin menu.
+    window.top.location.hash = 'galerie'
+    window.top.location.reload()
   } catch (err) {
     loginError.textContent = err.message
     loginError.hidden = false

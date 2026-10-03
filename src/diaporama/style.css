@@ -167,6 +167,41 @@ html, body {
   height: 1.875rem;
 }
 
+/* L&M logo, bottom right, fullscreen only (the footer holding it elsewhere is hidden then). */
+.fullscreen-logo {
+  display: none;
+  position: fixed;
+  z-index: 3;
+  right: 1.5rem;
+  bottom: 1.25rem;
+  font-family: 'MoreSugar-Thin', Georgia, serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: rgba(208, 218, 209, 0.85);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.fullscreen-logo span { font-family: 'Apricot', cursive; }
+
+:fullscreen .fullscreen-logo,
+:-webkit-full-screen .fullscreen-logo {
+  display: block;
+}
+
+/* Fullscreen button: same look, top right corner. */
+.fullscreen-corner {
+  top: calc(var(--site-nav-offset) + 1rem);
+  bottom: auto;
+  left: auto;
+  right: 1.25rem;
+}
+
+.fullscreen-corner svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
 :fullscreen .menu-toggle,
 :-webkit-full-screen .menu-toggle {
   display: none;

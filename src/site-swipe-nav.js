@@ -1,9 +1,5 @@
-import { isShown } from './admin-access.js'
-
-// The Admin link isn't one of the swipeable pages, so arrow keys skip it —
-// as they do any entry admin-access.js currently hides.
-const nav = document.querySelector('.site-nav')
-const links = nav ? [...nav.querySelectorAll('a[data-page]:not([data-page="admin"])')] : []
+// Routes links clicked inside a home-page panel to the shell (no keyboard or
+// swipe navigation: pages are only reached from the menu).
 const embedded = window.parent !== window
 
 // The site's base path ('/l-et-m/'), the same for every page.
@@ -16,10 +12,11 @@ function getSection (href) {
   // Menu links point at the home page's panels: /l-et-m/#galerie etc.
   if (target.pathname === siteRoot) {
     const panel = target.hash.slice(1)
-    return ['galerie', 'photos'].includes(panel) ? panel : 'mariage'
+    return ['galerie', 'photos', 'admin'].includes(panel) ? panel : 'mariage'
   }
   if (target.pathname === `${siteRoot}galerie/`) return 'galerie'
   if (target.pathname === `${siteRoot}photos/`) return 'photos'
+  if (target.pathname === `${siteRoot}admin/`) return 'admin'
   return null
 }
 
@@ -61,26 +58,4 @@ if (embedded) {
       navigate(target.href)
     }
   }, true)
-}
-
-if (links.length > 1) {
-  document.addEventListener('keydown', (event) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
-    if (document.querySelector('#lightbox:not([hidden])')) return
-
-    const target = event.target
-    if (target instanceof Element && target.closest('input, textarea, select, button, [contenteditable="true"]')) return
-
-    const direction = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
-    if (!direction) return
-
-    const shown = links.filter(isShown)
-    const currentIndex = shown.findIndex((link) => link.classList.contains('is-current'))
-    if (currentIndex < 0) return
-    const nextIndex = currentIndex + direction
-    if (nextIndex < 0 || nextIndex >= shown.length) return
-
-    event.preventDefault()
-    navigate(shown[nextIndex].href)
-  })
 }
