@@ -32,7 +32,6 @@
         <span id="upload-progress-text">Envoi des photos en cours</span>
         <div class="upload-bar" aria-hidden="true"><div id="upload-bar-fill" class="upload-bar-fill"></div></div>
         <span id="upload-progress-detail" class="upload-progress-detail"></span>
-        <span class="upload-progress-hint">Gardez cette page ouverte jusqu’à la fin de l’envoi.</span>
       </div>
     </div>
   </div>
@@ -42,7 +41,7 @@
     <h1>Ajoutez vos photos</h1>
     <p class="subtitle">Partagez vos souvenirs de la journée,<br>Merci !</p>
 
-    <a href="../galerie/" class="btn-link">Voir toutes les photos</a>
+    <a href="../galerie/#galerie" class="btn-link">Voir toutes les photos</a>
 
     <!-- Step 1: just a name. -->
     <div id="name-step" class="card">
@@ -73,7 +72,7 @@
           <span class="dropzone-icon" aria-hidden="true">+</span>
           <span id="dropzone-text" class="dropzone-text">Touchez pour choisir des photos</span>
         </label>
-        <button type="submit" id="upload-submit" disabled>Envoyer</button>
+        <button type="submit" id="upload-submit" class="upload-submit" disabled>Envoyer</button>
         <p id="preview-warning" class="warning" hidden></p>
         <div id="preview-grid" class="grid preview-grid" hidden></div>
       </form>

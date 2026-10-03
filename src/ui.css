@@ -1,0 +1,436 @@
+/* ================================================================
+   UI — the shared look of the guest upload page (src/photos/) and the
+   admin page (src/admin/): page title, cards, form fields, buttons, the
+   upload dropzone + pending previews, photo grids, toasts, lightbox.
+   @import-ed at the top of both pages' style.css (so it always comes first
+   in the bundle), which then only adds what
+   is specific to that page. Change the common look here, once.
+   (The top menu and the L&M footer live in src/site-chrome.css.)
+   ================================================================ */
+
+* { box-sizing: border-box; }
+
+/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
+   see the matching declaration in src/galerie/style.css for the full note. */
+@font-face {
+  font-family: 'MoreSugar-Thin';
+  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Apricot';
+  src: url('/fonts/Apricot.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #d0dad1;
+  color: #252525;
+  font-family: 'Quicksand', system-ui, sans-serif;
+}
+
+/* ── Page heading ───────────────────────────────────────────────── */
+.monogram {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 1rem;
+  font-family: 'MoreSugar-Thin', cursive;
+  font-size: 2.25rem;
+  color: #abb9a2;
+  text-decoration: none;
+}
+
+.monogram span {
+  font-family: 'Apricot', cursive;
+  color: #abb9a2;
+  margin: 0;
+}
+
+h1 {
+  margin: 0 0 0.5rem;
+  font-family: 'MoreSugar-Thin', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.75rem;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  color: rgba(37, 37, 37, 0.65);
+  text-align: center;
+}
+
+.btn-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  background: #356d65;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-link:hover { background: #2a5951; }
+
+/* ── Cards + form fields ────────────────────────────────────────── */
+.card {
+  margin: 0 0 1.5rem;
+  padding: 1.5rem;
+  background: #FFFFFF;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 24px rgba(37, 37, 37, 0.1);
+  text-align: left;
+}
+
+/* A card's heading. */
+.card-title {
+  display: block;
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.4rem; }
+
+input[type="text"], input[type="password"], input[type="file"], select {
+  display: block;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(37, 37, 37, 0.18);
+  border-radius: 0.4rem;
+  background: #FFFFFF;
+  color: #252525;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.9375rem;
+}
+
+input[type="checkbox"] { accent-color: #356d65; }
+
+.error {
+  color: #a34848;
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.warning {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.4rem;
+  background: rgba(163, 72, 72, 0.08);
+  color: #a34848;
+  font-size: 0.8125rem;
+}
+
+.empty { color: rgba(37, 37, 37, 0.5); font-size: 0.875rem; margin: 0; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+button {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  background: #356d65;
+  color: #FFFFFF;
+  transition: background-color 0.2s;
+}
+
+button:hover { background: #2a5951; }
+
+button:disabled {
+  background: rgba(37, 37, 37, 0.15);
+  color: rgba(37, 37, 37, 0.45);
+  cursor: not-allowed;
+}
+
+button.secondary { background: rgba(37, 37, 37, 0.12); color: #252525; }
+button.secondary:hover { background: rgba(37, 37, 37, 0.2); }
+
+button.danger { background: #a34848; }
+button.danger:hover { background: #833636; }
+
+button.link-btn, button.link-inline {
+  background: none;
+  color: #356d65;
+  padding: 0;
+  text-decoration: underline;
+  font-weight: 500;
+}
+button.link-btn:hover, button.link-inline:hover { background: none; color: #2a5951; }
+
+/* ── Upload: dropzone, "Envoyer", pending previews ──────────────── */
+/* The real <input type="file"> sits on top, fully transparent, so every
+   click/tap anywhere in the box opens the native picker — more reliable
+   across mobile browsers than relying on the <label for> association
+   alone. The icon + text underneath are purely decorative. */
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 1.75rem 1rem;
+  border: 1.5px dashed rgba(53, 109, 101, 0.4);
+  border-radius: 0.6rem;
+  background: rgba(53, 109, 101, 0.05);
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.dropzone:hover, .dropzone:focus-within {
+  background: rgba(53, 109, 101, 0.09);
+  border-color: rgba(53, 109, 101, 0.7);
+}
+
+.dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #356d65;
+  color: #FFFFFF;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+/* A round "+" button, same look as the dropzone's + icon above (the
+   admin's "create a folder / a tag"). Give it an aria-label. */
+button.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  background: #356d65;
+  color: #FFFFFF;
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1;
+}
+button.add-btn:hover { background: #2a5951; }
+
+.dropzone-text {
+  font-size: 0.875rem;
+  color: rgba(37, 37, 37, 0.75);
+}
+
+/* "Envoyer" sits between the dropzone and the selected photos. */
+.upload-submit { margin: 0 0 1rem; }
+
+.upload-submit.is-uploading {
+  background: #8d9690;
+  color: #FFFFFF;
+  cursor: wait;
+  opacity: 1;
+}
+
+.preview-grid {
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  margin: 0 0 1rem;
+}
+
+/* Previews aren't clickable to zoom, so don't borrow the zoom-in cursor. */
+.preview-grid figure img { cursor: default; }
+
+/* Selected but not sent yet: dotted gray border + clock badge top-left
+   (the × to remove it stays top-right). */
+.preview-grid figure.is-pending {
+  border: 2px dotted rgba(37, 37, 37, 0.45);
+  padding: 2px;
+}
+.preview-grid figure.is-pending img { border-radius: 0.3rem; }
+
+.pending-badge {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: rgba(23, 23, 23, 0.65);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.pending-badge svg { width: 1.1rem; height: 1.1rem; }
+
+/* ── Photo grids ────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 1rem;
+}
+
+.grid figure {
+  position: relative;
+  margin: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.grid figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(23, 23, 23, 0.65);
+  color: #FFFFFF;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover { background: #a34848; }
+
+/* ── Toasts ─────────────────────────────────────────────────────── */
+.toast-host {
+  position: fixed;
+  z-index: 20;
+  right: 1.25rem;
+  bottom: calc(var(--site-footer-height, 0px) + 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.toast {
+  max-width: 22rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: #252525;
+  color: #FFFFFF;
+  font-size: 0.8125rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  opacity: 1;
+  transition: opacity 0.4s;
+}
+
+.toast.toast-ok { background: #356d65; }
+.toast.toast-hide { opacity: 0; }
+
+/* ── Lightbox ───────────────────────────────────────────────────── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10003; /* above the fixed menu bar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox[hidden] { display: none; }
+
+.lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.92);
+}
+
+.lightbox-figure {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 92vw;
+  max-height: 88vh;
+}
+
+.lightbox-img {
+  display: block;
+  max-width: 92vw;
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.lightbox-count {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8125rem;
+  margin-top: 0.5rem;
+}
+
+.lightbox-btn {
+  position: absolute;
+  z-index: 2;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-btn:hover { background: rgba(255, 255, 255, 0.22); }
+
+.lightbox-close { top: 1.25rem; right: 1.25rem; }
+.lightbox-nav { top: 50%; transform: translateY(-50%); }
+.lightbox-prev { left: 1.25rem; }
+.lightbox-next { right: 1.25rem; }

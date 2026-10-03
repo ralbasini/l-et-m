@@ -30,7 +30,13 @@ function navigate (href) {
 
   const page = getSection(href)
   if (page) {
-    window.parent.postMessage({ type: 'site-nav', page }, location.origin)
+    // A link into a section of a page (galerie/#galerie) also asks the home
+    // page to scroll that panel to it. Not for /#galerie-style menu links,
+    // where the hash is the panel name itself.
+    const target = new URL(href, location.href)
+    const siteRoot = new URL('.', new URL(document.referrer || location.href)).pathname
+    const anchor = target.pathname !== siteRoot ? target.hash.slice(1) : ''
+    window.parent.postMessage({ type: 'site-nav', page, anchor }, location.origin)
     return
   }
 

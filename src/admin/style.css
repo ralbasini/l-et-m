@@ -1,46 +1,8 @@
-* { box-sizing: border-box; }
+@import '../ui.css';
 
-/* Self-hosted — not a Google Font. Free-for-personal-use license (dafont.com);
-   see the matching declaration in src/galerie/style.css for the full note. */
-@font-face {
-  font-family: 'MoreSugar-Thin';
-  src: url('/fonts/MoreSugar-Thin.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Apricot';
-  src: url('/fonts/Apricot.woff') format('woff');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-html, body {
-  margin: 0;
-  min-height: 100%;
-  background: #d0dad1;
-  color: #252525;
-  font-family: 'Quicksand', system-ui, sans-serif;
-}
-
-.monogram {
-  display: block;
-  width: fit-content;
-  margin: 0 auto 1.5rem;
-  font-family: 'MoreSugar-Thin', cursive;
-  font-size: 2.25rem;
-  color: #abb9a2;
-  text-decoration: none;
-}
-
-.monogram span {
-  font-family: 'Apricot', cursive;
-  color: #abb9a2;
-  margin: 0;
-}
+/* Admin page — only what's specific to it. The shared look (heading,
+   cards, fields, buttons, dropzone, previews, grids, toasts, lightbox) is
+   in src/ui.css, shared with the guest upload page (src/photos/). */
 
 /* ── Login ───────────────────────────────────────────────────── */
 .login-view {
@@ -61,109 +23,21 @@ html, body {
 .login-card {
   width: 100%;
   max-width: 24rem;
-  text-align: center;
+  margin: 0;
 }
 
-.login-card h1 {
-  margin: 0 0 1.5rem;
-  font-family: 'MoreSugar-Thin', Georgia, serif;
-  font-weight: 400;
-  font-size: 1.75rem;
-}
-
-.login-card form { text-align: left; }
-
-/* ── Shared: cards, forms, buttons ──────────────────────────────── */
-.card {
-  max-width: 60rem;
-  margin: 0 auto 1.5rem;
-  padding: 1.5rem;
-  background: #FFFFFF;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 24px rgba(37, 37, 37, 0.1);
-}
-
-.card > label {
-  display: block;
-  font-family: 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 0.9375rem;
-  margin-bottom: 1rem;
-}
-
-label { font-size: 0.875rem; font-weight: 500; }
-
-input[type="text"], input[type="password"], input[type="file"], select {
-  display: block;
-  width: 100%;
-  margin: 0.4rem 0 1rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid rgba(37, 37, 37, 0.18);
-  border-radius: 0.4rem;
-  background: #FFFFFF;
-  color: #252525;
-  font-family: 'Quicksand', sans-serif;
-  font-size: 0.9375rem;
-}
-
-button {
-  font-family: 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.03em;
-  border: none;
-  border-radius: 0.4rem;
-  padding: 0.6rem 1.25rem;
-  cursor: pointer;
-  background: #356d65;
-  color: #FFFFFF;
-  transition: background-color 0.2s;
-}
-
-button:hover { background: #2a5951; }
-button:disabled { opacity: 0.55; cursor: not-allowed; }
-
-button.secondary { background: rgba(37, 37, 37, 0.12); color: #252525; }
-button.secondary:hover { background: rgba(37, 37, 37, 0.2); }
-
-button.danger { background: #a34848; }
-button.danger:hover { background: #833636; }
-
-button.link-btn {
-  background: none;
-  color: #356d65;
-  padding: 0.25rem 0;
-  text-decoration: underline;
-}
-button.link-btn:hover { background: none; color: #2a5951; }
-
-.error {
-  color: #a34848;
-  font-size: 0.875rem;
-  margin: 0 0 1rem;
-}
+.login-card h1 { margin-bottom: 1.5rem; }
 
 /* ── Dashboard shell ─────────────────────────────────────────────── */
-.dashboard-view { padding: calc(var(--site-nav-offset) + 2rem) 1.5rem 4rem; }
-
-.top-row {
+/* Wider than the guest page (32rem) to fit the folders/photos grids. */
+.dashboard-view {
+  width: 100%;
   max-width: 60rem;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  margin: 0 auto;
+  padding: calc(var(--site-nav-offset) + 1.4rem) 1.5rem 4rem;
 }
 
-.top-row h1 {
-  margin: 0;
-  font-family: 'MoreSugar-Thin', Georgia, serif;
-  font-weight: 400;
-  font-size: 1.75rem;
-}
-
-.storage-meter { max-width: 60rem; margin: 0 auto 1.5rem; }
+.storage-meter { margin: 0 0 1.5rem; }
 
 .storage-bar {
   height: 8px;
@@ -180,68 +54,75 @@ button.link-btn:hover { background: none; color: #2a5951; }
   color: rgba(37, 37, 37, 0.6);
 }
 
-.breadcrumb {
-  max-width: 60rem;
-  margin: 0 auto 1.5rem;
-  font-size: 0.875rem;
+/* ── Site settings card ──────────────────────────────────────── */
+/* "Privée" (red) / "Publique" (green) next to the card title. */
+.visibility-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #a34848;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.visibility-badge.is-public { background: #3c8a4f; }
+.visibility-badge:empty { display: none; }
+
+.setting-row {
   display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.breadcrumb a, .breadcrumb button {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #356d65;
-  cursor: pointer;
-  font: inherit;
-  text-decoration: underline;
-}
-
-.breadcrumb span { color: rgba(37, 37, 37, 0.4); }
-
-/* ── Folders / tags ──────────────────────────────────────────────── */
-.grid.folders {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  align-items: flex-start;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin: 0;
+  cursor: pointer;
 }
-
-.folder-select { position: relative; }
-
-.folder-select .select-folder {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 1;
+.setting-row input {
+  flex: none;
   width: 1.1rem;
   height: 1.1rem;
-}
-
-.folder-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 1.25rem 0.5rem;
-  background: #f4f6f2;
-  border-radius: 0.6rem;
-  text-decoration: none;
-  color: #252525;
+  margin: 0.1rem 0 0;
   cursor: pointer;
-  border: none;
-  width: 100%;
-  font: inherit;
+}
+.setting-hint {
+  margin: 0.5rem 0 0 1.85rem;
+  font-size: 0.8125rem;
+  color: rgba(37, 37, 37, 0.6);
 }
 
-.folder-tile:hover { background: #e6ebe1; }
-.folder-icon { font-size: 1.75rem; }
-.folder-name { font-size: 0.8125rem; text-align: center; word-break: break-word; }
+/* ── Folders (inside the Photos card) / tags ─────────────────────── */
+.folders-section {
+  margin: 0 0 1.25rem;
+  padding: 0 0 1.25rem;
+  border-bottom: 1px solid rgba(37, 37, 37, 0.1);
+}
 
-.folder-bulk-bar { margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.folder-bulk-bar[hidden] { display: none; }
+/* Tags, right under the folders, same layout: the tags then
+   the + button on the right. */
+.tags-section {
+  margin: 0 0 1.25rem;
+  padding: 0 0 1.25rem;
+  border-bottom: 1px solid rgba(37, 37, 37, 0.1);
+}
+
+/* Looks like the other field labels, without being tied to one field. */
+.field-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.4rem; }
+
+.tags-row { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; }
+.tags-row .tags-list,
+.tags-row .empty { flex: 1; margin: 0; }
+.tags-row .empty[hidden] { display: none; }
+.tags-row button { flex-shrink: 0; }
+
+/* Folder selector with the + button on its right. */
+.folder-select-row { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; }
+.folder-select-row select { flex: 1; min-width: 0; margin: 0; }
+.folder-select-row button { flex-shrink: 0; }
+
+.folder-form { margin: 0 0 1rem; }
+
+.folder-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 1rem; }
+.folder-actions[hidden] { display: none; }
 
 .folder-form-row { display: flex; gap: 0.5rem; }
 .folder-form-row input { margin: 0; flex: 1; }
@@ -249,7 +130,7 @@ button.link-btn:hover { background: none; color: #2a5951; }
 
 .tags-list {
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -275,9 +156,7 @@ button.link-btn:hover { background: none; color: #2a5951; }
 }
 .tag-remove:hover { background: none; color: #a34848; }
 
-.empty { color: rgba(37, 37, 37, 0.5); font-size: 0.875rem; }
-
-/* ── Photos grid ─────────────────────────────────────────────────── */
+/* ── Photos ──────────────────────────────────────────────────────── */
 .bulk-bar {
   display: flex;
   justify-content: space-between;
@@ -290,188 +169,108 @@ button.link-btn:hover { background: none; color: #2a5951; }
 .bulk-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .bulk-group select { display: inline-block; width: auto; margin: 0; }
 
-.select-all { display: block; margin-bottom: 1rem; font-size: 0.8125rem; }
+.select-all { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; font-size: 0.8125rem; }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1.25rem;
-}
-
-.grid figure {
-  margin: 0;
+/* Each photo carries its name, tags and folder under the thumbnail (same
+   thumbnail size as the guest page's grid, src/ui.css). */
+.grid figure.photo-card {
   background: #f4f6f2;
-  border-radius: 0.6rem;
-  overflow: hidden;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.6rem;
 }
 
 .photo-select { position: relative; }
 
 .photo-select .select-file {
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
+  top: 0.4rem;
+  left: 0.4rem;
   z-index: 1;
   width: 1.1rem;
   height: 1.1rem;
 }
 
-.grid figure img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  cursor: zoom-in;
-}
-
-.grid figcaption {
-  padding: 0.5rem 0.75rem 0;
-  font-size: 0.75rem;
+.photo-card figcaption {
+  padding: 0.45rem 0.6rem 0;
+  font-size: 0.6875rem;
   word-break: break-word;
 }
 
 .tag-checks {
-  padding: 0.5rem 0.75rem 0;
+  padding: 0.4rem 0.6rem 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.6rem;
+  gap: 0.25rem 0.5rem;
 }
 
 .tag-check {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  margin: 0;
+  font-size: 0.6875rem;
 }
 
 .tag-check-empty {
-  margin: 0.5rem 0.75rem 0;
-  font-size: 0.75rem;
+  margin: 0.4rem 0.6rem 0;
+  font-size: 0.6875rem;
   color: rgba(37, 37, 37, 0.45);
 }
 
 .photo-folder {
-  margin: 0.5rem 0.75rem 0;
-  font-size: 0.75rem;
+  margin: 0.4rem 0.6rem 0;
+  font-size: 0.6875rem;
   color: rgba(37, 37, 37, 0.5);
+  word-break: break-word;
 }
-
-/* ── Toasts ──────────────────────────────────────────────────────── */
-.toast-host {
-  position: fixed;
-  z-index: 20;
-  right: 1.25rem;
-  bottom: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-end;
-}
-
-.toast {
-  max-width: 22rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  background: #252525;
-  color: #FFFFFF;
-  font-size: 0.8125rem;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-  opacity: 1;
-  transition: opacity 0.4s;
-}
-
-.toast.toast-ok { background: #356d65; }
-.toast.toast-hide { opacity: 0; }
-
-/* ── Lightbox (shared look with the main site's) ───────────────────── */
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightbox[hidden] { display: none; }
-
-.lightbox-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(23, 23, 23, 0.92);
-}
-
-.lightbox-figure {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  max-width: 92vw;
-  max-height: 88vh;
-}
-
-.lightbox-img {
-  display: block;
-  max-width: 92vw;
-  max-height: 82vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-}
-
-.lightbox-count {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.8125rem;
-  margin-top: 0.5rem;
-}
-
-.lightbox-btn {
-  position: absolute;
-  z-index: 2;
-  border: none;
-  background: rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
-  cursor: pointer;
-  border-radius: 50%;
-  width: 2.75rem;
-  height: 2.75rem;
-  font-size: 1.5rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightbox-btn:hover { background: rgba(255, 255, 255, 0.22); }
-
-.lightbox-close { top: 1.25rem; right: 1.25rem; }
-.lightbox-nav { top: 50%; transform: translateY(-50%); }
-.lightbox-prev { left: 1.25rem; }
-.lightbox-next { right: 1.25rem; }
 
 @media (max-width: 640px) {
-  .dashboard-view { padding: calc(var(--site-nav-offset) + 1.5rem) 1rem 3rem; }
+  .dashboard-view { padding-left: 1rem; padding-right: 1rem; }
   .card { padding: 1.25rem; }
 }
 
-/* ── Site settings card ──────────────────────────────────────── */
-.setting-row {
+/* ── Selection: tag several photos at once ───────────────────────── */
+.grid figure.photo-card.is-selected {
+  box-shadow: 0 0 0 2px #356d65;
+}
+
+.selection-tags {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  cursor: pointer;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(53, 109, 101, 0.07);
 }
-.setting-row input {
-  flex: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin: 0.1rem 0 0;
-  accent-color: #356d65;
-  cursor: pointer;
+.selection-tags[hidden] { display: none; }
+
+.selection-count { font-size: 0.8125rem; font-weight: 600; }
+
+.selection-tag-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* none of the selected photos have the tag: outlined */
+button.tag-chip {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid rgba(53, 109, 101, 0.45);
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: #356d65;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
-.setting-hint {
-  margin: 0.5rem 0 0 1.85rem;
-  font-size: 0.8125rem;
-  color: rgba(37, 37, 37, 0.6);
+button.tag-chip:hover { background: rgba(53, 109, 101, 0.1); }
+
+/* some of them: half-filled */
+button.tag-chip.is-partial {
+  background: linear-gradient(90deg, rgba(53, 109, 101, 0.25) 50%, #FFFFFF 50%);
 }
+
+/* all of them: filled */
+button.tag-chip.is-on {
+  background: #356d65;
+  border-color: #356d65;
+  color: #FFFFFF;
+}
+button.tag-chip.is-on:hover { background: #2a5951; }

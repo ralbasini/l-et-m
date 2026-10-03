@@ -88,11 +88,15 @@ export async function state (request, env) {
     .filter((f) => (path === '' ? !f.includes('/') : f.startsWith(`${path}/`) && !f.slice(path.length + 1).includes('/')))
     .map((f) => (path === '' ? f : f.slice(path.length + 1)))
 
-  const { results: photoRows } = await env.DB.prepare(`
+  // No folder selected (the top level): every photo, from all folders —
+  // each one's folder is shown on its card. Inside a folder: just its own.
+  const photoQuery = `
     SELECT p.r2_key, p.filename, p.folder,
            COALESCE((SELECT GROUP_CONCAT(tag_name) FROM photo_tags WHERE photo_id = p.id), '') AS tagList
-    FROM photos p WHERE p.folder = ? ORDER BY p.filename
-  `).bind(path).all()
+    FROM photos p`
+  const { results: photoRows } = path === ''
+    ? await env.DB.prepare(`${photoQuery} ORDER BY p.folder, p.filename`).all()
+    : await env.DB.prepare(`${photoQuery} WHERE p.folder = ? ORDER BY p.filename`).bind(path).all()
 
   const photos = photoRows.map((p) => ({
     path: p.r2_key,
@@ -134,8 +138,10 @@ export async function upload (request, env) {
   const formData = await request.formData()
   const rawPath = (formData.get('path') || '.').toString()
   const folder = rawPath === '.' ? '' : normalizePath(rawPath)
+  // Photos always go into a folder, never loose at the top level.
+  if (!folder) return json({ error: 'Choisissez un dossier de destination.' }, { status: 400 })
   const files = formData.getAll('photos[]').filter((f) => f instanceof File)
-  if (folder) await registerFolderPath(env.DB, folder)
+  await registerFolderPath(env.DB, folder)
   const errors = []
   let uploaded = 0
 

@@ -103,11 +103,31 @@ if (window.parent !== window) {
   window.addEventListener('hashchange', render)
   window.addEventListener('message', (event) => {
     if (event.origin !== location.origin || !frames.some((frame) => frame.contentWindow === event.source)) return
-    const { type, page } = event.data || {}
-    if (type === 'site-nav' && pages.includes(page) && location.hash !== `#${page}`) {
-      location.hash = page
-    }
+    const { type, page, anchor } = event.data || {}
+    if (type !== 'site-nav' || !pages.includes(page)) return
+    if (location.hash !== `#${page}`) location.hash = page
+    if (anchor) scrollPanelTo(page, anchor)
   })
+
+  // Scroll a panel to a section of its page (e.g. "Voir toutes les photos"
+  // → the "La Galerie" section, below the photo header), once that panel's
+  // page has loaded. The panel scrolls itself only — scrollIntoView() would
+  // also try to scroll the (overflow: hidden) panel track here.
+  function scrollPanelTo (page, anchor) {
+    const frame = framesByPage.get(page)
+    if (!frame) return
+    ensureLoaded(page)
+    const scroll = () => {
+      const win = frame.contentWindow
+      const target = win && win.document.getElementById(anchor)
+      if (!target) return false
+      const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      win.scrollTo({ top: target.getBoundingClientRect().top + win.scrollY, behavior: smooth ? 'smooth' : 'auto' })
+      return true
+    }
+    if (frame.contentDocument?.readyState === 'complete' && scroll()) return
+    frame.addEventListener('load', scroll, { once: true })
+  }
 
   render()
 }

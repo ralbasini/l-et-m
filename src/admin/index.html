@@ -36,12 +36,8 @@
   <!-- ── Dashboard ── -->
   <main id="dashboard-view" class="dashboard-view" hidden>
     <a href="../" class="monogram">L<span>&amp;</span>M</a>
-    <div class="top-row">
-      <h1>Photos du mariage</h1>
-      <span class="top-links">
-        <button type="button" id="logout-btn" class="link-btn">Se déconnecter</button>
-      </span>
-    </div>
+    <h1>Administration</h1>
+    <p class="subtitle">Photos, dossiers et tags du mariage — <button type="button" id="logout-btn" class="link-inline">se déconnecter</button></p>
 
     <div class="storage-meter">
       <div class="storage-bar"><div id="storage-bar-fill" class="storage-bar-fill"></div></div>
@@ -49,66 +45,96 @@
     </div>
 
     <div class="card">
+      <span class="card-title">Visibilité du site <span id="visibility-badge" class="visibility-badge"></span></span>
       <label class="setting-row">
         <input type="checkbox" id="menu-public-toggle">
         <span>Afficher <strong>Galerie</strong> et <strong>Photos</strong> dans le menu pour tous les visiteurs</span>
       </label>
-      <p class="setting-hint">Désactivé : seuls les administrateurs connectés voient ces entrées. Les pages restent accessibles par lien direct ou QR code.</p>
+      <p class="setting-hint">Seuls les administrateurs connectés voient ces entrées. Les pages restent accessibles par lien direct ou QR code.</p>
     </div>
 
-    <nav id="breadcrumb" class="breadcrumb"></nav>
-
+    <!-- Same upload layout as the guest page (src/photos/): dropzone,
+         "Envoyer", then the pending previews. -->
     <div class="card">
+      <span class="card-title">Ajouter des photos</span>
       <form id="upload-form">
-        <label for="photos">Ajouter des photos</label>
-        <input type="file" id="photos" name="photos[]" accept="image/*" multiple required>
+        <label for="upload-dest">Dossier de destination</label>
         <select id="upload-dest" name="path" required></select>
-        <button type="submit">Envoyer</button>
+        <label id="dropzone" for="photos" class="dropzone">
+          <input type="file" id="photos" accept="image/*" multiple>
+          <span class="dropzone-icon" aria-hidden="true">+</span>
+          <span id="dropzone-text" class="dropzone-text">Touchez pour choisir des photos</span>
+        </label>
+        <button type="submit" id="upload-submit" class="upload-submit" disabled>Envoyer</button>
+        <div id="preview-grid" class="grid preview-grid" hidden></div>
       </form>
     </div>
 
+    <!-- Photos, by folder: pick a folder from the whole tree in the
+         selector to show its photos ("Toutes les photos" = every photo).
+         The folder actions apply to the selected folder. -->
     <div class="card">
-      <label>Dossiers</label>
-      <div id="folders-grid" class="grid folders"></div>
-      <div id="folder-bulk-bar" class="bulk-bar folder-bulk-bar" hidden>
-        <button type="button" id="delete-folders-keep" class="secondary">Supprimer (garder les photos)</button>
-        <button type="button" id="delete-folders-purge" class="danger">Supprimer (+ photos)</button>
+      <span class="card-title">Photos</span>
+
+      <div class="folders-section">
+        <label for="folder-select">Dossiers</label>
+        <div class="folder-select-row">
+          <select id="folder-select"></select>
+          <button type="button" id="new-folder-btn" class="add-btn" aria-label="Créer un dossier" title="Créer un dossier">+</button>
+        </div>
+        <!-- Revealed by the + next to the selector. -->
+        <form id="create-folder-form" class="folder-form" hidden>
+          <label id="foldername-label" for="foldername">Nouveau dossier</label>
+          <div class="folder-form-row">
+            <input type="text" id="foldername" name="name" placeholder="ex. Préparatifs" required>
+            <button type="submit">Créer</button>
+            <button type="button" id="cancel-folder-btn" class="secondary">Annuler</button>
+          </div>
+        </form>
+        <div id="folder-actions" class="folder-actions" hidden>
+          <button type="button" id="delete-folders-keep" class="secondary">Supprimer ce dossier (garder les photos)</button>
+          <button type="button" id="delete-folders-purge" class="danger">Supprimer ce dossier et ses photos</button>
+        </div>
       </div>
-      <form id="create-folder-form" class="folder-form">
-        <div class="folder-form-row">
-          <input type="text" id="foldername" name="name" placeholder="ex. Préparatifs" required>
-          <button type="submit">Créer</button>
-        </div>
-      </form>
-    </div>
 
-    <div class="card">
-      <label>Tags</label>
-      <ul id="tags-list" class="tags-list"></ul>
-      <p id="tags-empty" class="empty" hidden>Aucun tag défini pour l'instant.</p>
-      <form id="add-tag-form" class="folder-form" style="margin-top: 1rem;">
-        <div class="folder-form-row">
-          <input type="text" id="tagname" name="name" placeholder="ex. Cérémonie" required>
-          <button type="submit">Ajouter un tag</button>
+      <!-- Same idea as Dossiers: the tags (× deletes one), and
+           the + revealing the name field. -->
+      <div class="tags-section">
+        <span class="field-label">Tags</span>
+        <div class="tags-row">
+          <ul id="tags-list" class="tags-list"></ul>
+          <p id="tags-empty" class="empty" hidden>Aucun tag pour l'instant.</p>
+          <button type="button" id="new-tag-btn" class="add-btn" aria-label="Créer un tag" title="Créer un tag">+</button>
         </div>
-      </form>
-    </div>
+        <form id="add-tag-form" class="folder-form" hidden>
+          <label for="tagname">Nouveau tag</label>
+          <div class="folder-form-row">
+            <input type="text" id="tagname" name="name" placeholder="ex. Cérémonie" required>
+            <button type="submit">Créer</button>
+            <button type="button" id="cancel-tag-btn" class="secondary">Annuler</button>
+          </div>
+        </form>
+      </div>
 
-    <div class="card">
-      <label>Photos</label>
       <div class="bulk-bar">
         <div class="bulk-group">
           <span id="move-controls" hidden>
             <select id="move-dest"></select>
             <button type="button" id="move-btn">OK</button>
           </span>
-          <button type="button" id="delete-photos-btn" class="danger">Supprimer</button>
+          <button type="button" id="delete-photos-btn" class="danger" hidden>Supprimer</button>
         </div>
         <div class="bulk-group">
-          <button type="button" id="save-tags-btn">Enregistrer les tags</button>
+          <button type="button" id="save-tags-btn" hidden>Enregistrer les tags</button>
         </div>
       </div>
       <label class="select-all"><input type="checkbox" id="select-all"> Tout sélectionner</label>
+      <!-- Shown while photos are selected: one chip per tag, clicking it
+           adds/removes that tag on all selected photos at once. -->
+      <div id="selection-tags" class="selection-tags" hidden>
+        <span id="selection-count" class="selection-count"></span>
+        <div id="selection-tag-chips" class="selection-tag-chips"></div>
+      </div>
       <div id="photos-grid" class="grid"></div>
       <p id="photos-empty" class="empty" hidden>Aucune photo pour l'instant.</p>
     </div>

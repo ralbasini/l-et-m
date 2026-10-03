@@ -255,22 +255,34 @@
     background: #2a5951;
   }
 
+  /* Secondary, outlined: play icon + text, same 0.4rem corners as the
+     site's buttons (src/ui.css). */
   .slideshow-cta-quiet {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     background: transparent;
     color: #356d65;
     font-size: 0.8125rem;
     font-weight: 500;
     letter-spacing: 0.08em;
-    padding: 0.25rem 0;
-    border-radius: 0;
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
-    transition: color 0.2s;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid rgba(53, 109, 101, 0.45);
+    border-radius: 0.4rem;
+    text-decoration: none;
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s;
   }
 
   .slideshow-cta-quiet:hover {
-    background: transparent;
-    color: #252525;
+    background: rgba(53, 109, 101, 0.08);
+    border-color: #356d65;
+    color: #2a5951;
+  }
+
+  .slideshow-cta-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: none;
   }
 
   .album-title {

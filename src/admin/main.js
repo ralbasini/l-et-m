@@ -99,6 +99,14 @@ function showDashboard () {
 // ── Site settings ───────────────────────────────────────────────
 // Read from the public /settings endpoint, written through the admin one.
 const menuPublicToggle = document.getElementById('menu-public-toggle')
+const visibilityBadge = document.getElementById('visibility-badge')
+
+// "Privée" / "Publique" next to the card title, from the switch.
+function renderVisibility () {
+  const isPublic = menuPublicToggle.checked
+  visibilityBadge.textContent = isPublic ? 'Publique' : 'Privée'
+  visibilityBadge.classList.toggle('is-public', isPublic)
+}
 
 async function loadSettings () {
   try {
@@ -106,21 +114,25 @@ async function loadSettings () {
     const settings = await res.json()
     menuPublicToggle.checked = Boolean(settings.menuPublic)
     setMenuPublic(menuPublicToggle.checked)
+    renderVisibility()
   } catch {}
 }
 
 menuPublicToggle.addEventListener('change', async () => {
   const wanted = menuPublicToggle.checked
+  renderVisibility()
   menuPublicToggle.disabled = true
   try {
     const settings = await apiFetch('settings', { method: 'POST', json: { menuPublic: wanted } })
     menuPublicToggle.checked = Boolean(settings.menuPublic)
     setMenuPublic(menuPublicToggle.checked)
+    renderVisibility()
     toast(settings.menuPublic
       ? 'Galerie et Photos sont maintenant visibles pour tous.'
       : 'Galerie et Photos sont maintenant masquées pour les visiteurs.', true)
   } catch (err) {
     menuPublicToggle.checked = !wanted
+    renderVisibility()
     toast(err.message)
   } finally {
     menuPublicToggle.disabled = false
@@ -164,9 +176,8 @@ async function loadState (path) {
 
 function render (data) {
   renderStorage(data.storage)
-  renderBreadcrumb(data.breadcrumb)
   renderUploadDest(data.allFolders, data.path)
-  renderFolders(data.folders, data.path)
+  renderFolderSelect(data.allFolders, data.path)
   renderTags(data.registry)
   renderMoveDest(data.allFolders)
   renderPhotos(data.photos, data.registry)
@@ -178,75 +189,64 @@ function renderStorage (storage) {
   document.getElementById('storage-label').textContent = `${storage.usedLabel} / ${storage.maxLabel} utilisés`
 }
 
-function renderBreadcrumb (crumbs) {
-  const nav = document.getElementById('breadcrumb')
-  nav.innerHTML = ''
-  const root = document.createElement('a')
-  root.href = '#'
-  root.textContent = 'img'
-  root.addEventListener('click', (e) => { e.preventDefault(); loadState('') })
-  nav.appendChild(root)
-
-  const acc = []
-  crumbs.forEach((crumb) => {
-    acc.push(crumb)
-    const sep = document.createElement('span')
-    sep.textContent = '/'
-    nav.appendChild(sep)
-    const link = document.createElement('a')
-    const path = acc.join('/')
-    link.href = '#'
-    link.textContent = crumb
-    link.addEventListener('click', (e) => { e.preventDefault(); loadState(path) })
-    nav.appendChild(link)
-  })
-}
-
 function renderUploadDest (allFolders, currentRelPath) {
+  // No top-level (img/ racine) option: uploads always go into a folder (the
+  // Worker refuses the top level too). The empty placeholder makes the
+  // required <select> force a choice. Keeps the folder already picked
+  // across re-renders (e.g. after an upload), else the open folder.
   const select = document.getElementById('upload-dest')
+  const wanted = allFolders.includes(select.value) ? select.value : currentRelPath
   select.innerHTML = ''
-  const rootOpt = document.createElement('option')
-  rootOpt.value = '.'
-  rootOpt.textContent = 'img/ (racine)'
-  if (currentRelPath === '') rootOpt.selected = true
-  select.appendChild(rootOpt)
+  const placeholder = document.createElement('option')
+  placeholder.value = ''
+  placeholder.disabled = true
+  placeholder.textContent = allFolders.length ? 'Choisissez un dossier…' : 'Créez d’abord un dossier (section Photos)'
+  select.appendChild(placeholder)
   allFolders.forEach((folder) => {
     const opt = document.createElement('option')
     opt.value = folder
     opt.textContent = folder
-    if (folder === currentRelPath) opt.selected = true
     select.appendChild(opt)
   })
+  select.value = allFolders.includes(wanted) ? wanted : ''
 }
 
-function renderFolders (folders, relPath) {
-  const grid = document.getElementById('folders-grid')
-  grid.innerHTML = ''
-  document.getElementById('folder-bulk-bar').hidden = folders.length === 0
+// The whole folder tree in one selector: "Toutes les photos" (every photo,
+// from all folders), then each folder indented under its parent —
+// allFolders comes sorted by path, so children follow their parent.
+// Picking one shows its photos; the folder actions below apply to it.
+const folderSelect = document.getElementById('folder-select')
 
-  folders.forEach((folder) => {
-    const folderRel = relPath === '' ? folder : relPath + '/' + folder
-
-    const wrap = document.createElement('div')
-    wrap.className = 'folder-select'
-
-    const checkbox = document.createElement('input')
-    checkbox.type = 'checkbox'
-    checkbox.className = 'select-folder'
-    checkbox.value = folderRel
-    wrap.appendChild(checkbox)
-
-    const tile = document.createElement('button')
-    tile.type = 'button'
-    tile.className = 'folder-tile'
-    tile.innerHTML = '<span class="folder-icon">📁</span><span class="folder-name"></span>'
-    tile.querySelector('.folder-name').textContent = folder
-    tile.addEventListener('click', () => loadState(folderRel))
-    wrap.appendChild(tile)
-
-    grid.appendChild(wrap)
+function renderFolderSelect (allFolders, currentRelPath) {
+  folderSelect.innerHTML = ''
+  const all = document.createElement('option')
+  all.value = ''
+  all.textContent = 'Toutes les photos'
+  folderSelect.appendChild(all)
+  allFolders.forEach((folder) => {
+    const segments = folder.split('/')
+    const depth = segments.length - 1
+    const opt = document.createElement('option')
+    opt.value = folder
+    opt.textContent = '   '.repeat(depth) + (depth ? '└ ' : '') + segments[depth]
+    folderSelect.appendChild(opt)
   })
+  folderSelect.value = currentRelPath
+
+  const name = currentRelPath.split('/').pop()
+  document.getElementById('folder-actions').hidden = currentRelPath === ''
+  // "Keep the photos" moves them up to the parent folder — not offered for
+  // a top-level folder, whose parent is the top level, where photos may
+  // not go (same rule as uploads).
+  document.getElementById('delete-folders-keep').hidden = !currentRelPath.includes('/')
+  document.getElementById('foldername-label').textContent = currentRelPath
+    ? `Nouveau dossier dans « ${name} »`
+    : 'Nouveau dossier'
 }
+
+folderSelect.addEventListener('change', () => {
+  loadState(folderSelect.value).catch((err) => toast(err.message, false))
+})
 
 function renderTags (registry) {
   const list = document.getElementById('tags-list')
@@ -280,13 +280,15 @@ function renderTags (registry) {
 }
 
 function renderMoveDest (allFolders) {
-  const controls = document.getElementById('move-controls')
+  // Shown by renderSelectionTags() only while photos are selected.
+  hasFolders = allFolders.length > 0
   const select = document.getElementById('move-dest')
-  controls.hidden = allFolders.length === 0
   select.innerHTML = ''
+  // A placeholder, not a destination: photos never go to the top level
+  // (same rule as uploads).
   const placeholder = document.createElement('option')
-  placeholder.value = '.'
-  placeholder.textContent = 'Déplacer'
+  placeholder.value = ''
+  placeholder.textContent = 'Déplacer vers…'
   select.appendChild(placeholder)
   allFolders.forEach((folder) => {
     const opt = document.createElement('option')
@@ -304,6 +306,7 @@ function renderPhotos (photos, registry) {
 
   photos.forEach((photo, i) => {
     const figure = document.createElement('figure')
+    figure.className = 'photo-card'
     figure.dataset.path = photo.path
 
     const selectWrap = document.createElement('div')
@@ -355,64 +358,291 @@ function renderPhotos (photos, registry) {
     folderLabel.textContent = photo.folder === '' ? '📁 img/ (racine)' : '📁 ' + photo.folder
     figure.appendChild(folderLabel)
 
+    figure.dataset.savedTags = checkedTags(figure)
     grid.appendChild(figure)
   })
+  currentRegistry = registry
+  renderSelectionTags()
+  updateSaveTagsBtn()
 }
 
 function selectedPhotoPaths () {
   return Array.from(document.querySelectorAll('.select-file:checked')).map((cb) => cb.value)
 }
 
-// ── Upload ────────────────────────────────────────────────────
-document.getElementById('upload-form').addEventListener('submit', async (e) => {
-  e.preventDefault()
-  const form = e.target
-  const formData = new FormData(form)
-  try {
-    const data = await apiFetch('upload', { method: 'POST', formData })
-    const parts = []
-    if (data.uploaded > 0) parts.push(`${data.uploaded} photo(s) ajoutée(s).`)
-    if (data.errors.length) parts.push('Erreurs : ' + data.errors.join(' '))
-    toast(parts.join(' '), data.errors.length === 0)
-    form.reset()
-    await loadState(currentPath)
-  } catch (err) {
-    toast(err.message, false)
-  }
-})
+// ── Tagging several photos at once ──────────────────────────────
+// While photos are selected, a chip per tag sits above the grid. Clicking
+// one adds that tag to every selected photo — or, if they all have it
+// already, removes it from all of them — and saves right away. Works from
+// each photo card's own tag checkboxes, so they stay in sync and any
+// unsaved per-photo edits elsewhere in the grid are left untouched.
+let currentRegistry = []
+let hasFolders = false
+const photosGrid = document.getElementById('photos-grid')
 
-// ── Folder create / bulk delete ──────────────────────────────────
-document.getElementById('create-folder-form').addEventListener('submit', async (e) => {
-  e.preventDefault()
-  const input = document.getElementById('foldername')
-  try {
-    await apiFetch('create-folder', { method: 'POST', json: { path: currentPath, name: input.value } })
-    toast('Dossier créé.', true)
-    input.value = ''
-    await loadState(currentPath)
-  } catch (err) {
-    toast(err.message, false)
-  }
-})
-
-function selectedFolders () {
-  return Array.from(document.querySelectorAll('.select-folder:checked')).map((cb) => cb.value)
+function selectedFigures () {
+  return Array.from(photosGrid.querySelectorAll('figure.photo-card'))
+    .filter((figure) => figure.querySelector('.select-file').checked)
 }
 
-async function deleteFolders (mode) {
-  const folders = selectedFolders()
-  if (!folders.length) {
-    alert('Sélectionnez au moins un dossier.')
+function tagBox (figure, tag) {
+  return Array.from(figure.querySelectorAll('.tag-check input')).find((cb) => cb.value === tag)
+}
+
+function renderSelectionTags () {
+  const figures = selectedFigures()
+  photosGrid.querySelectorAll('figure.photo-card').forEach((figure) => {
+    figure.classList.toggle('is-selected', figures.includes(figure))
+  })
+  // The actions on the selection (move, delete) only show while there is one.
+  document.getElementById('move-controls').hidden = figures.length === 0 || !hasFolders
+  document.getElementById('delete-photos-btn').hidden = figures.length === 0
+
+  const bar = document.getElementById('selection-tags')
+  bar.hidden = figures.length === 0
+  if (bar.hidden) return
+
+  document.getElementById('selection-count').textContent =
+    `${figures.length} photo${figures.length > 1 ? 's' : ''} sélectionnée${figures.length > 1 ? 's' : ''} :`
+  const chips = document.getElementById('selection-tag-chips')
+  chips.innerHTML = ''
+  if (!currentRegistry.length) {
+    const empty = document.createElement('span')
+    empty.className = 'empty'
+    empty.textContent = 'Aucun tag défini — ajoutez-en dans la section Tags.'
+    chips.appendChild(empty)
     return
   }
+
+  currentRegistry.forEach((tag) => {
+    const withTag = figures.filter((figure) => tagBox(figure, tag)?.checked).length
+    const all = withTag === figures.length
+    const chip = document.createElement('button')
+    chip.type = 'button'
+    chip.className = 'tag-chip' + (all ? ' is-on' : withTag ? ' is-partial' : '')
+    chip.setAttribute('aria-pressed', all ? 'true' : withTag ? 'mixed' : 'false')
+    chip.title = all
+      ? `Retirer « ${tag} » des photos sélectionnées`
+      : `Ajouter « ${tag} » aux photos sélectionnées`
+    chip.textContent = (all ? '✓ ' : '+ ') + tag
+    chip.addEventListener('click', () => applyTagToSelection(tag, !all))
+    chips.appendChild(chip)
+  })
+}
+
+async function applyTagToSelection (tag, add) {
+  const figures = selectedFigures()
+  if (!figures.length) return
+  // Remember each box's state so a failed save can be undone.
+  const previous = figures.map((figure) => [figure, tagBox(figure, tag)?.checked])
+  figures.forEach((figure) => {
+    const box = tagBox(figure, tag)
+    if (box) box.checked = add
+  })
+  renderSelectionTags()
+
+  const updates = figures.map((figure) => ({
+    path: figure.dataset.path,
+    tags: Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value),
+  }))
+  try {
+    await apiFetch('tag', { method: 'POST', json: { updates } })
+    markTagsSaved(figures)
+    toast(`« ${tag} » ${add ? 'ajouté à' : 'retiré de'} ${figures.length} photo${figures.length > 1 ? 's' : ''}.`, true)
+  } catch (err) {
+    previous.forEach(([figure, checked]) => {
+      const box = tagBox(figure, tag)
+      if (box) box.checked = checked
+    })
+    renderSelectionTags()
+    toast(err.message, false)
+  }
+}
+
+// Selecting/unselecting a photo, or ticking a tag on a selected one,
+// refreshes the chips.
+photosGrid.addEventListener('change', (e) => {
+  if (e.target.matches('.select-file, .tag-check input')) renderSelectionTags()
+  if (e.target.matches('.tag-check input')) updateSaveTagsBtn()
+})
+
+// ── Upload ────────────────────────────────────────────────────
+// Same flow as the guest page (src/photos/main.js): pick photos in the
+// dropzone (each pick adds to the selection), review them as pending
+// previews — removable one by one — then "Envoyer". Sent one per request
+// so a big batch never hits the Worker's request-size limit; photos that
+// fail stay selected for another try.
+const photosInput = document.getElementById('photos')
+const dropzoneText = document.getElementById('dropzone-text')
+const previewGrid = document.getElementById('preview-grid')
+const uploadSubmitBtn = document.getElementById('upload-submit')
+let selectedFiles = []
+let previewUrls = []
+
+function fileKey (file) {
+  return [file.name, file.size, file.lastModified].join('|')
+}
+
+function renderPreview () {
+  previewUrls.forEach((url) => URL.revokeObjectURL(url))
+  previewUrls = []
+  previewGrid.innerHTML = ''
+
+  const count = selectedFiles.length
+  previewGrid.hidden = count === 0
+  uploadSubmitBtn.disabled = count === 0
+  dropzoneText.textContent = count === 0
+    ? 'Touchez pour choisir des photos'
+    : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
+
+  selectedFiles.forEach((file, i) => {
+    const url = URL.createObjectURL(file)
+    previewUrls.push(url)
+
+    // Dotted border + clock badge: selected, not sent yet (src/ui.css).
+    const figure = document.createElement('figure')
+    figure.className = 'is-pending'
+    const img = document.createElement('img')
+    img.src = url
+    img.alt = ''
+    figure.appendChild(img)
+
+    const pendingBadge = document.createElement('span')
+    pendingBadge.className = 'pending-badge'
+    pendingBadge.title = 'En attente d’envoi'
+    pendingBadge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' +
+      '<span class="visually-hidden">En attente d’envoi</span>'
+    figure.appendChild(pendingBadge)
+
+    const removeBtn = document.createElement('button')
+    removeBtn.type = 'button'
+    removeBtn.className = 'delete-btn'
+    removeBtn.setAttribute('aria-label', 'Retirer cette photo de l’envoi')
+    removeBtn.textContent = '×'
+    removeBtn.addEventListener('click', () => {
+      selectedFiles.splice(i, 1)
+      renderPreview()
+    })
+    figure.appendChild(removeBtn)
+
+    previewGrid.appendChild(figure)
+  })
+}
+
+// Each tap opens a fresh picker whose FileList replaces the last one, so
+// merge into our own selection instead.
+photosInput.addEventListener('change', () => {
+  const existingKeys = new Set(selectedFiles.map(fileKey))
+  let added = 0
+  Array.from(photosInput.files).forEach((file) => {
+    const key = fileKey(file)
+    if (!existingKeys.has(key)) {
+      selectedFiles.push(file)
+      existingKeys.add(key)
+      added += 1
+    }
+  })
+  photosInput.value = ''
+  renderPreview()
+  // Bring "Envoyer" into view — centered, so the fixed menu can't cover it.
+  if (added > 0) {
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    uploadSubmitBtn.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' })
+  }
+})
+
+document.getElementById('upload-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  if (!selectedFiles.length) return
+  const destSelect = document.getElementById('upload-dest')
+  const dest = destSelect.value
+  if (!dest) {
+    toast('Choisissez un dossier de destination.', false)
+    destSelect.focus()
+    return
+  }
+  const files = selectedFiles.slice()
+  const failed = []
+  const errors = []
+  let uploaded = 0
+
+  uploadSubmitBtn.disabled = true
+  uploadSubmitBtn.classList.add('is-uploading')
+  try {
+    for (const [i, file] of files.entries()) {
+      uploadSubmitBtn.textContent = `Envoi ${i + 1} / ${files.length}…`
+      const formData = new FormData()
+      formData.append('path', dest)
+      formData.append('photos[]', file)
+      try {
+        const data = await apiFetch('upload', { method: 'POST', formData })
+        uploaded += data.uploaded
+        if (data.errors.length) errors.push(...data.errors)
+        if (!data.uploaded) failed.push(file)
+      } catch (err) {
+        failed.push(file)
+        errors.push(`${file.name} : ${err.message}`)
+      }
+    }
+  } finally {
+    uploadSubmitBtn.classList.remove('is-uploading')
+    uploadSubmitBtn.textContent = 'Envoyer'
+  }
+
+  const parts = []
+  if (uploaded > 0) parts.push(`${uploaded} photo(s) ajoutée(s).`)
+  if (errors.length) parts.push('Erreurs : ' + errors.join(' '))
+  toast(parts.join(' '), errors.length === 0)
+  selectedFiles = failed
+  renderPreview()
+  await loadState(currentPath).catch(() => {})
+})
+
+renderPreview()
+
+// ── Folder create / bulk delete ──────────────────────────────────
+// The name field only shows after the + button (next to the folder
+// selector); Annuler, Escape or a successful creation hide it again.
+const createFolderForm = document.getElementById('create-folder-form')
+const folderNameInput = document.getElementById('foldername')
+
+function showCreateFolder (show) {
+  createFolderForm.hidden = !show
+  folderNameInput.value = ''
+  if (show) folderNameInput.focus()
+}
+
+document.getElementById('new-folder-btn').addEventListener('click', () => showCreateFolder(createFolderForm.hidden))
+document.getElementById('cancel-folder-btn').addEventListener('click', () => showCreateFolder(false))
+folderNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') showCreateFolder(false)
+})
+
+createFolderForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  try {
+    await apiFetch('create-folder', { method: 'POST', json: { path: currentPath, name: folderNameInput.value } })
+    toast('Dossier créé.', true)
+    showCreateFolder(false)
+    await loadState(currentPath)
+  } catch (err) {
+    toast(err.message, false)
+  }
+})
+
+// Deletes the folder shown in the selector, then shows its parent.
+async function deleteFolders (mode) {
+  if (!currentPath) return
+  const name = currentPath.split('/').pop()
+  const parent = currentPath.split('/').slice(0, -1).join('/')
   const message = mode === 'purge'
-    ? 'Supprimer ces dossiers ET toutes les photos qu\'ils contiennent ? Action irréversible.'
-    : 'Supprimer ces dossiers ? Les photos qu\'ils contiennent seront déplacées dans le dossier parent.'
+    ? `Supprimer le dossier « ${name} » ET toutes les photos qu'il contient (sous-dossiers compris) ? Action irréversible.`
+    : `Supprimer le dossier « ${name} » ? Ses photos seront déplacées dans « ${parent.split('/').pop()} ».`
   if (!confirm(message)) return
   try {
-    const data = await apiFetch('delete-folder', { method: 'POST', json: { folders, mode } })
-    toast(data.deleted > 0 ? `${data.deleted} dossier(s) supprimé(s).` : 'Aucun dossier supprimé.', data.deleted > 0 && data.skipped === 0)
-    await loadState(currentPath)
+    const data = await apiFetch('delete-folder', { method: 'POST', json: { folders: [currentPath], mode } })
+    toast(data.deleted > 0 ? 'Dossier supprimé.' : 'Aucun dossier supprimé.', data.deleted > 0 && data.skipped === 0)
+    await loadState(parent)
   } catch (err) {
     toast(err.message, false)
   }
@@ -422,13 +652,29 @@ document.getElementById('delete-folders-keep').addEventListener('click', () => d
 document.getElementById('delete-folders-purge').addEventListener('click', () => deleteFolders('purge'))
 
 // ── Tags registry ──────────────────────────────────────────────
-document.getElementById('add-tag-form').addEventListener('submit', async (e) => {
+// Same pattern as folders: the name field only shows after the + button
+// next to the tags; Annuler, Escape or a successful creation hide it again.
+const addTagForm = document.getElementById('add-tag-form')
+const tagNameInput = document.getElementById('tagname')
+
+function showAddTag (show) {
+  addTagForm.hidden = !show
+  tagNameInput.value = ''
+  if (show) tagNameInput.focus()
+}
+
+document.getElementById('new-tag-btn').addEventListener('click', () => showAddTag(addTagForm.hidden))
+document.getElementById('cancel-tag-btn').addEventListener('click', () => showAddTag(false))
+tagNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') showAddTag(false)
+})
+
+addTagForm.addEventListener('submit', async (e) => {
   e.preventDefault()
-  const input = document.getElementById('tagname')
   try {
-    await apiFetch('add-tag', { method: 'POST', json: { name: input.value } })
-    toast('Tag ajouté.', true)
-    input.value = ''
+    await apiFetch('add-tag', { method: 'POST', json: { name: tagNameInput.value } })
+    toast('Tag créé.', true)
+    showAddTag(false)
     await loadState(currentPath)
   } catch (err) {
     toast(err.message, false)
@@ -438,6 +684,7 @@ document.getElementById('add-tag-form').addEventListener('submit', async (e) => 
 // ── Photos: select all, delete, move, save tags ──────────────────
 document.getElementById('select-all').addEventListener('change', (e) => {
   document.querySelectorAll('.select-file').forEach((cb) => { cb.checked = e.target.checked })
+  renderSelectionTags()
 })
 
 document.getElementById('delete-photos-btn').addEventListener('click', async () => {
@@ -463,6 +710,10 @@ document.getElementById('move-btn').addEventListener('click', async () => {
     return
   }
   const dest = document.getElementById('move-dest').value
+  if (!dest) {
+    toast('Choisissez le dossier de destination.', false)
+    return
+  }
   try {
     const data = await apiFetch('move', { method: 'POST', json: { files, dest } })
     toast(data.moved > 0 ? `${data.moved} photo(s) déplacée(s).` : 'Aucune photo déplacée.', data.moved > 0 && data.skipped === 0)
@@ -472,13 +723,40 @@ document.getElementById('move-btn').addEventListener('click', async () => {
   }
 })
 
-document.getElementById('save-tags-btn').addEventListener('click', async () => {
-  const updates = Array.from(document.querySelectorAll('#photos-grid figure')).map((figure) => ({
+// "Enregistrer les tags" only shows while a photo card's tag checkboxes
+// differ from what's saved, and only sends those photos.
+const saveTagsBtn = document.getElementById('save-tags-btn')
+
+function checkedTags (figure) {
+  return Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value).join(',')
+}
+
+function unsavedFigures () {
+  return Array.from(photosGrid.querySelectorAll('figure.photo-card'))
+    .filter((figure) => checkedTags(figure) !== figure.dataset.savedTags)
+}
+
+function markTagsSaved (figures) {
+  figures.forEach((figure) => { figure.dataset.savedTags = checkedTags(figure) })
+  updateSaveTagsBtn()
+}
+
+function updateSaveTagsBtn () {
+  const count = unsavedFigures().length
+  saveTagsBtn.hidden = count === 0
+  saveTagsBtn.textContent = `Enregistrer les tags (${count} photo${count > 1 ? 's' : ''})`
+}
+
+saveTagsBtn.addEventListener('click', async () => {
+  const figures = unsavedFigures()
+  if (!figures.length) return
+  const updates = figures.map((figure) => ({
     path: figure.dataset.path,
     tags: Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value),
   }))
   try {
     const data = await apiFetch('tag', { method: 'POST', json: { updates } })
+    markTagsSaved(figures)
     toast(data.updated > 0 ? `${data.updated} photo(s) mise(s) à jour.` : 'Aucune photo mise à jour.', data.updated > 0)
   } catch (err) {
     toast(err.message, false)

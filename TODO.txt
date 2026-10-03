@@ -1,7 +1,5 @@
-- in the upload photo page, the "Envoyer" button should be on top of the pictures 
-- after adding the pictures, the page should be scrolled to the "envoyer button"
-- when a picture has been selected for upload, it should appear with a dotted gray border, to indicate that the upload is pending. Add a relevant icon on the top left of the picture to indicate that upload is pending
-
+- remove in upload popup the text "gardez cette page ouverte..."
+- link "voir toutes les photos" should scroll not to the header, but to the "la galerie" text menu
 ADMIN
 - same upload layout as on the photos upload page
 - displayed photos should be smaller, same as photos upload page
