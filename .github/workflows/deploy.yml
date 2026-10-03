@@ -84,6 +84,9 @@ jobs:
 
   deploy:
     needs: build
+    # Same condition as build: without it, `worker` being skipped would also
+    # skip this job (a skipped ancestor propagates to jobs with no `if`).
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
