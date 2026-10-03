@@ -147,6 +147,13 @@
 				transition: opacity 1.5s ease-in-out;
 			}
 			#header .mariage-hero-image.is-active { opacity: 1; }
+			/* Portrait screens: header takes the photo's 4:3 ratio (Bizerte.jpg,
+			   2048x1536) so the whole picture shows, without bars. */
+			@media (max-aspect-ratio: 1/1) {
+				#header, #header:after { height: 75vw; }
+				#header header { padding-bottom: 0; }
+				#header .mariage-hero-image { transform: none; }
+			}
 			#header .mariage-hero-veil {
 				position: absolute;
 				inset: 0;

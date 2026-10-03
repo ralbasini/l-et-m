@@ -88,7 +88,6 @@
   }
 
   .slide.is-active { opacity: 1; }
-
   .hero-veil {
     position: absolute;
     inset: 0;
