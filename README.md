@@ -1,60 +1,122 @@
 # L & M — Lobna & Martin
 
-Site du mariage : diaporama plein écran + galerie photo.
+Site du mariage : infos, galerie photo, upload des invités, diaporama.
+
+# Infrastructure
+
+## Architecture
+
+```
+                 ┌──────────────────────────┐
+  git push ────▶ │ GitHub Actions           │ ──build──▶ GitHub Pages
+  (main)         └──────────────────────────┘            (site statique)
+                                                              │
+                                                              ▼
+                                                        ┌───────────┐
+                                                        │ Navigateur│
+                                                        └─────┬─────┘
+                                                              │ API (JSON) + photos
+                                                              ▼
+  wrangler deploy ──────────────────────────────────▶ Cloudflare Worker
+  (dossier cloudflare/)                                 │            │
+                                                        ▼            ▼
+                                                   D1 (données)  R2 (photos)
+```
 
 ## Stack
 
-Vite + Tailwind CSS v3 + vanilla JS (même stack que `parenthese-hygieniste`). Racine app : `src/`, statiques : `public/`, build : `dist/`.
+- **Front** : Vite + vanilla JS, Tailwind (galerie), thème HTML5 UP (page Mariage)
+- **Hébergement** : GitHub Pages — déploiement auto à chaque push sur `main`
+- **API** : Cloudflare Worker (`cloudflare/`) — déploiement manuel : `npm run deploy`
+- **Base de données** : Cloudflare D1 (invités, photos, dossiers, tags, réglages)
+- **Photos** : Cloudflare R2, servies par le Worker (`/img/...`)
+
+## Routing
+
+Pages (`src/`) :
+
+- `/` — Mariage, avec panneaux qui glissent : `#mariage`, `#galerie`, `#photos`
+- `/galerie/` — galerie (affichée dans le panneau `#galerie`)
+- `/photos/` — upload invités (affichée dans le panneau `#photos`)
+- `/diaporama/` — diaporama projecteur
+- `/admin/` — administration
+- Redirections : `/guest/` → `/photos/`, `/mariage/` → `/`, `/slideshow/` → `/diaporama/`
+
+API (Worker) :
+
+- Public : `/photos-list`, `/settings`, `/img/...`
+- Invités : `/guest/identify`, `/guest/me`, `/guest/upload`, `/guest/delete`
+- Admin : `/admin/login`, `/admin/state`, `/admin/upload`, `/admin/move`, `/admin/delete`, `/admin/tag`, dossiers, tags, `/admin/settings`
+
+## Fonctionnalités
+
+- **Mariage** : infos (lieu, programme, contact)
+- **Galerie** : photos en polaroïd, nom de l'invité, filtre par tags, plein écran
+- **Photos** : upload invités par QR code — juste un prénom, 15 photos max, qualité d'origine, reprise auto si le réseau coupe
+- **Diaporama** : défilement auto, nouvelles photos ajoutées toutes les 60 s, plein écran
+- **Admin** : mot de passe, upload, dossiers, tags (plusieurs photos à la fois), déplacer / supprimer
+- **Visibilité** : Galerie et Photos privées (admin) ou publiques (tous) — interrupteur dans l'admin ; le menu Admin n'est visible qu'une fois connecté
+
+# Développement
+
+## Site
 
 ```bash
 npm install
 npm run dev       # serveur local
-npm run build     # build de prod dans dist/
-npm run start     # sert dist/ (npm run build d'abord)
+npm run build     # build dans dist/
+npm run preview   # sert dist/ → http://localhost:4173/l-et-m/
 ```
 
-## Ajouter des photos
+- Mise en ligne : push sur `main`
+- Menu + footer : une seule source — `vite.config.js` (plugin `site-chrome`) + `src/site-chrome.css`
+- Look commun Photos / Admin : `src/ui.css`
+- Adresse de l'API : `src/photos.js`
 
-Les photos ne sont pas dans ce dépôt : elles vivent dans un dossier Infomaniak séparé (`https://ralbasini.ch/l-et-m/`), organisé ainsi :
+## API (`cloudflare/`)
 
+```bash
+cd cloudflare
+npm install
+npm run dev       # Worker en local (D1 + R2 simulés)
+npm run deploy    # mise en ligne du Worker
 ```
-l-et-m/
-├── .htaccess           (bloque l'exécution PHP, sauf photos-list.php)
-├── photos-list.php
-├── img/                (uniquement les photos + légendes .txt — jamais de code)
-│   └── .htaccess       (interdit toute exécution ici, sans exception)
-├── admin/              panneau protégé par mot de passe (vous deux)
-└── guest/              page d'upload ouverte aux invités, voir plus bas
-```
 
-Séparer `img/` du reste garantit que le dossier où atterrissent les fichiers envoyés par upload ne peut jamais exécuter de code, même en cas d'erreur ou de mauvaise manip.
+- Schéma de la base : `cloudflare/schema.sql`
+- Secrets : `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`, `GUEST_TOKEN_SECRET`
+- Changer le mot de passe admin : `npx wrangler secret put ADMIN_PASSWORD`
 
-Ajouter/retirer des photos se fait en déposant ou supprimant des fichiers image dans `l-et-m/img/` (FTP, ou l'outil interne prévu à cet effet) — **rien à rebuilder ni redéployer** sur le site.
+# Utilisation
 
-`img/` peut contenir des sous-dossiers pour s'organiser (ex. `img/Cérémonie/`, `img/Soirée/`) — c'est purement pour le rangement, ça n'a aucun effet sur le site public. Le site, lui, affiche toujours toutes les photos de `img/` (et sous-dossiers) mélangées dans une seule galerie.
+## Photos
 
-Optionnel, pour chaque photo :
-- une légende : fichier `nom-de-la-photo.jpg.txt` à côté (texte brut = texte alternatif) ;
-- des tags : fichier `nom-de-la-photo.jpg.tags` à côté (texte brut, séparés par des virgules, ex. `cérémonie, extérieur`). Contrairement aux dossiers, les tags sont indépendants du rangement en sous-dossiers et une photo peut en avoir plusieurs. Dès qu'au moins une photo a un tag, le site affiche des filtres permettant aux visiteurs de n'afficher que les photos d'un ou plusieurs tags.
+- Ajout : page **Photos** (invités) ou **Admin**
+- Toujours dans un dossier (pas à la racine)
+- Dossiers = rangement uniquement, la galerie affiche tout
+- Tags : créés dans l'admin, plusieurs par photo, filtres dans la galerie
+- Rien à redéployer : une photo ajoutée apparaît au prochain chargement
 
-L'ordre d'affichage suit l'ordre alphabétique naturel des noms de fichiers — préfixer par `01-`, `02-`, etc. pour contrôler l'ordre.
+## Invités (QR code)
 
-Tant qu'aucune photo n'est présente, le site affiche un état "photos à venir" — rien n'est cassé.
+- QR code vers `https://ralbasini.github.io/l-et-m/photos/`
+- L'invité donne son prénom → ses photos vont dans `Invités/<prénom>/`
+- 15 photos max par personne, 15 Mo max par photo, qualité d'origine
+- Il voit et peut supprimer ses propres photos
+- Publiées tout de suite, sans validation
 
-`loadPhotos()` (dans `src/photos.js`, partagé par le site et le diaporama projecteur ci-dessous) interroge `photos-list.php` à chaque chargement de page ; c'est le seul endroit à modifier si la source de photos change un jour (S3, etc.), en renvoyant le même format (`{ src, alt }` par photo).
+## Diaporama (jour J)
 
-## Diaporama pour le jour J (`/diaporama/`)
+- `/diaporama/` sur le vidéoprojecteur
+- Photos mélangées, nouvelles photos ajoutées toutes les 60 s
+- Réglages (roue dentée) : style polaroïd ou standard, durée par photo (7 s par défaut), plein écran
 
-`https://ralbasini.github.io/l-et-m/diaporama/` est une page à part, pensée pour tourner sur un vidéoprojecteur pendant la réception : les photos défilent en fondu (7s chacune, jamais recadrées), et la page revérifie `photos-list.php` toutes les 60s — les photos envoyées par les invités via le QR code rejoignent donc le diaporama toutes seules, sans y toucher. Un premier clic passe en plein écran. L'ancienne adresse `/slideshow/` redirige vers cette page.
+## Admin
 
-## Upload par les invités (QR code)
+- `/admin/`, ou lien **login** dans le footer
+- **Visibilité du site** : Privée / Publique
+- Taguer : sélectionner des photos → cliquer un tag
+- Déplacer / supprimer : sélectionner des photos
 
-`infomaniak/guest/` est une page publique, sans mot de passe. À la première visite, l'invité indique juste son prénom (jamais redemandé ensuite, retenu via un cookie signé) — ses photos vont dans `img/Invités/<son prénom>/` et apparaissent sur le site **immédiatement**, sans validation de votre part au préalable. La page lui montre aussi ses propres photos déjà envoyées, avec un bouton pour en supprimer une (ce qui lui redonne de la place : la limite de 15 par personne se recalcule à chaque fois sur ce qu'il reste réellement dans son dossier, pas sur un compteur séparé). Un invité ne voit et ne peut supprimer que ses propres photos.
+## Changement de domaine
 
-Un QR code pointant vers `https://ralbasini.ch/l-et-m/guest/` peut être imprimé sur les tables/invitations. Pour le régénérer ou changer l'URL, n'importe quel générateur de QR code en ligne fonctionne.
-
-À déployer comme le reste : dossier `infomaniak/guest/` (avec son `.htaccess` et `.user.ini`) et `infomaniak/shared.php` dans `l-et-m/`. Deux réglages dans `config.php` (partagé avec l'admin) contrôlent ce comportement :
-```php
-'guest_upload_secret' => '...',           // génère le tien : openssl rand -hex 32
-'guest_upload_max_per_person' => 15,
-```
+Voir `SITE_MIGRATION.md`.
