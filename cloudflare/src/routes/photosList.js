@@ -10,9 +10,19 @@ import { TAG_LIST_SQL, splitTags } from '../files.js'
 // shared across them) for CACHE_SECONDS — new photos show up within that.
 const CACHE_SECONDS = 10
 
+function cacheKeyFor (request) {
+  return new Request(new URL('/photos-list', request.url))
+}
+
+// Called after every write (upload, delete, move, tag…), so the list a
+// visitor opens next is never the stale cached one.
+export async function purgePhotosList (request) {
+  await caches.default.delete(cacheKeyFor(request))
+}
+
 export async function photosList (request, env) {
   const cache = caches.default
-  const cacheKey = new Request(new URL('/photos-list', request.url))
+  const cacheKey = cacheKeyFor(request)
   const cached = await cache.match(cacheKey)
   if (cached) return cached
 

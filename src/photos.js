@@ -25,7 +25,8 @@ export function loadThumb (img, path) {
 // (src/galerie/main.js) and the projector slideshow (src/diaporama/main.js).
 export async function loadPhotos () {
   try {
-    const res = await fetch(API_BASE_URL + 'photos-list')
+    // no-cache: always revalidate, so the browser never serves its own copy.
+    const res = await fetch(API_BASE_URL + 'photos-list', { cache: 'no-cache' })
     if (!res.ok) return []
     const data = await res.json()
     if (!Array.isArray(data)) return []

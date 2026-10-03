@@ -1,5 +1,5 @@
 import { handleOptions, json } from './cors.js'
-import { photosList } from './routes/photosList.js'
+import { photosList, purgePhotosList } from './routes/photosList.js'
 import * as guest from './routes/guest.js'
 import * as admin from './routes/admin.js'
 import { adminOnly, guestOnly } from './auth.js'
@@ -45,7 +45,9 @@ export default {
     if (!handler) return json({ error: 'Not found' }, { status: 404 })
 
     try {
-      return await handler(request, env)
+      const response = await handler(request, env)
+      if (request.method === 'POST') await purgePhotosList(request).catch(() => {})
+      return response
     } catch (err) {
       // A stack trace leaking into a public response is an acceptable
       // trade-off for a small project you're the only one debugging — but

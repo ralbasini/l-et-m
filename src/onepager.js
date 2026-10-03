@@ -50,6 +50,9 @@ if (window.parent !== window) {
     if (frame && !frame.hasAttribute('src')) frame.src = frame.dataset.src
   }
 
+  // The panel currently shown, to spot a navigation *to* Galerie.
+  let shownPage = ''
+
   function render () {
     const requested = location.hash.slice(1)
     const page = pages.includes(requested) ? requested : 'mariage'
@@ -70,6 +73,13 @@ if (window.parent !== window) {
       frame.tabIndex = active ? 0 : -1
     })
 
+    // Every visit to Galerie shows the current photos: reload it if it was
+    // already loaded (photos may have changed in Photos or Admin meanwhile).
+    const galerieFrame = framesByPage.get('galerie')
+    if (page === 'galerie' && shownPage !== 'galerie' && galerieFrame.hasAttribute('src')) {
+      galerieFrame.contentWindow.location.reload()
+    }
+    shownPage = page
     ensureLoaded(page)
     if (page === 'galerie') ensureLoaded('mariage')
     document.body.classList.remove('is-preload')
