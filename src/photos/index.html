@@ -32,7 +32,12 @@
   <div id="upload-progress" class="upload-progress" role="status" aria-live="polite" hidden>
     <div class="upload-progress-message">
       <span class="upload-spinner" aria-hidden="true"></span>
-      <span id="upload-progress-text">Envoi des photos en cours</span>
+      <div class="upload-progress-body">
+        <span id="upload-progress-text">Envoi des photos en cours</span>
+        <div class="upload-bar" aria-hidden="true"><div id="upload-bar-fill" class="upload-bar-fill"></div></div>
+        <span id="upload-progress-detail" class="upload-progress-detail"></span>
+        <span class="upload-progress-hint">Gardez cette page ouverte jusqu’à la fin de l’envoi.</span>
+      </div>
     </div>
   </div>
 
