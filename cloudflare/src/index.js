@@ -2,6 +2,7 @@ import { handleOptions, json } from './cors.js'
 import { photosList } from './routes/photosList.js'
 import * as guest from './routes/guest.js'
 import * as admin from './routes/admin.js'
+import { isImgPath, serveImg } from './routes/img.js'
 
 // One route table for the whole API. Paths intentionally mirror the old PHP
 // endpoints minus the ".php" (identify.php -> /guest/identify, etc.) so the
@@ -33,6 +34,9 @@ export default {
     if (request.method === 'OPTIONS') return handleOptions()
 
     const url = new URL(request.url)
+    if ((request.method === 'GET' || request.method === 'HEAD') && isImgPath(url.pathname)) {
+      return serveImg(request, env)
+    }
     const handler = routes[`${request.method} ${url.pathname}`]
     if (!handler) return json({ error: 'Not found' }, { status: 404 })
 

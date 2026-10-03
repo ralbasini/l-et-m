@@ -14,7 +14,7 @@ bucket_name = "l-et-m-photos"
 [[d1_databases]]
 binding = "DB"
 database_name = "l-et-m"
-database_id = "TODO-replace-with-the-id-from-`wrangler-d1-create-l-et-m`"
+database_id = "c80a7d6f-9e12-4784-a74a-ac529cf4fae3"
 
 # ── Custom domain(s) — optional, but without one the API lives at
 #    l-et-m-api.<your-subdomain>.workers.dev, which is fine to start with.

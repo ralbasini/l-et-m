@@ -2,12 +2,10 @@ import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
 import '../site-swipe-nav.js'
 
 // Guest photo upload, served from github.io but talking to the Cloudflare
-// Worker in cloudflare/ (see cloudflare/README.md) — previously an
-// Infomaniak-hosted PHP API. A guest's identity is a bearer token in
-// localStorage (guest id + HMAC signature, verified server-side against
-// GUEST_TOKEN_SECRET) rather than a cookie, same reasoning as before this
-// migration: cross-site cookies get silently blocked by some browsers'
-// privacy modes. Per-browser identity, same as a cookie would be:
+// Worker in cloudflare/ (see cloudflare/src/routes/guest.js). A guest's
+// identity is a bearer token in localStorage (guest id + HMAC signature,
+// verified server-side) rather than a cookie: cross-site cookies get
+// silently blocked by some browsers' privacy modes. Per-browser identity:
 // switching devices still goes through the "Oui, c'est moi" collision flow.
 const API = API_BASE_URL + 'guest/'
 const TOKEN_KEY = 'lm_guest_token'
@@ -30,6 +28,37 @@ class ApiError extends Error {
   }
 }
 
+// Without a deadline, a request sent into a connection that silently died
+// can wait forever (photo uploads have their own stall detection instead —
+// see sendPhoto()).
+const REQUEST_TIMEOUT_MS = 30000
+
+function networkError () {
+  return new ApiError('Connexion au serveur impossible, vérifiez votre réseau.', { retryable: true })
+}
+
+// Shared by apiFetch() and sendPhoto(): turns an HTTP status + parsed JSON
+// body (null if it wasn't JSON) into the data, or a thrown ApiError.
+function checkResponse (status, data) {
+  if (status === 401) {
+    clearToken()
+    showNameStep()
+    throw new ApiError('Session expirée, merci de recommencer.', { status: 401 })
+  }
+  if (status < 200 || status >= 300) {
+    throw new ApiError((data && data.error) || 'Une erreur est survenue.', {
+      status,
+      retryable: status >= 500 || status === 408 || status === 429
+    })
+  }
+  // A success status that isn't our JSON: a PHP crash page, a venue Wi-Fi
+  // login portal answering in the server's place… worth another try.
+  if (data === null) {
+    throw new ApiError('Réponse inattendue du serveur.', { status, retryable: true })
+  }
+  return data
+}
+
 async function apiFetch (path, { method = 'GET', json, formData } = {}) {
   const headers = {}
   const token = getToken()
@@ -43,28 +72,20 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
     body = JSON.stringify(json)
   }
 
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   let res
-  try {
-    res = await fetch(API + path, { method, headers, body })
-  } catch {
-    throw new ApiError('Connexion au serveur impossible, vérifiez votre réseau.', { retryable: true })
-  }
-
   let data = null
-  try { data = await res.json() } catch {}
+  try {
+    res = await fetch(API + path, { method, headers, body, signal: controller.signal })
+    try { data = await res.json() } catch {}
+  } catch {
+    throw networkError()
+  } finally {
+    clearTimeout(timer)
+  }
 
-  if (res.status === 401) {
-    clearToken()
-    showNameStep()
-    throw new ApiError('Session expirée, merci de recommencer.', { status: 401 })
-  }
-  if (!res.ok) {
-    throw new ApiError((data && data.error) || 'Une erreur est survenue.', {
-      status: res.status,
-      retryable: res.status >= 500 || res.status === 408 || res.status === 429
-    })
-  }
-  return data
+  return checkResponse(res.status, data)
 }
 
 // ── Toasts ──────────────────────────────────────────────────────
@@ -218,12 +239,20 @@ function renderPhotos (photos) {
 
 let currentGuestName = ''
 let currentMaxPerPerson = 15
+// From /guest/me when the server sends it; the Worker currently doesn't, so
+// this fallback is the effective client-side limit.
+let currentMaxFileBytes = 15 * 1024 * 1024
 function guestImgBase () { return IMG_BASE + encodeURIComponent(currentGuestName) + '/' }
+
+function applyLimits (data) {
+  currentGuestName = data.name
+  currentMaxPerPerson = data.maxPerPerson
+  if (data.maxFileBytes) currentMaxFileBytes = data.maxFileBytes
+}
 
 async function refreshMyPhotos () {
   const data = await apiFetch('me')
-  currentGuestName = data.name
-  currentMaxPerPerson = data.maxPerPerson
+  applyLimits(data)
   renderQuota(data.remaining, data.maxPerPerson)
   renderPhotos(data.photos)
 }
@@ -246,7 +275,8 @@ let previewUrls = []
 let currentRemaining = 15
 let isUploading = false
 // Photos from the last batch that still couldn't be sent after the
-// automatic retries (they stay selected), plus the server filenames already
+// automatic retries (they stay selected), each mapped to whether an attempt
+// may have reached the server anyway, plus the server filenames already
 // accounted for at that point — so the next send can first check whether any
 // of them actually arrived (see uploadBatch()). null when there are none.
 let leftovers = null
@@ -279,12 +309,16 @@ function renderPreview () {
     ? 'Touchez pour choisir des photos'
     : `${count} photo${count > 1 ? 's' : ''} sélectionnée${count > 1 ? 's' : ''} — touchez pour en ajouter`
 
+  const warnings = []
   if (count > currentRemaining) {
-    previewWarning.hidden = false
-    previewWarning.textContent = `Seules les ${currentRemaining} première${currentRemaining > 1 ? 's' : ''} seront envoyées (il n'en reste que ${currentRemaining}).`
-  } else {
-    previewWarning.hidden = true
+    warnings.push(`Seules les ${currentRemaining} première${currentRemaining > 1 ? 's' : ''} seront envoyées (il n'en reste que ${currentRemaining}).`)
   }
+  const tooBig = selectedFiles.filter((f) => f.size > currentMaxFileBytes).length
+  if (tooBig) {
+    warnings.push(`${tooBig > 1 ? `${tooBig} photos dépassent` : 'Une photo dépasse'} la taille maximale de ${formatMb(currentMaxFileBytes)} Mo et ne ${tooBig > 1 ? 'pourront' : 'pourra'} pas être envoyée${tooBig > 1 ? 's' : ''}.`)
+  }
+  previewWarning.hidden = warnings.length === 0
+  previewWarning.textContent = warnings.join(' ')
 
   selectedFiles.forEach((file, i) => {
     const url = URL.createObjectURL(file)
@@ -338,21 +372,129 @@ photosInput.addEventListener('change', () => {
 renderPreview()
 
 // ── Upload ──────────────────────────────────────────────────────
-// Photos go up one per request rather than all in one: a phone batch can
-// easily be 50–150 MB, and on venue mobile data one hiccup used to fail the
-// whole thing with "Failed to fetch". Each photo gets one attempt in a first
-// pass; the ones that failed for a retryable reason (network, 5xx) are then
-// retried together at the end, in RETRY_DELAYS_MS.length extra rounds.
-// Whatever still fails stays selected, behind a "Réessayer" button.
-const RETRY_DELAYS_MS = [2000, 6000]
+// Photos go up untouched (full original quality — they may be printed),
+// one per request and one at a time: a phone batch can easily be 50–150 MB,
+// and on venue mobile data one hiccup used to fail the whole thing with
+// "Failed to fetch". Each photo is retried in place, automatically, with
+// growing pauses (RETRY_DELAYS_MS, ~4 min in all), waiting out a lost
+// connection or a locked phone without using up attempts. Before resending,
+// the server is asked whether the "failed" photo actually arrived (response
+// lost on the way back), so a retry never duplicates it. Only if a photo
+// still can't get through does the batch stop; what's left stays selected
+// and is resumed on its own once the connection comes back or the guest
+// returns to the page — or by hand, with the "Réessayer" button.
+const RETRY_DELAYS_MS = [2000, 5000, 10000, 20000, 30000, 45000, 60000, 60000]
+// A transfer that makes no progress for this long is abandoned and retried,
+// so a connection that silently died mid-upload can't hang forever. Also
+// bounds the wait for the server's answer once every byte is sent.
+const STALL_TIMEOUT_MS = 60000
+// How long a batch waits for a phone that reports being offline before
+// giving up for now (it then resumes by itself on the 'online' event).
+const OFFLINE_WAIT_MS = 5 * 60000
 
 const uploadProgressText = document.getElementById('upload-progress-text')
+const uploadProgressDetail = document.getElementById('upload-progress-detail')
+const uploadBarFill = document.getElementById('upload-bar-fill')
 
 function sleep (ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
 
-// Mirrors safeFilename()/uniqueFilename() in cloudflare/src/files.js: matches
-// the name(s) the server may have stored this upload under ("IMG 01.JPG" →
-// "IMG-01.jpg", or "IMG-01-2.jpg" on a collision).
+// ±30%, so guests whose uploads failed together (e.g. the server was
+// briefly saturated) don't all come back in lockstep.
+function jittered (ms) { return ms * (0.7 + Math.random() * 0.6) }
+
+// Resolves true once the browser reports a connection again, false if
+// maxMs passes first.
+function whenOnline (maxMs) {
+  if (navigator.onLine) return Promise.resolve(true)
+  return new Promise((resolve) => {
+    const done = (value) => {
+      window.removeEventListener('online', onOnline)
+      clearTimeout(timer)
+      resolve(value)
+    }
+    const onOnline = () => done(true)
+    const timer = setTimeout(() => done(navigator.onLine), maxMs)
+    window.addEventListener('online', onOnline)
+  })
+}
+
+// A hidden page (locked phone, other app) gets its network requests
+// suspended or killed, so there's no point retrying until it's back.
+function whenVisible () {
+  if (document.visibilityState === 'visible') return Promise.resolve()
+  return new Promise((resolve) => {
+    const onChange = () => {
+      if (document.visibilityState !== 'visible') return
+      document.removeEventListener('visibilitychange', onChange)
+      resolve()
+    }
+    document.addEventListener('visibilitychange', onChange)
+  })
+}
+
+// Keeps the phone from auto-locking mid-batch, which would suspend the page
+// and kill the transfer. Browsers drop the lock whenever the page is
+// hidden, so it's re-requested on return (see visibilitychange below).
+// Unsupported browsers just skip it.
+let wakeLock = null
+async function keepScreenOn () {
+  try { wakeLock = await navigator.wakeLock.request('screen') } catch {}
+}
+function allowScreenOff () {
+  if (wakeLock) wakeLock.release().catch(() => {})
+  wakeLock = null
+}
+
+function formatMb (bytes) { return Math.round(bytes / (1024 * 1024)) }
+
+// XMLHttpRequest rather than fetch() for this one call: fetch() can't
+// report upload progress, which drives both the progress bar and the
+// stall detection.
+function sendPhoto (file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    let stallTimer
+    const armStallTimer = () => {
+      clearTimeout(stallTimer)
+      stallTimer = setTimeout(() => xhr.abort(), STALL_TIMEOUT_MS)
+    }
+    const fail = () => {
+      clearTimeout(stallTimer)
+      reject(networkError())
+    }
+
+    xhr.open('POST', API + 'upload')
+    const token = getToken()
+    if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token)
+    xhr.upload.onprogress = (e) => {
+      armStallTimer()
+      if (e.lengthComputable && e.total > 0) onProgress(e.loaded / e.total)
+    }
+    xhr.onprogress = armStallTimer
+    xhr.onerror = fail
+    xhr.onabort = fail
+    xhr.ontimeout = fail
+    xhr.onload = () => {
+      clearTimeout(stallTimer)
+      let data = null
+      try { data = JSON.parse(xhr.responseText) } catch {}
+      try {
+        resolve(checkResponse(xhr.status, data))
+      } catch (err) {
+        reject(err)
+      }
+    }
+
+    const formData = new FormData()
+    formData.append('photos[]', file)
+    armStallTimer()
+    xhr.send(formData)
+  })
+}
+
+// Mirrors safeFilename()/uniqueFilename() in cloudflare/src/files.js:
+// matches the name(s) the server may have stored this upload under
+// ("IMG 01.JPG" → "IMG-01.jpg", or "IMG-01-2.jpg" on a collision).
 function serverNamePattern (originalName) {
   const dot = originalName.lastIndexOf('.')
   const rawBase = dot === -1 ? originalName : originalName.slice(0, dot)
@@ -368,18 +510,18 @@ function applyServerState (data) {
 }
 
 async function uploadBatch (files) {
-  // Leftovers from a previous batch start out as 'failed', so they skip the
-  // first pass and go through the arrival check before being resent.
   const jobs = files.map((file) => ({
     file,
-    status: leftovers && leftovers.files.has(file) ? 'failed' : 'pending',
-    error: ''
+    status: 'pending',
+    error: '',
+    // Whether an earlier attempt may have reached the server despite
+    // failing on our side — if so, check before resending.
+    maybeSent: Boolean(leftovers && leftovers.files.get(file))
   }))
-  const hasLeftovers = jobs.some((j) => j.status === 'failed')
   // Server filenames that existed before this batch, or that a job already
   // accounted for — used to spot a "failed" upload that actually arrived
   // (response lost on the way back), so retrying it doesn't duplicate it.
-  const baseline = hasLeftovers ? leftovers.knownPhotos : new Set(lightboxFiles)
+  const baseline = leftovers ? leftovers.knownPhotos : new Set(lightboxFiles)
   const claimed = new Set()
 
   function claimArrival (job, photos) {
@@ -389,16 +531,38 @@ async function uploadBatch (files) {
     return Boolean(name)
   }
 
+  const totalBytes = jobs.reduce((sum, j) => sum + j.file.size, 0) || 1
+  let settledBytes = 0
+  const showBar = (bytes) => {
+    uploadBarFill.style.width = `${Math.min(100, (100 * bytes) / totalBytes)}%`
+  }
+  showBar(0)
+
+  // true/false once the server answered, null if it's still unreachable.
+  async function checkArrived (job) {
+    try {
+      const me = await apiFetch('me')
+      applyServerState(me)
+      return claimArrival(job, me.photos)
+    } catch (err) {
+      if (err.status === 401) throw err
+      return null
+    }
+  }
+
   async function attempt (job) {
+    if (job.file.size > currentMaxFileBytes) {
+      job.status = 'rejected'
+      job.error = `${job.file.name} : fichier trop volumineux (maximum ${formatMb(currentMaxFileBytes)} Mo).`
+      return
+    }
     if (currentRemaining <= 0) {
       job.status = 'rejected'
       job.error = `${job.file.name} : limite de ${currentMaxPerPerson} photos par personne atteinte.`
       return
     }
     try {
-      const formData = new FormData()
-      formData.append('photos[]', job.file)
-      const data = await apiFetch('upload', { method: 'POST', formData })
+      const data = await sendPhoto(job.file, (fraction) => showBar(settledBytes + fraction * job.file.size))
       applyServerState(data)
       if (data.uploaded > 0) {
         job.status = 'done'
@@ -411,57 +575,79 @@ async function uploadBatch (files) {
       if (err.status === 401) throw err
       job.status = err.retryable ? 'failed' : 'rejected'
       job.error = err.retryable ? '' : `${job.file.name} : ${err.message}`
+      if (err.retryable) job.maybeSent = true
     }
   }
 
-  const pending = jobs.filter((j) => j.status === 'pending')
-  for (const [i, job] of pending.entries()) {
-    uploadProgressText.textContent = pending.length > 1
-      ? `Envoi de la photo ${i + 1} sur ${pending.length}…`
+  let gaveUp = false
+  for (const [i, job] of jobs.entries()) {
+    if (gaveUp) {
+      job.status = 'failed' // kept for the next resume
+      continue
+    }
+    uploadProgressText.textContent = jobs.length > 1
+      ? `Envoi de la photo ${i + 1} sur ${jobs.length}…`
       : 'Envoi de la photo…'
-    await attempt(job)
-  }
+    uploadProgressDetail.textContent = ''
 
-  for (const delay of hasLeftovers ? [0, ...RETRY_DELAYS_MS] : RETRY_DELAYS_MS) {
-    let failed = jobs.filter((j) => j.status === 'failed')
-    if (failed.length === 0) break
-    uploadProgressText.textContent = `Nouvelle tentative pour ${failed.length} photo${failed.length > 1 ? 's' : ''}…`
-    await sleep(delay)
+    for (let retry = 0; ; retry++) {
+      if (job.maybeSent) {
+        const arrived = await checkArrived(job)
+        if (arrived) {
+          job.status = 'done'
+        } else if (arrived === null) {
+          job.status = 'failed'
+        } else {
+          await attempt(job)
+        }
+      } else {
+        await attempt(job)
+      }
+      if (job.status !== 'failed') break
+      if (retry === RETRY_DELAYS_MS.length) {
+        gaveUp = true
+        break
+      }
 
-    try {
-      const me = await apiFetch('me')
-      applyServerState(me)
-      failed.forEach((job) => { if (claimArrival(job, me.photos)) job.status = 'done' })
-    } catch (err) {
-      if (err.status === 401) throw err
-      continue // still offline — don't risk duplicates, wait for the next round
+      showBar(settledBytes)
+      uploadProgressDetail.textContent = 'Connexion instable, nouvelle tentative dans quelques secondes…'
+      await sleep(jittered(RETRY_DELAYS_MS[retry]))
+      if (!navigator.onLine) {
+        uploadProgressDetail.textContent = 'Pas de réseau pour le moment. L’envoi reprendra tout seul dès son retour.'
+        if (!await whenOnline(OFFLINE_WAIT_MS)) {
+          gaveUp = true
+          break
+        }
+      }
+      await whenVisible()
+      uploadProgressDetail.textContent = 'Nouvelle tentative…'
     }
 
-    failed = jobs.filter((j) => j.status === 'failed')
-    for (const [i, job] of failed.entries()) {
-      uploadProgressText.textContent = `Nouvelle tentative : photo ${i + 1} sur ${failed.length}…`
-      await attempt(job)
-    }
+    settledBytes += job.file.size
+    showBar(settledBytes)
   }
 
   const stillFailed = jobs.filter((j) => j.status === 'failed')
   leftovers = stillFailed.length
-    ? { files: new Set(stillFailed.map((j) => j.file)), knownPhotos: new Set([...baseline, ...claimed]) }
+    ? {
+        files: new Map(stillFailed.map((j) => [j.file, j.maybeSent])),
+        knownPhotos: new Set([...baseline, ...claimed])
+      }
     : null
   return jobs
 }
 
-document.getElementById('upload-form').addEventListener('submit', async (e) => {
-  e.preventDefault()
+async function runUpload () {
   if (isUploading || selectedFiles.length === 0) return
 
-  const form = e.target
+  const form = document.getElementById('upload-form')
   const files = selectedFiles.slice()
   isUploading = true
   uploadSubmitBtn.disabled = true
   uploadSubmitBtn.classList.add('is-uploading')
   uploadProgress.hidden = false
   form.setAttribute('aria-busy', 'true')
+  keepScreenOn()
 
   try {
     const jobs = await uploadBatch(files)
@@ -473,9 +659,10 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
     if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci !`)
     rejected.forEach((j) => parts.push(j.error))
     if (failed.length) {
-      parts.push(`${failed.length} photo${failed.length > 1 ? 's n’ont' : ' n’a'} pas pu être envoyée${failed.length > 1 ? 's' : ''} (connexion instable). Touchez « Réessayer l’envoi » pour ${failed.length > 1 ? 'les' : 'la'} renvoyer.`)
+      const plural = failed.length > 1
+      parts.push(`${failed.length} photo${plural ? 's n’ont' : ' n’a'} pas encore pu être envoyée${plural ? 's' : ''} (connexion instable). ${plural ? 'Elles restent sélectionnées' : 'Elle reste sélectionnée'} : l’envoi reprendra automatiquement au retour de la connexion, ou touchez « Réessayer l’envoi ».`)
     }
-    toast(parts.join(' '), failed.length === 0 && rejected.length === 0, failed.length ? 8000 : 4000)
+    toast(parts.join(' '), failed.length === 0 && rejected.length === 0, failed.length ? 10000 : 4000)
 
     setSelectedFiles(failed.map((j) => j.file))
   } catch (err) {
@@ -484,11 +671,41 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
     toast(err.message, false)
   } finally {
     isUploading = false
+    allowScreenOff()
     uploadSubmitBtn.classList.remove('is-uploading')
     uploadSubmitBtn.disabled = selectedFiles.length === 0
     uploadProgress.hidden = true
     form.removeAttribute('aria-busy')
   }
+}
+
+document.getElementById('upload-form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  runUpload()
+})
+
+// Picks a stalled batch back up without the guest having to do anything —
+// but only while the selection is still exactly those leftovers; once
+// they've added or removed photos, sending is theirs to trigger again.
+function resumeLeftovers () {
+  if (isUploading || !leftovers || !navigator.onLine || uploadStep.hidden) return
+  if (selectedFiles.length === 0 || !selectedFiles.every((f) => leftovers.files.has(f))) return
+  runUpload()
+}
+
+window.addEventListener('online', resumeLeftovers)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return
+  if (isUploading) keepScreenOn()
+  else resumeLeftovers()
+})
+
+// Closing or reloading the page mid-batch would drop whatever hasn't gone
+// up yet — the browser's own "leave this page?" prompt guards against it.
+window.addEventListener('beforeunload', (e) => {
+  if (!isUploading) return
+  e.preventDefault()
+  e.returnValue = ''
 })
 
 // ── Lightbox ────────────────────────────────────────────────────
@@ -544,8 +761,7 @@ async function init () {
   }
   try {
     const data = await apiFetch('me')
-    currentGuestName = data.name
-    currentMaxPerPerson = data.maxPerPerson
+    applyLimits(data)
     showUploadStep(data.name)
     renderQuota(data.remaining, data.maxPerPerson)
     renderPhotos(data.photos)

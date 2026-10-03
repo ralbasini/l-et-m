@@ -1,14 +1,8 @@
-// Photos used to be hosted on Infomaniak (PHP backend + a plain img/
-// folder). Migrated to Cloudflare: the Worker in cloudflare/ replaces the
-// PHP scripts, and an R2 bucket replaces img/ — see cloudflare/README.md
-// for how to stand both up. Both URLs below are placeholders until that's
-// done; the site falls back to an empty gallery ("photos à venir") rather
-// than erroring, same as it always did while no photos exist yet.
-//
-// TODO: replace both once your Worker is deployed and your R2 bucket has a
-// public domain attached (cloudflare/README.md walks through both).
-export const API_BASE_URL = 'https://TODO-your-worker.example.workers.dev/'
-export const PHOTOS_BASE_URL = 'https://TODO-your-r2-public-domain.example/'
+// Backend: the Cloudflare Worker in cloudflare/ (replaces the old Infomaniak
+// PHP scripts). Photos live in R2 and are served by that same Worker under
+// /img/ — see cloudflare/README.md and cloudflare/src/routes/img.js.
+export const API_BASE_URL = 'https://l-et-m-api.romain-albasini.workers.dev/'
+export const PHOTOS_BASE_URL = API_BASE_URL + 'img/'
 
 // ── Photo source ────────────────────────────────────────────────
 // No manifest, no images committed to the repo: this asks the Worker's

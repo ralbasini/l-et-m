@@ -270,8 +270,44 @@ input[type="text"], input[type="file"] {
   to { transform: rotate(360deg); }
 }
 
+.upload-progress-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: min(18rem, 70vw);
+}
+
+.upload-bar {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: rgba(53, 109, 101, 0.15);
+  overflow: hidden;
+}
+
+.upload-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #356d65;
+  transition: width 0.3s ease;
+}
+
+.upload-progress-detail {
+  color: #8a5a1f;
+  font-size: 0.8125rem;
+}
+
+.upload-progress-detail:empty { display: none; }
+
+.upload-progress-hint {
+  color: rgba(37, 37, 37, 0.6);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .upload-spinner { animation: none; }
+  .upload-bar-fill { transition: none; }
 }
 
 button {
