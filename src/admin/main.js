@@ -1,13 +1,14 @@
-import { REMOTE_GALLERY_URL } from '../photos.js'
+import { API_BASE_URL, PHOTOS_BASE_URL } from '../photos.js'
 
 // Admin panel for the wedding photos, served from github.io but talking to
-// the Infomaniak-hosted PHP API (the only place that can run PHP / write to
-// disk). Auth is a bearer token in localStorage rather than a cookie — see
-// infomaniak/admin/auth.php for why (cross-site cookies get silently
-// blocked by some browsers' privacy modes).
-const API = REMOTE_GALLERY_URL + 'admin/'
+// the Cloudflare Worker in cloudflare/ (see cloudflare/README.md) —
+// previously an Infomaniak-hosted PHP API. Auth is a bearer token in
+// localStorage rather than a cookie, same reasoning as before this
+// migration: cross-site cookies get silently blocked by some browsers'
+// privacy modes.
+const API = API_BASE_URL + 'admin/'
 const TOKEN_KEY = 'lm_admin_token'
-const IMG_BASE = REMOTE_GALLERY_URL + 'img/'
+const IMG_BASE = PHOTOS_BASE_URL
 
 function encodeRelPath (relative) {
   if (!relative) return ''
@@ -93,7 +94,7 @@ loginForm.addEventListener('submit', async (e) => {
   loginError.hidden = true
   const password = document.getElementById('password').value
   try {
-    const data = await apiFetch('login.php', { method: 'POST', json: { password } })
+    const data = await apiFetch('login', { method: 'POST', json: { password } })
     setToken(data.token)
     loginForm.reset()
     showDashboard()
@@ -104,7 +105,7 @@ loginForm.addEventListener('submit', async (e) => {
 })
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  try { await apiFetch('logout.php', { method: 'POST' }) } catch {}
+  try { await apiFetch('logout', { method: 'POST' }) } catch {}
   clearToken()
   showLogin()
 })
@@ -114,7 +115,7 @@ let currentPath = ''
 let lightboxPaths = []
 
 async function loadState (path) {
-  const data = await apiFetch('state.php?path=' + encodeURIComponent(path ?? currentPath))
+  const data = await apiFetch('state?path=' + encodeURIComponent(path ?? currentPath))
   currentPath = data.path
   render(data)
 }
@@ -224,7 +225,7 @@ function renderTags (registry) {
     removeBtn.addEventListener('click', async () => {
       if (!confirm('Supprimer ce tag ? Il sera retiré de toutes les photos qui l\'ont.')) return
       try {
-        await apiFetch('delete-tag.php', { method: 'POST', json: { name: tag } })
+        await apiFetch('delete-tag', { method: 'POST', json: { name: tag } })
         toast('Tag supprimé.', true)
         await loadState(currentPath)
       } catch (err) {
@@ -326,7 +327,7 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
   const form = e.target
   const formData = new FormData(form)
   try {
-    const data = await apiFetch('upload.php', { method: 'POST', formData })
+    const data = await apiFetch('upload', { method: 'POST', formData })
     const parts = []
     if (data.uploaded > 0) parts.push(`${data.uploaded} photo(s) ajoutée(s).`)
     if (data.errors.length) parts.push('Erreurs : ' + data.errors.join(' '))
@@ -343,7 +344,7 @@ document.getElementById('create-folder-form').addEventListener('submit', async (
   e.preventDefault()
   const input = document.getElementById('foldername')
   try {
-    await apiFetch('create-folder.php', { method: 'POST', json: { path: currentPath, name: input.value } })
+    await apiFetch('create-folder', { method: 'POST', json: { path: currentPath, name: input.value } })
     toast('Dossier créé.', true)
     input.value = ''
     await loadState(currentPath)
@@ -367,7 +368,7 @@ async function deleteFolders (mode) {
     : 'Supprimer ces dossiers ? Les photos qu\'ils contiennent seront déplacées dans le dossier parent.'
   if (!confirm(message)) return
   try {
-    const data = await apiFetch('delete-folder.php', { method: 'POST', json: { folders, mode } })
+    const data = await apiFetch('delete-folder', { method: 'POST', json: { folders, mode } })
     toast(data.deleted > 0 ? `${data.deleted} dossier(s) supprimé(s).` : 'Aucun dossier supprimé.', data.deleted > 0 && data.skipped === 0)
     await loadState(currentPath)
   } catch (err) {
@@ -383,7 +384,7 @@ document.getElementById('add-tag-form').addEventListener('submit', async (e) => 
   e.preventDefault()
   const input = document.getElementById('tagname')
   try {
-    await apiFetch('add-tag.php', { method: 'POST', json: { name: input.value } })
+    await apiFetch('add-tag', { method: 'POST', json: { name: input.value } })
     toast('Tag ajouté.', true)
     input.value = ''
     await loadState(currentPath)
@@ -405,7 +406,7 @@ document.getElementById('delete-photos-btn').addEventListener('click', async () 
   }
   if (!confirm('Supprimer les photos sélectionnées ?')) return
   try {
-    const data = await apiFetch('delete.php', { method: 'POST', json: { files } })
+    const data = await apiFetch('delete', { method: 'POST', json: { files } })
     toast(data.deleted > 0 ? `${data.deleted} photo(s) supprimée(s).` : 'Aucune photo supprimée.', data.deleted > 0 && data.skipped === 0)
     await loadState(currentPath)
   } catch (err) {
@@ -421,7 +422,7 @@ document.getElementById('move-btn').addEventListener('click', async () => {
   }
   const dest = document.getElementById('move-dest').value
   try {
-    const data = await apiFetch('move.php', { method: 'POST', json: { files, dest } })
+    const data = await apiFetch('move', { method: 'POST', json: { files, dest } })
     toast(data.moved > 0 ? `${data.moved} photo(s) déplacée(s).` : 'Aucune photo déplacée.', data.moved > 0 && data.skipped === 0)
     await loadState(currentPath)
   } catch (err) {
@@ -435,7 +436,7 @@ document.getElementById('save-tags-btn').addEventListener('click', async () => {
     tags: Array.from(figure.querySelectorAll('.tag-check input:checked')).map((cb) => cb.value),
   }))
   try {
-    const data = await apiFetch('tag.php', { method: 'POST', json: { updates } })
+    const data = await apiFetch('tag', { method: 'POST', json: { updates } })
     toast(data.updated > 0 ? `${data.updated} photo(s) mise(s) à jour.` : 'Aucune photo mise à jour.', data.updated > 0)
   } catch (err) {
     toast(err.message, false)

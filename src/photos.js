@@ -1,16 +1,17 @@
-// Photos are hosted outside this repo, in an Infomaniak folder that also
-// holds infomaniak/photos-list.php (see that file). It sends its own CORS
-// header, so the same URL works from both `npm run dev` and production.
-export const REMOTE_GALLERY_URL = 'https://ralbasini.ch/l-et-m/'
+// Backend: the Cloudflare Worker in cloudflare/ (replaces the old Infomaniak
+// PHP scripts). Photos live in R2 and are served by that same Worker under
+// /img/ — see cloudflare/README.md and cloudflare/src/routes/img.js.
+export const API_BASE_URL = 'https://l-et-m-api.romain-albasini.workers.dev/'
+export const PHOTOS_BASE_URL = API_BASE_URL + 'img/'
 
 // ── Photo source ────────────────────────────────────────────────
-// No manifest, no images committed to the repo: this asks photos-list.php
-// what's currently in the Infomaniak folder. Drop a photo in that folder
-// and it shows up on next load — nothing to redeploy. Shared by the main
-// site (src/main.js) and the projector slideshow (src/diaporama/main.js).
+// No manifest, no images committed to the repo: this asks the Worker's
+// /photos-list what's currently in the bucket. Upload a photo and it shows
+// up on next load — nothing to redeploy. Shared by the main site
+// (src/main.js) and the projector slideshow (src/diaporama/main.js).
 export async function loadPhotos () {
   try {
-    const res = await fetch(REMOTE_GALLERY_URL + 'photos-list.php', { cache: 'no-store' })
+    const res = await fetch(API_BASE_URL + 'photos-list', { cache: 'no-store' })
     if (!res.ok) return []
     const data = await res.json()
     if (!Array.isArray(data)) return []
@@ -22,7 +23,7 @@ export async function loadPhotos () {
       // each segment separately so the '/' itself isn't escaped.
       const encodedPath = file.split('/').map(encodeURIComponent).join('/')
       return {
-        src: REMOTE_GALLERY_URL + 'img/' + encodedPath,
+        src: PHOTOS_BASE_URL + encodedPath,
         alt: alt || 'Photo du mariage de Lobna et Martin',
         tags,
       }
