@@ -150,9 +150,6 @@ html:not(.is-admin):not(.menu-public) [data-admin-only] { display: none; }
 /* Admin: logged-in admins only, even when the site is public. */
 html:not(.is-admin) [data-logged-in-only] { display: none; }
 
-/* Inside the home page's panels the shell's own footer is the one shown. */
-html.is-embedded .brand-footer { display: none; }
-
 /* ── L&M footer ─────────────────────────────────────────────────── */
 .brand-footer {
   position: relative;
