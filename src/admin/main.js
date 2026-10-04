@@ -128,6 +128,15 @@ function renderVisibility () {
   visibilityBadge.classList.toggle('is-public', isPublic)
 }
 
+const maxPerPersonInput = document.getElementById('max-per-person')
+const maxPerPersonValue = document.getElementById('max-per-person-value')
+
+// The current value, in words ("0" closes uploads).
+function renderMaxPerPerson () {
+  const n = Number(maxPerPersonInput.value)
+  maxPerPersonValue.textContent = n === 0 ? '0 (envois fermés)' : `${n} photo${n > 1 ? 's' : ''}`
+}
+
 async function loadSettings () {
   try {
     const res = await fetch(API_BASE_URL + 'settings', { cache: 'no-store' })
@@ -135,8 +144,38 @@ async function loadSettings () {
     menuPublicToggle.checked = Boolean(settings.menuPublic)
     setMenuPublic(menuPublicToggle.checked)
     renderVisibility()
-  } catch {}
+    if (settings.maxPerPerson !== undefined) {
+      // A value above the slider's range (set earlier) still shows and stays settable.
+      maxPerPersonInput.max = Math.max(30, settings.maxPerPerson)
+      maxPerPersonInput.value = settings.maxPerPerson
+      maxPerPersonInput.disabled = false
+      renderMaxPerPerson()
+    } else {
+      // An older Worker doesn't know this setting yet (deploy cloudflare/).
+      maxPerPersonValue.textContent = 'indisponible (le serveur n’est pas à jour)'
+    }
+  } catch {
+    maxPerPersonValue.textContent = 'indisponible'
+  }
 }
+
+maxPerPersonInput.addEventListener('input', renderMaxPerPerson)
+
+// Saved when the slider is released.
+maxPerPersonInput.addEventListener('change', async () => {
+  maxPerPersonInput.disabled = true
+  try {
+    const settings = await apiFetch('settings', { method: 'POST', json: { maxPerPerson: Number(maxPerPersonInput.value) } })
+    maxPerPersonInput.value = settings.maxPerPerson
+    renderMaxPerPerson()
+    toast(`Limite enregistrée : ${settings.maxPerPerson} photo${settings.maxPerPerson > 1 ? 's' : ''} par personne.`, true)
+  } catch (err) {
+    toast(err.message)
+    loadSettings()
+  } finally {
+    maxPerPersonInput.disabled = false
+  }
+})
 
 menuPublicToggle.addEventListener('change', async () => {
   const wanted = menuPublicToggle.checked

@@ -52,7 +52,7 @@ API (Worker) :
 
 - **Mariage** : infos (lieu, programme, contact)
 - **Galerie** : photos en polaroïd, nom de l'invité, filtre par tags, plein écran
-- **Photos** : upload invités par QR code — juste un prénom, 15 photos max, qualité d'origine, reprise auto si le réseau coupe
+- **Photos** : upload invités par QR code — juste un prénom, 10 photos max par défaut (réglable dans l'admin), qualité d'origine, reprise auto si le réseau coupe
 - **Diaporama** : défilement auto, nouvelles photos ajoutées toutes les 60 s, plein écran
 - **Admin** : mot de passe, upload, dossiers, tags (plusieurs photos à la fois), déplacer / supprimer
 - **Visibilité** : Galerie et Photos privées (admin) ou publiques (tous) — interrupteur dans l'admin ; le menu Admin n'est visible qu'une fois connecté
@@ -101,7 +101,7 @@ npm run deploy    # mise en ligne du Worker
 
 - QR code vers `https://lobna-et-martin.ch/photos/`
 - L'invité donne son prénom → ses photos vont dans `Invités/<prénom>/`
-- 15 photos max par personne, 15 Mo max par photo, qualité d'origine
+- 10 photos max par personne par défaut (réglable dans l'admin), 15 Mo max par photo, qualité d'origine
 - Il voit et peut supprimer ses propres photos
 - Publiées tout de suite, sans validation
 

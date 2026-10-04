@@ -58,6 +58,12 @@
       <p class="setting-hint">Seuls les administrateurs connectés voient ces entrées. Les pages restent accessibles par lien direct ou QR code.</p>
     </div>
 
+    <div class="card">
+      <span class="card-title">Photos par personne</span>
+      <label for="max-per-person" class="slider-label">Nombre maximum de photos par invité : <output id="max-per-person-value" for="max-per-person">…</output></label>
+      <input type="range" id="max-per-person" class="slider" min="0" max="30" step="1" value="10" disabled>
+    </div>
+
     <!-- Same upload layout as the guest page (src/photos/): dropzone,
          "Envoyer", then the pending previews. -->
     <div class="card">

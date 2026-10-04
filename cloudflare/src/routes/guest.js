@@ -1,11 +1,13 @@
 import { json } from '../cors.js'
 import { signToken } from '../auth.js'
 import { registerFolderPath, storePhoto, deletePhotoRows } from '../files.js'
+import { getMaxPerPerson } from './settings.js'
 
-// Sent to the client as maxPerPerson (src/photos/main.js builds its label
-// from it). Every handler except identify is wrapped in guestOnly() by the
-// route table in index.js, which passes the guest row as the third argument.
-const MAX_PER_PERSON = 15
+// The per-person limit is a site setting (routes/settings.js, set from the
+// admin dashboard) and is sent to the client as maxPerPerson (src/photos/main.js
+// builds its label from it). Every handler except identify is wrapped in
+// guestOnly() by the route table in index.js, which passes the guest row as
+// the third argument.
 
 // Scoped by *folder*, not by guest_id: the README documents the original
 // PHP behavior as recalculating the quota from what's actually left in the
@@ -20,10 +22,13 @@ async function guestState (env, guest) {
     'SELECT filename FROM photos WHERE folder = ? ORDER BY uploaded_at'
   ).bind(guestFolder(guest.name)).all()
   const photos = results.map((r) => r.filename)
+  const maxPerPerson = await getMaxPerPerson(env)
   return {
     name: guest.name,
-    maxPerPerson: MAX_PER_PERSON,
-    remaining: Math.max(0, MAX_PER_PERSON - photos.length),
+    maxPerPerson,
+    // Never negative: a guest above a lowered limit keeps every photo, they
+    // just can't add more.
+    remaining: Math.max(0, maxPerPerson - photos.length),
     photos,
   }
 }
@@ -68,14 +73,16 @@ export async function me (request, env, guest) {
 export async function upload (request, env, guest) {
   const before = await guestState(env, guest)
   if (before.remaining <= 0) {
-    return json({ uploaded: 0, errors: [`Limite de ${MAX_PER_PERSON} photos par personne atteinte.`], ...before })
+    return json({ uploaded: 0, errors: [`Limite de ${before.maxPerPerson} photos par personne atteinte.`], ...before })
   }
 
   const formData = await request.formData()
-  const files = formData.getAll('photos[]').filter((f) => f instanceof File)
+  const allFiles = formData.getAll('photos[]').filter((f) => f instanceof File)
+  // Defense in depth for a request carrying several files: only what's left.
+  const files = allFiles.slice(0, before.remaining)
   const folder = guestFolder(guest.name)
   await registerFolderPath(env.DB, folder)
-  const errors = []
+  const errors = allFiles.length > files.length ? [`Limite de ${before.maxPerPerson} photos par personne atteinte.`] : []
   let uploaded = 0
 
   for (const file of files) {

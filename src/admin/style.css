@@ -79,6 +79,10 @@
   margin: 0.1rem 0 0;
   cursor: pointer;
 }
+.slider-label { margin-bottom: 0.75rem; }
+.slider-label output { font-weight: 600; color: #356d65; }
+.slider { display: block; width: 100%; margin: 0; accent-color: #356d65; cursor: pointer; }
+.slider:disabled { opacity: 0.5; cursor: default; }
 .setting-hint {
   margin: 0.5rem 0 0 1.85rem;
   font-size: 0.8125rem;

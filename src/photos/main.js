@@ -188,7 +188,7 @@ function renderQuota (remaining, maxPerPerson) {
   if (remaining <= 0) {
     form.hidden = true
     full.hidden = false
-    full.textContent = `Vous avez envoyé vos ${maxPerPerson} photos, merci beaucoup !`
+    full.textContent = `Vous avez atteint la limite de ${maxPerPerson} photos, merci beaucoup !`
   } else {
     form.hidden = false
     full.hidden = true
@@ -242,7 +242,7 @@ function renderPhotos (photos) {
 }
 
 let currentGuestName = ''
-let currentMaxPerPerson = 15
+let currentMaxPerPerson = 10
 // From /guest/me when the server sends it; the Worker currently doesn't, so
 // this fallback is the effective client-side limit.
 let currentMaxFileBytes = 15 * 1024 * 1024
@@ -277,7 +277,7 @@ const uploadProgress = document.getElementById('upload-progress')
 
 let selectedFiles = []
 let previewUrls = []
-let currentRemaining = 15
+let currentRemaining = 10
 let isUploading = false
 // Photos from the last batch that still couldn't be sent after the
 // automatic retries (they stay selected), each mapped to whether an attempt
