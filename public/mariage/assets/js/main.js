@@ -24,14 +24,17 @@
 			heroPhotos = ['Bizerte.jpg', 'la_2.jpg', 'plage.jpg'].map(function(file) {
 				return heroImageBase + file;
 			}),
-			heroPhotoIndex = 0,
+			// Random starting photo on every page view; the fade then cycles
+			// through the rest in order.
+			heroPhotoIndex = Math.floor(Math.random() * heroPhotos.length),
 			activeHeroLayer = 0;
 
 		if (heroLayers.length === 2) {
-			heroLayers[0].style.backgroundImage = 'url("' + heroPhotos[0] + '")';
+			heroLayers[0].style.backgroundImage = 'url("' + heroPhotos[heroPhotoIndex] + '")';
 
 			if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-				heroPhotos.slice(1).forEach(function(src) {
+				heroPhotos.forEach(function(src, i) {
+					if (i === heroPhotoIndex) return;
 					var image = new Image();
 					image.src = src;
 				});
