@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex">
+  <title>Lobna &amp; Martin</title>
+  <!-- GitHub Pages serves this for unknown paths. Old links (QR codes,
+       ralbasini.github.io/l-et-m/...) carry a /l-et-m/ prefix: strip it. -->
+  <script>
+    var path = location.pathname
+    if (path.indexOf('/l-et-m/') === 0 || path === '/l-et-m') {
+      location.replace(path.replace(/^\/l-et-m\/?/, '/') + location.search + location.hash)
+    } else {
+      location.replace('/')
+    }
+  </script>
+</head>
+<body></body>
+</html>

@@ -2,14 +2,14 @@
 // swipe navigation: pages are only reached from the menu).
 const embedded = window.parent !== window
 
-// The site's base path ('/l-et-m/'), the same for every page.
+// The site's base path ('/'), the same for every page.
 const siteRoot = import.meta.env.BASE_URL
 
 function getSection (href) {
   const target = new URL(href, location.href)
 
   if (target.origin !== location.origin) return null
-  // Menu links point at the home page's panels: /l-et-m/#galerie etc.
+  // Menu links point at the home page's panels: /#galerie etc.
   if (target.pathname === siteRoot) {
     const panel = target.hash.slice(1)
     return ['galerie', 'photos', 'admin'].includes(panel) ? panel : 'mariage'

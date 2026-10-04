@@ -185,7 +185,7 @@
 					return;
 
 			// Create bg and append it to body.
-				// Resolve from the page URL so the deployed /l-et-m/ base is
+				// Resolve from the page URL so any deployed base path is
 				// retained; this div is appended to <body>, not the stylesheet.
 				$bg = $('<div class="main-bg" id="' + $this.attr('id') + '-bg"></div>')
 					.css('background-image', (

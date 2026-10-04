@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import { fileURLToPath } from 'node:url'
 
 const r = (p) => fileURLToPath(new URL(p, import.meta.url))
-const base = '/l-et-m/'
+const base = '/'
 
 function redirectBarePhotosPath (request, response, next) {
   const pathname = new URL(request.url || '/', 'http://vite.local').pathname

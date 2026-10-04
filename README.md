@@ -65,7 +65,7 @@ API (Worker) :
 npm install
 npm run dev       # serveur local
 npm run build     # build dans dist/
-npm run preview   # sert dist/ → http://localhost:4173/l-et-m/
+npm run preview   # sert dist/ → http://localhost:4173/
 ```
 
 - Mise en ligne : push sur `main`
@@ -99,7 +99,7 @@ npm run deploy    # mise en ligne du Worker
 
 ## Invités (QR code)
 
-- QR code vers `https://ralbasini.github.io/l-et-m/photos/`
+- QR code vers `https://lobna-et-martin.ch/photos/`
 - L'invité donne son prénom → ses photos vont dans `Invités/<prénom>/`
 - 15 photos max par personne, 15 Mo max par photo, qualité d'origine
 - Il voit et peut supprimer ses propres photos
