@@ -36,9 +36,17 @@ function buildStars () {
 }
 
 // ── Slideshow ─────────────────────────────────────────────────
-function buildSlideshow (photos) {
+function buildSlideshow (allPhotos) {
   const stage = document.getElementById('slideshow')
-  if (!photos.length) return
+  if (!allPhotos.length) return
+
+  // Random order on every page view (a shuffled copy — the gallery grid
+  // below keeps its own, alphabetical order).
+  const photos = allPhotos.slice()
+  for (let i = photos.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[photos[i], photos[j]] = [photos[j], photos[i]]
+  }
 
   // Two cross-fading layers, not one <img> per photo: only the visible
   // photo and the next one are ever downloaded.
