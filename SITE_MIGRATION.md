@@ -2,7 +2,8 @@
 
 ## 1. Romain — get the verification code
 
-- GitHub **Settings → Pages → Add a domain** → `lobna-et-martin.ch`
+- GitHub **profile picture → Settings → Pages** (account settings, not the repo) → **Add a domain** → `lobna-et-martin.ch`
+- Leave the repo's Custom domain empty for now (it errors until DNS is set).
 - Send the TXT code to Martin.
 
 ## 2. Martin — Infomaniak
@@ -14,15 +15,27 @@
 1. Delete these lines if present (keep all others):
    - type **A** or **AAAA** with an **empty name** (first column blank)
    - any line named **www**
-2. Add (replace `CODE` with the code sent by Romain):
+2. Replace content with:
 
    ```
-   @                                  3600  IN A      185.199.108.153
-   @                                  3600  IN A      185.199.109.153
-   @                                  3600  IN A      185.199.110.153
-   @                                  3600  IN A      185.199.111.153
-   www                                3600  IN CNAME  ralbasini.github.io.
-   _github-pages-challenge-ralbasini  3600  IN TXT    "CODE"
+   ; Domain: lobna-et-martin.ch
+   $TTL 3600
+   @                                  IN SOA   ns11.infomaniak.ch. hostmaster.infomaniak.ch. (2026012861 10800 3600 605800 3600)
+   @                             3600 IN A     185.199.108.153
+   @                             3600 IN A     185.199.109.153
+   @                             3600 IN A     185.199.110.153
+   @                             3600 IN A     185.199.111.153
+   @                             3600 IN MX 5  mta-gw.infomaniak.ch.
+   @                             3600 IN NS    ns11.infomaniak.ch.
+   @                             3600 IN NS    ns12.infomaniak.ch.
+   @                             3600 IN TXT   "v=spf1 include:spf.infomaniak.ch -all"
+   autoconfig                    3600 IN CNAME infomaniak.com.
+   autodiscover                  3600 IN CNAME infomaniak.com.
+   www                           3600 IN CNAME ralbasini.github.io.
+   _dmarc                        3600 IN TXT   "v=DMARC1; p=reject;"
+   _domainkey                    300  IN NS    ns11.infomaniak.ch.
+   _domainkey                    300  IN NS    ns12.infomaniak.ch.
+   _github-pages-challenge-ralbasini 3600 IN TXT "b3c5b1e23854885399f36206fb6cc6"
    ```
 
 ## 3. Romain — GitHub
