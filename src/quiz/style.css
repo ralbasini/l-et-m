@@ -263,3 +263,4 @@ html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1r
 .host #r-options .opt > img { aspect-ratio: 16 / 7; }
 .result-options .opt > img { aspect-ratio: 16 / 7; }
 .opt .label { overflow-wrap: anywhere; line-height: 1.3; }
+#wait-title { white-space: pre-line; }

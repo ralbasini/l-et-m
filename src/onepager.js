@@ -53,6 +53,8 @@ if (window.parent !== window) {
   // The panel currently shown, to spot a navigation *to* Galerie.
   let shownPage = ''
 
+  frames.forEach((frame) => frame.addEventListener('load', () => { frame.dataset.loaded = '1' }))
+
   function render () {
     // A private site (not made public from the dashboard) shows only Mariage to visitors,
     // even for a direct #galerie / #photos link; logged-in admins see everything.
@@ -80,7 +82,9 @@ if (window.parent !== window) {
     // Every visit to Galerie shows the current photos: reload it if it was
     // already loaded (photos may have changed in Photos or Admin meanwhile).
     const galerieFrame = framesByPage.get('galerie')
-    if (page === 'galerie' && shownPage !== 'galerie' && galerieFrame.hasAttribute('src')) {
+    // Only once it has finished loading: reloading a frame whose first load is still under way
+    // (preloaded by the same tap that opens it) cancels that load and leaves the panel empty.
+    if (page === 'galerie' && shownPage !== 'galerie' && galerieFrame.dataset.loaded === '1') {
       galerieFrame.contentWindow.location.reload()
     }
     shownPage = page

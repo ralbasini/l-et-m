@@ -90,11 +90,13 @@ function onMessage (m) {
       break
     case 'profile':
       name = m.name; av = m.av
-      $('wait-title').textContent = `On y est presque, ${name} !`
+      $('wait-title').textContent = `On y est presque,
+${name} !`
       break
     case 'lobby':
       stopTimer(); current = null
-      $('wait-title').textContent = `On y est presque, ${name} !`
+      $('wait-title').textContent = `On y est presque,
+${name} !`
       show('wait')
       onStage('wait-avatar', 'happy')
       break
