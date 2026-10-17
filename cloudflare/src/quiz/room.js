@@ -190,6 +190,7 @@ export class QuizRoom extends DurableObject {
     if (msg.t === 'ping') return this.send(ws, { t: 'pong' })
     if (msg.t === 'host') return this.onHost(ws, msg)
     if (msg.t === 'join') return this.onJoin(ws, att, msg)
+    if (msg.t === 'avatar' && att.role === 'player') return this.onAvatar(ws, att.pid, msg)
     if (msg.t === 'answer' && att.role === 'player') return this.onAnswer(ws, att.pid, msg)
     if (msg.t === 'cmd' && att.role === 'host') return this.onCommand(msg.c)
   }
@@ -240,6 +241,21 @@ export class QuizRoom extends DurableObject {
     ws.serializeAttachment({ role: 'player', pid })
     this.send(ws, { t: 'joined', name: p.n })
     this.sendState(ws, 'player', pid)
+    this.toHosts(this.tallyMsg())
+  }
+
+  // A joined player changes their look (still one player per combination).
+  async onAvatar (ws, pid, msg) {
+    const p = this.players.get(pid)
+    const v = parseAvatar(msg.av)
+    if (!p || !v) return this.send(ws, { t: 'error', code: 'avatar_required' })
+    const key = v.join('.')
+    for (const o of this.players.values()) {
+      if (o !== p && o.v && o.v.join('.') === key) return this.send(ws, { t: 'error', code: 'avatar_taken' })
+    }
+    p.v = v
+    await this.savePlayer(pid)
+    this.send(ws, { t: 'avatar', av: v })
     this.toHosts(this.tallyMsg())
   }
 

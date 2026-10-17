@@ -279,7 +279,12 @@ function renderLobby (who) {
     if (!names.has(n)) { w.li.remove(); lobbyCards.delete(n) }
   }
   for (const [n, v] of who) {
-    if (lobbyCards.has(n)) continue
+    const known = lobbyCards.get(n)
+    if (known) {
+      const key = JSON.stringify(v)
+      if (known.key !== key) { known.key = key; known.flip.replaceChildren(avatarEl(v)) }
+      continue
+    }
     const li = document.createElement('li')
     const pop = document.createElement('div')
     pop.className = 'pop'
@@ -296,7 +301,7 @@ function renderLobby (who) {
     li.style.zIndex = lane
     arena.append(li)
     lobbyCards.set(n, {
-      li, flip, lane, jump: null, kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
+      li, flip, lane, jump: null, key: JSON.stringify(v), kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
       x: Math.random() * Math.max(0, arena.clientWidth - 96), until: now + Math.random() * 1500,
     })
   }

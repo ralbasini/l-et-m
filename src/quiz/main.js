@@ -65,8 +65,23 @@ $('av-random').addEventListener('click', () => { av = randomAvatar(); renderBuil
 renderBuilder()
 
 $('name').value = name
+// Editing the avatar reuses the join form without the name field.
+let editing = false
+function setEditing (on) {
+  editing = on
+  $('name-field').hidden = on
+  $('name').required = !on
+  $('edit-cancel').hidden = !on
+  $('join-submit').textContent = on ? 'Enregistrer' : 'Rejoindre'
+  $('join-error').hidden = true
+  if (on) show('join')
+}
+$('edit-avatar').addEventListener('click', () => { try { av = JSON.parse(store.get('lm_quiz_av')) || av } catch { /* keep */ } renderBuilder(); setEditing(true) })
+$('edit-cancel').addEventListener('click', () => { setEditing(false); show('wait') })
+
 $('join-form').addEventListener('submit', (e) => {
   e.preventDefault()
+  if (editing) { $('join-error').hidden = true; return sendFn({ t: 'avatar', av }) }
   name = $('name').value.trim()
   if (!name) return
   $('join-error').hidden = true
@@ -115,6 +130,11 @@ function onMessage (m) {
       $('join-error').textContent = ERRORS[m.code] || 'Erreur.'
       $('join-error').hidden = false
       show('join')
+      break
+    case 'avatar':
+      store.set('lm_quiz_av', JSON.stringify(av))
+      $('wait-avatar').replaceChildren(avatarEl(av, 'xl'))
+      setEditing(false); show('wait')
       break
     case 'lobby':
       stopTimer(); current = null
