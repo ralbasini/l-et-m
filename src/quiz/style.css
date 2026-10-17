@@ -274,3 +274,13 @@ html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1r
 /* Player page: no logo (more room for the avatar and the answers), a slightly smaller avatar. */
 body.player .brand { display: none; }
 .stage .avatar.xl { width: 6rem; }
+
+/* Phone result screen: my place between the two players above and below. */
+.around { list-style: none; padding: 0; margin: 0.9rem auto 0; max-width: 24rem; display: grid; gap: 0.3rem; text-align: left; }
+.around li { display: flex; align-items: center; gap: 0.6rem; padding: 0.3rem 0.8rem; background: rgba(255, 255, 255, 0.55); border-radius: 0.6rem; font-weight: 600; }
+.around li.me { background: #fff; box-shadow: 0 3px 10px rgba(37, 37, 37, 0.12); outline: 2px solid #356d65; }
+.around .rk { min-width: 1.6rem; color: #356d65; font-variant-numeric: tabular-nums; }
+.around .who { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem; }
+.around .who .avatar { width: 1.9rem; }
+.around .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.around .s { font-variant-numeric: tabular-nums; }

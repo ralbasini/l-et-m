@@ -136,6 +136,20 @@ ${name} !`
       const lastQ = m.q + 1 >= m.total
       const rankText = `${m.rank}${m.rank === 1 ? 'er' : 'e'} sur ${m.of} — `
       const move = $('result-move')
+      const around = $('result-around')
+      around.hidden = lastQ || !m.around
+      if (!around.hidden) {
+        around.replaceChildren(...m.around.map((row) => {
+          const li = document.createElement('li')
+          if (row.me) li.className = 'me'
+          li.innerHTML = '<span class="rk"></span><span class="who"><span class="n"></span></span><span class="s"></span>'
+          li.querySelector('.rk').textContent = row.r
+          li.querySelector('.who').prepend(avatarEl(row.v))
+          li.querySelector('.n').textContent = row.n
+          li.querySelector('.s').textContent = row.s
+          return li
+        }))
+      }
       if (lastQ) {
         $('result-rank').textContent = 'Le classement final arrive…'
         move.hidden = true

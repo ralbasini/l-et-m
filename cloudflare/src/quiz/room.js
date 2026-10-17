@@ -136,12 +136,23 @@ export class QuizRoom extends DurableObject {
     return { t: 'reveal', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, images: qd.images || null, correct: qd.correct, counts, players: this.players.size, board: this.boardRows(8) }
   }
 
+  // The player's place with the two players above and the two below (fewer at the ends).
+  // Same order as the leaderboard: score, then name, so the places match everywhere.
+  around (p, span = 2) {
+    const sorted = [...this.players.values()].sort((a, b) => b.s - a.s || a.n.localeCompare(b.n))
+    const i = sorted.indexOf(p)
+    const from = Math.max(0, i - span)
+    return sorted.slice(from, i + span + 1).map((o, k) => ({ n: o.n, s: o.s, v: o.v, r: from + k + 1, me: o === p }))
+  }
+
   resultMsg (p) {
     const qd = QUESTIONS[this.q]
     const a = p.a[this.q]
     return {
       t: 'result', q: this.q, total: QUESTIONS.length, correct: qd.correct, choice: a ? a[0] : null,
       delta: p.d, score: p.s, rank: this.rankOf(p), prev: p.pr ?? this.rankOf(p), of: this.players.size,
+      // After the last question the standings stay secret until the final screen.
+      around: this.q + 1 < QUESTIONS.length ? this.around(p) : null,
     }
   }
 
