@@ -14,7 +14,7 @@ export function mountBuilder (box, initial, onChange = () => {}, { collapsed = f
     </div>
     <div class="av-actions">
       <button type="button" class="ghost" data-ref="random">🎲 Au hasard</button>
-      ${collapsed ? '<button type="button" class="ghost" data-ref="toggle">Modifier mon avatar</button>' : ''}
+      ${collapsed ? '<button type="button" class="ghost" data-ref="toggle">Personnaliser</button>' : ''}
     </div>`
   const ref = (n) => box.querySelector(`[data-ref="${n}"]`)
 
@@ -53,7 +53,7 @@ export function mountBuilder (box, initial, onChange = () => {}, { collapsed = f
     toggle.addEventListener('click', () => {
       const open = ref('options').hidden
       ref('options').hidden = !open
-      toggle.textContent = open ? 'Masquer les réglages' : 'Modifier mon avatar'
+      toggle.textContent = open ? 'Masquer les réglages' : 'Personnaliser'
     })
   }
   render()

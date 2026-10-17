@@ -15,6 +15,7 @@ const routes = {
   'GET /photos-list': photosList,
   'GET /settings': getSettings,
 
+  'POST /guest/check-name': guest.checkName,
   'POST /guest/identify': guest.identify,
   'GET /guest/me': guestOnly(guest.me),
   'POST /guest/avatar': guestOnly(guest.setAvatar),

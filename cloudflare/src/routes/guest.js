@@ -41,46 +41,46 @@ function guestFolder (name) {
   return `Invités/${name}`
 }
 
-// POST { name, avatar: [animal, colour, accessory] } creates the account, or logs back in
-// when both match an existing one. One
-// account per name (ignoring case); avatars may repeat. Guests from
-// before avatars existed have no avatar yet: they may claim their name once.
+// POST { name } (public) — does this first name already have an account? The login screen
+// then asks "is it you?" instead of the avatar step.
+export async function checkName (request, env) {
+  const body = await request.json().catch(() => ({}))
+  const name = cleanName(body.name)
+  if (!name) return json({ error: 'Merci d’indiquer un prénom.' }, { status: 400 })
+  const existing = await env.DB.prepare('SELECT name FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
+  return json({ exists: Boolean(existing), name: existing ? existing.name : name })
+}
+
+// POST { name, avatar } creates the account (one per name, ignoring case; avatars may repeat).
+// POST { name, confirm: true } logs back in to the existing account of that name ("yes, it's me",
+// no password for a regular guest). An account with admin rights also needs the admin
+// password ({ password }), and then also gets the admin token.
 export async function identify (request, env) {
   const body = await request.json().catch(() => ({}))
   const name = cleanName(body.name)
-  const avatar = parseAvatar(body.avatar)
   if (!name) return json({ error: 'Merci d’indiquer un prénom.' }, { status: 400 })
-  if (!avatar) return json({ error: 'Créez votre personnage.' }, { status: 400 })
 
   const existing = await env.DB.prepare('SELECT id, name, avatar, is_admin FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
-  const key = avatarKey(avatar)
 
-  // An account with admin rights is never reachable with just a name and an avatar: the
-  // admin password proves it is really them (and then also hands out the admin token).
-  let adminToken = null
-  if (existing && existing.is_admin) {
-    if (!body.password) return json({ code: 'password_required', error: 'Compte administrateur : entrez le mot de passe.' }, { status: 401 })
-    const refused = await verifyAdminPassword(request, env, body.password)
-    if (refused) return refused
-    adminToken = await signToken(env.ADMIN_TOKEN_SECRET, { role: 'admin' })
-    await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, existing.id).run()
-    const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: existing.id })
-    return json({ token, adminToken, name: existing.name, avatar, resumed: true })
-  }
-
-  if (existing && existing.avatar) {
-    // Same name and same avatar: this is the guest coming back (new phone, cleared browser).
-    // The avatar acts as the password; anything else is a different person wanting the name.
-    if (existing.avatar === key) {
-      const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: existing.id })
-      return json({ token, name: existing.name, avatar: avatarFromKey(existing.avatar), resumed: true })
+  if (existing) {
+    if (!body.confirm) {
+      return json({ code: 'name_taken', error: 'Ce prénom existe déjà.' }, { status: 409 })
     }
-    return json({ code: 'name_taken', error: 'Ce prénom est déjà pris. Si c’est vous, recréez exactement votre personnage pour vous reconnecter ; sinon ajoutez par exemple une initiale.' }, { status: 409 })
+    let adminToken = null
+    if (existing.is_admin) {
+      if (!body.password) return json({ code: 'password_required', error: 'Compte administrateur : entrez le mot de passe.' }, { status: 401 })
+      const refused = await verifyAdminPassword(request, env, body.password)
+      if (refused) return refused
+      adminToken = await signToken(env.ADMIN_TOKEN_SECRET, { role: 'admin' })
+    }
+    const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: existing.id })
+    return json({ token, ...(adminToken ? { adminToken } : {}), name: existing.name, avatar: avatarFromKey(existing.avatar), resumed: true })
   }
 
+  const avatar = parseAvatar(body.avatar)
+  if (!avatar) return json({ error: 'Créez votre personnage.' }, { status: 400 })
   try {
-    if (existing) await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, existing.id).run()
-    else await env.DB.prepare('INSERT INTO guests (name, avatar) VALUES (?, ?)').bind(name, key).run()
+    await env.DB.prepare('INSERT INTO guests (name, avatar) VALUES (?, ?)').bind(name, avatarKey(avatar)).run()
   } catch {
     // Lost a race on the unique name.
     return json({ code: 'name_taken', error: 'Ce prénom vient d’être pris, essayez autre chose.' }, { status: 409 })

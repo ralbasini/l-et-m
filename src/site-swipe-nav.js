@@ -47,6 +47,7 @@ if (embedded) {
   document.addEventListener('click', (event) => {
     const link = event.target instanceof Element && event.target.closest('a[href]')
     if (!link || link.target && link.target !== '_self') return
+    if (link.closest('.brand-footer-login')) return // opens the login screen (src/admin-access.js)
 
     const target = new URL(link.href, location.href)
     // In-page anchor (#programme…): the page handles it, not the shell.

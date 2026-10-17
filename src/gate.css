@@ -10,12 +10,23 @@ html.needs-login body > *:not(#gate) { visibility: hidden !important; }
 #gate form { display: flex; flex-direction: column; gap: 0.75rem; text-align: left; background: #fff; padding: 1.25rem; border-radius: 0.9rem; box-shadow: 0 6px 20px rgba(37, 37, 37, 0.08); }
 #gate label { font-weight: 600; }
 #gate input[type="text"], #gate input[type="password"] { font: inherit; font-size: 1.1rem; padding: 0.8rem 0.9rem; border: 1px solid rgba(37, 37, 37, 0.25); border-radius: 0.6rem; }
-#gate button { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 0.9rem 1.25rem; border: 0; border-radius: 0.6rem; background: #356d65; color: #fff; cursor: pointer; }
+#gate button { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 0.9rem 1.25rem; border: 0; border-radius: 0.6rem; background: #356d65; color: #fff !important; cursor: pointer; text-shadow: none; opacity: 1; }
 #gate button:hover { background: #2a5951; }
-#gate button.ghost, #gate button.ghost:hover { color: #252525; border: 1px solid rgba(37, 37, 37, 0.3); }
+#gate button.ghost, #gate button.ghost:hover { color: #252525 !important; border: 1px solid rgba(37, 37, 37, 0.3); }
 #gate button.ghost { background: transparent; }
 #gate button.ghost:hover { background: rgba(37, 37, 37, 0.08); }
-#gate button.chip { padding: 0.2rem; font-size: 1rem; background: #f2f5f2; color: inherit; }
+#gate button.chip { padding: 0.2rem; font-size: 1rem; background: #f2f5f2; color: inherit !important; }
 #gate button.chip.on { background: #e1ece8; }
 #gate button.chip:hover { background: #e4ebe5; }
 #gate .error { color: #a34848; font-weight: 600; margin: 0; }
+
+/* On the home page the theme (public/mariage main.css) styles every <button>: grey inset
+   outline, uppercase, wide padding, forced grey text. Undo all of it inside the login screen. */
+#gate button { box-shadow: none; text-transform: none; letter-spacing: normal; white-space: normal; line-height: 1.3; border-radius: 0.6rem; font-weight: 600; padding: 0.9rem 1.25rem; }
+#gate button:active { background-color: #234a44; }
+#gate button.ghost, #gate button.ghost:hover, #gate button.ghost:active { box-shadow: none; border: 1px solid rgba(37, 37, 37, 0.3); }
+#gate button.ghost:active { background: rgba(37, 37, 37, 0.14); }
+#gate button.chip { padding: 0.2rem; border-radius: 0.8rem; border: 2px solid transparent; }
+#gate button.chip.on { border-color: #356d65; }
+#gate #av-colors button.chip { border-radius: 50%; }
+#gate .confirm-text { margin: 0; font-size: 1.1rem; }

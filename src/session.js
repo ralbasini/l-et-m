@@ -63,8 +63,19 @@ export async function fetchMe () {
   }
 }
 
-export async function register (name, avatar, password) {
-  const data = await call('guest/identify', { method: 'POST', body: { name, avatar, ...(password ? { password } : {}) } })
+export async function register (name, avatar) {
+  const data = await call('guest/identify', { method: 'POST', body: { name, avatar } })
+  saveSession(data)
+  return data
+}
+
+export async function nameExists (name) {
+  return (await call('guest/check-name', { method: 'POST', body: { name } })).exists
+}
+
+// "Yes, it's me": log back in to the existing account (admin accounts also send the password).
+export async function confirmLogin (name, password) {
+  const data = await call('guest/identify', { method: 'POST', body: { name, confirm: true, ...(password ? { password } : {}) } })
   saveSession(data)
   return data
 }

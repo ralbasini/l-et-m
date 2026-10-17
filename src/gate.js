@@ -1,7 +1,7 @@
 import './avatar.css'
 import './gate.css'
 import { mountBuilder } from './avatar-builder.js'
-import { getSession, fetchMe, register, updateAvatar } from './session.js'
+import { getSession, fetchMe, register, nameExists, confirmLogin, updateAvatar } from './session.js'
 
 // The login screen: a name and an avatar, shared by the photo page and the quiz.
 // requireGuest() resolves with the session once the visitor has an account with an
@@ -11,9 +11,12 @@ import { getSession, fetchMe, register, updateAvatar } from './session.js'
 //   - { edit: true }: change the avatar of the current account (can be cancelled).
 let pending = null
 
-export function requireGuest ({ edit = false } = {}) {
+export function requireGuest ({ edit = false, login = false } = {}) {
   if (pending) return pending
   pending = (async () => {
+    // login: the footer's "login" link always shows the form (name, avatar and, for an
+    // administrator account, the password), even when another account is already active.
+    if (login) return showGate({ me: null, edit: false, cancellable: true })
     const me = await fetchMe()
     if (me && me.avatar && !edit) return me
     return showGate({ me, edit })
@@ -21,44 +24,79 @@ export function requireGuest ({ edit = false } = {}) {
   return pending
 }
 
-function showGate ({ me, edit }) {
+function showGate ({ me, edit, cancellable = false }) {
   return new Promise((resolve, reject) => {
-    const hasAccount = Boolean(me)
+    let hasAccount = Boolean(me)
+    // No account yet: two steps, first the name, then the avatar. With an account
+    // (editing, or an old account without an avatar) it goes straight to the avatar.
     const gate = document.createElement('div')
     gate.id = 'gate'
     gate.innerHTML = `
       <div class="gate-inner">
         <p class="brand">L<span>&amp;</span>M</p>
-        <h1>${edit ? 'Votre personnage' : hasAccount ? 'Bonjour !' : 'Bienvenue !'}</h1>
-        <p class="sub">${edit ? 'Changez votre look.' : hasAccount ? 'Créez votre personnage pour continuer.' : "Merci de renseigner ton nom, et choisir ton avatar !"}</p>
+        <h1 data-ref="title"></h1>
+        <p class="sub" data-ref="sub"></p>
         <form>
-          <div data-ref="builder"></div>
-          <div data-ref="nameField"${hasAccount ? ' hidden' : ''}>
+          <div data-ref="step1"${hasAccount ? ' hidden' : ''}>
             <label for="gate-name">Votre prénom</label>
-            <input id="gate-name" type="text" maxlength="20" autocomplete="given-name" placeholder="ex. Camille" ${hasAccount ? '' : 'required'}>
+            <input id="gate-name" type="text" maxlength="20" autocomplete="given-name" placeholder="Merci de renseigner ton prénom"${hasAccount ? '' : ' required'}>
           </div>
-          <div data-ref="pwField" hidden>
-            <label for="gate-pw">Mot de passe administrateur</label>
-            <input id="gate-pw" type="password" autocomplete="current-password">
+          <div data-ref="step2"${hasAccount ? '' : ' hidden'}>
+            <div data-ref="builder"></div>
+          </div>
+          <div data-ref="step3" hidden>
+            <p class="confirm-text" data-ref="confirmText"></p>
+            <div data-ref="pwField" hidden>
+              <label for="gate-pw">Mot de passe administrateur</label>
+              <input id="gate-pw" type="password" autocomplete="current-password">
+            </div>
           </div>
           <p class="error" data-ref="error" hidden></p>
-          <button type="submit" data-ref="submit">${edit || hasAccount ? 'Enregistrer' : 'Entrer'}</button>
-          ${edit ? '<button type="button" class="ghost" data-ref="cancel">Annuler</button>' : ''}
+          <button type="submit" data-ref="submit"></button>
+          <button type="button" class="ghost" data-ref="notme" hidden>Non, choisir un autre prénom</button>
         </form>
       </div>`
-    if (hasAccount && !edit) gate.querySelector('h1').textContent = `Bonjour ${me.name} !`
     const ref = (n) => gate.querySelector(`[data-ref="${n}"]`)
     // First login: just a random avatar, the settings open on request. Editing: settings open.
     const builder = mountBuilder(ref('builder'), me && me.avatar ? me.avatar : null, undefined, { collapsed: !edit && !(me && me.avatar) })
     document.body.append(gate)
     document.documentElement.classList.add('needs-login')
 
+    let step = hasAccount ? 2 : 1
+    function render () {
+      ref('step1').hidden = step !== 1
+      ref('step2').hidden = step !== 2
+      ref('step3').hidden = step !== 3
+      ref('notme').hidden = step !== 3
+      ref('error').hidden = true
+      if (step === 1) {
+        ref('title').textContent = 'Bienvenue cher invité !'
+        ref('sub').textContent = "A qui ai-je l'honneur ?"
+        ref('submit').textContent = 'Continuer'
+        gate.querySelector('#gate-name').focus()
+      } else if (step === 3) {
+        const typed = gate.querySelector('#gate-name').value.trim()
+        ref('title').textContent = 'Déjà connu !'
+        ref('sub').textContent = ''
+        ref('confirmText').textContent = `Un invité s'appelle déjà « ${typed} ». Est-ce bien vous ?`
+        ref('submit').textContent = "Oui, c'est moi"
+      } else {
+        ref('title').textContent = edit ? 'Votre avatar' : hasAccount ? `Bonjour ${me.name} !` : `Salut ${gate.querySelector('#gate-name').value.trim()} !`
+        ref('sub').textContent = edit ? 'Changez votre look.' : 'Choisis ton avatar !'
+        ref('submit').textContent = edit || hasAccount ? 'Enregistrer' : 'Entrer'
+      }
+    }
+    render()
+
     const close = () => {
       gate.remove()
       document.documentElement.classList.remove('needs-login')
     }
-    const cancel = ref('cancel')
-    if (cancel) cancel.addEventListener('click', () => { close(); reject(new Error('cancelled')) })
+    // No cancel button; when leaving is allowed (editing, or the footer's login), Esc closes it.
+    if (edit || cancellable) {
+      const onKey = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); close(); reject(new Error('cancelled')) } }
+      document.addEventListener('keydown', onKey)
+    }
 
     gate.querySelector('form').addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -67,17 +105,33 @@ function showGate ({ me, edit }) {
       error.hidden = true
       btn.disabled = true
       try {
-        if (hasAccount) await updateAvatar(builder.get())
-        else await register(gate.querySelector('#gate-name').value, builder.get(), gate.querySelector('#gate-pw').value)
+        if (step === 1) {
+          const typed = gate.querySelector('#gate-name').value.trim()
+          if (!typed) return
+          // A first name that already exists: ask "is it you?" instead of the avatar.
+          step = (await nameExists(typed)) ? 3 : 2
+          render()
+          return
+        }
+        if (step === 3) {
+          const s = await confirmLogin(gate.querySelector('#gate-name').value, gate.querySelector('#gate-pw').value)
+          if (!s.avatar) { // an old account without an avatar: pick one now
+            me = { name: s.name }; hasAccount = true; step = 2; render()
+            return
+          }
+        } else if (hasAccount) await updateAvatar(builder.get())
+        else await register(gate.querySelector('#gate-name').value, builder.get())
         close()
         resolve(getSession())
       } catch (err) {
         if (err.code === 'password_required') { ref('pwField').hidden = false; gate.querySelector('#gate-pw').focus() }
         error.textContent = err.message
         error.hidden = false
+      } finally {
         btn.disabled = false
       }
     })
+    ref('notme').addEventListener('click', () => { step = 1; render(); gate.querySelector('#gate-name').select() })
   })
 }
 

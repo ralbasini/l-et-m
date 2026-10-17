@@ -55,7 +55,17 @@ async function logout () {
 }
 
 document.addEventListener('click', (event) => {
-  if (event.target instanceof Element && event.target.closest('.brand-footer-logout')) logout()
+  if (!(event.target instanceof Element)) return
+  if (event.target.closest('.brand-footer-logout')) logout()
+  // The footer's "login" opens the login screen (name + avatar; an administrator
+  // account is then asked for the admin password), not the admin page.
+  if (event.target.closest('.brand-footer-login')) {
+    event.preventDefault()
+    import('./gate.js')
+      .then((m) => m.requireGuest({ login: true }))
+      .then(() => window.top.location.reload())
+      .catch(() => { /* cancelled */ })
+  }
 })
 
 // Embedded panels (iframes of the one-pager) share localStorage with the

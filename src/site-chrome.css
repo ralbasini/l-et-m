@@ -279,3 +279,12 @@ html.is-guest .site-nav .nav-burger, html.is-admin .site-nav .nav-burger { displ
 .nav-account .nav-exit { flex: none; display: grid; place-items: center; padding: 0.4rem; color: rgba(208, 218, 209, 0.45); border-radius: 0.5rem; }
 .nav-account .nav-exit:hover { color: #fff; background: #2b2b2b; }
 .nav-account .nav-admin-out { font-size: 0.8rem; color: rgba(208, 218, 209, 0.5); }
+
+/* Same theme reset for the account menu's buttons (the home page theme styles every <button>). */
+.nav-account button, .site-nav .nav-burger { box-shadow: none; text-transform: none; letter-spacing: normal; white-space: normal; }
+.nav-account button:hover, .nav-account button:active, .site-nav .nav-burger:hover, .site-nav .nav-burger:active { box-shadow: none; }
+.nav-account button { color: rgba(208, 218, 209, 0.9) !important; font-weight: 500; line-height: 1.3; border-radius: 0.5rem; }
+.nav-account button:hover { color: #fff !important; }
+.nav-account .nav-exit { color: rgba(208, 218, 209, 0.45) !important; }
+.nav-account .nav-exit:hover { color: #fff !important; }
+.nav-account .nav-admin-out { color: rgba(208, 218, 209, 0.5) !important; }
