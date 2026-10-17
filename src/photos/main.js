@@ -3,7 +3,9 @@ import { makeThumbnail } from '../thumbnail.js'
 import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
 import { requireGuest } from '../gate.js'
-import { clearSession } from '../session.js'
+import { clearSession, getSession } from '../session.js'
+import { avatarEl } from '../quiz/avatar.js'
+import '../avatar.css'
 
 // Guest photo upload, served from github.io but talking to the Cloudflare
 // Worker in cloudflare/ (see cloudflare/src/routes/guest.js). A guest's
@@ -97,12 +99,35 @@ const myPhotosCard = document.getElementById('my-photos')
 
 // "Logged out": the login screen (name + avatar) takes over until there is an account.
 function showNameStep () {
+  document.getElementById('profile-card').hidden = true
   uploadStep.hidden = true
   myPhotosCard.hidden = true
   requireGuest().then((s) => enterUploadStep(s.name)).catch(() => {})
 }
 
+// The profile card: avatar and name, change the avatar, log out.
+function renderProfile () {
+  const { name, avatar } = getSession()
+  const card = document.getElementById('profile-card')
+  document.getElementById('profile-name').textContent = name
+  document.getElementById('profile-avatar').replaceChildren(...(avatar ? [avatarEl(avatar)] : []))
+  card.hidden = false
+}
+document.getElementById('profile-edit').addEventListener('click', async () => {
+  try {
+    await requireGuest({ edit: true })
+    window.top.location.reload() // every panel picks up the new avatar
+  } catch { /* cancelled */ }
+})
+document.getElementById('profile-exit').addEventListener('click', () => {
+  clearSession()
+  const adminOut = document.documentElement.classList.contains('is-admin') && document.querySelector('.brand-footer-logout')
+  if (adminOut) adminOut.click() // an admin also logs out (goes back to the home page)
+  else window.top.location.replace(import.meta.env.BASE_URL)
+})
+
 function showUploadStep (guestName) {
+  renderProfile()
   uploadStep.hidden = false
   myPhotosCard.hidden = false
 }

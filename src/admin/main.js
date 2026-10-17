@@ -68,9 +68,34 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
 const loginView = document.getElementById('login-view')
 const dashboardView = document.getElementById('dashboard-view')
 
+// Not logged in as an administrator: the normal login screen (name, "is it you?", then the
+// admin password for an account with admin rights), never a separate admin password page.
+let signingIn = false
+async function adminSignIn () {
+  if (signingIn) return
+  signingIn = true
+  const err = document.getElementById('login-error')
+  err.hidden = true
+  try {
+    const { requireGuest } = await import('../gate.js')
+    await requireGuest({ login: true })
+    if (getToken()) {
+      // Land on the gallery (reloading the whole site so the menu updates); the
+      // dashboard is one click away via the Admin menu.
+      window.top.location.hash = 'galerie'
+      window.top.location.reload()
+    } else {
+      err.textContent = "Ce compte n'a pas les droits d'administrateur."
+      err.hidden = false
+    }
+  } catch { /* cancelled */ } finally { signingIn = false }
+}
+document.getElementById('admin-signin').addEventListener('click', adminSignIn)
+
 function showLogin () {
   loginView.hidden = false
   dashboardView.hidden = true
+  adminSignIn()
 }
 
 function showDashboard () {
@@ -207,13 +232,10 @@ menuPublicToggle.addEventListener('change', async () => {
 // ── Quiz switch ─────────────────────────────────────────────────
 const quizToggle = document.getElementById('quiz-enabled-toggle')
 const quizBadge = document.getElementById('quiz-badge')
-// The quiz is only really open when the site is public too.
 function renderQuiz () {
-  const open = quizToggle.checked && menuPublicToggle.checked
-  quizBadge.textContent = open ? 'Ouvert' : 'Fermé'
-  quizBadge.classList.toggle('is-public', open)
-  setQuizOn(open)
-  document.getElementById('quiz-private-hint').hidden = menuPublicToggle.checked
+  quizBadge.textContent = quizToggle.checked ? 'Ouvert' : 'Fermé'
+  quizBadge.classList.toggle('is-public', quizToggle.checked)
+  setQuizOn(quizToggle.checked)
 }
 quizToggle.addEventListener('change', async () => {
   const wanted = quizToggle.checked
@@ -223,7 +245,7 @@ quizToggle.addEventListener('change', async () => {
     const settings = await apiFetch('settings', { method: 'POST', json: { quizEnabled: wanted } })
     quizToggle.checked = Boolean(settings.quizEnabled)
     renderQuiz()
-    toast(settings.quizEnabled && menuPublicToggle.checked ? 'Le quiz est ouvert : il apparaît dans le menu.' : 'Le quiz est fermé.', true)
+    toast(settings.quizEnabled ? 'Le quiz est ouvert : il apparaît dans le menu.' : 'Le quiz est fermé.', true)
   } catch (err) {
     quizToggle.checked = !wanted
     renderQuiz()
@@ -290,27 +312,7 @@ function deleteUser (g) {
   }
 }
 
-// ── Login ───────────────────────────────────────────────────────
-const loginForm = document.getElementById('login-form')
-const loginError = document.getElementById('login-error')
-
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  loginError.hidden = true
-  const password = document.getElementById('password').value
-  try {
-    const data = await apiFetch('login', { method: 'POST', json: { password } })
-    setToken(data.token)
-    // Land on the gallery (reloading the whole site so the menu updates); the
-    // dashboard is one click away via the Admin menu.
-    window.top.location.hash = 'galerie'
-    window.top.location.reload()
-  } catch (err) {
-    loginError.textContent = err.message
-    loginError.hidden = false
-  }
-})
-
+// ── Logout ──────────────────────────────────────────────────────
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try { await apiFetch('logout', { method: 'POST' }) } catch {}
   clearToken()
@@ -1001,17 +1003,6 @@ lightbox.addEventListener('touchend', (e) => {
   if (Math.abs(dx) < 40) return
   lbShow(lbIndex + (dx < 0 ? 1 : -1))
 }, { passive: true })
-
-// ── Login: keep the button above the mobile keyboard ────────────
-// When the keyboard opens (focus, then the visual viewport shrinks), scroll
-// so "Se connecter" is visible, not hidden under it.
-const loginPassword = document.getElementById('password')
-const loginSubmit = document.querySelector('#login-form button[type="submit"]')
-function revealLoginButton () {
-  if (document.activeElement === loginPassword) loginSubmit.scrollIntoView({ block: 'end', behavior: 'smooth' })
-}
-loginPassword.addEventListener('focus', () => setTimeout(revealLoginButton, 300))
-window.visualViewport?.addEventListener('resize', revealLoginButton)
 
 // ── Init ────────────────────────────────────────────────────────
 if (getToken()) {

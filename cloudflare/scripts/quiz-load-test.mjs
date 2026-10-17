@@ -24,7 +24,7 @@ const API = URL_.replace(/^ws/, 'http').replace(/quiz\/ws.*$/, '')
 const adminHeaders = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 const post = (path, body, headers = { 'Content-Type': 'application/json' }) => fetch(API + path, { method: 'POST', headers, body: JSON.stringify(body) })
 const settingsBefore = await (await fetch(API + 'settings')).json()
-await post('admin/settings', { quizEnabled: true, menuPublic: true }, adminHeaders) // the quiz needs a public site
+await post('admin/settings', { quizEnabled: true }, adminHeaders)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0
@@ -165,6 +165,6 @@ await sleep(300)
 // Clean up: the throw-away guests, and the setting as it was.
 const { guests } = await (await fetch(API + 'admin/guests', { headers: adminHeaders })).json()
 for (const g of guests.filter((x) => x.name.startsWith(`LT${runId} `))) await post('admin/guest-delete', { id: g.id }, adminHeaders)
-await post('admin/settings', { quizEnabled: settingsBefore.quizEnabled, menuPublic: settingsBefore.menuPublic }, adminHeaders)
+await post('admin/settings', { quizEnabled: settingsBefore.quizEnabled }, adminHeaders)
 console.log(failures ? `\n${failures} check(s) FAILED` : '\nAll checks passed')
 process.exit(failures ? 1 : 0)

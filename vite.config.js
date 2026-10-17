@@ -50,10 +50,7 @@ function siteNav (current) {
     else if (quizOnly) attrs.push('data-quiz-only')
     return `<a ${attrs.join(' ')}>${label}</a>`
   })
-  // Account menu (top right): shown only once a guest account exists, see src/account-menu.js.
-  const burger = '<button type="button" class="nav-burger" aria-label="Mon compte" aria-expanded="false" aria-controls="nav-account"><span></span><span></span><span></span></button>' +
-    '<div id="nav-account" class="nav-account" hidden></div>'
-  return `<nav class="site-nav" aria-label="Navigation">${links.join('')}${burger}</nav>`
+  return `<nav class="site-nav" aria-label="Navigation">${links.join('')}</nav>`
 }
 
 const SITE_FOOTER = '<footer class="brand-footer" aria-label="Lobna et Martin">' +
@@ -61,7 +58,7 @@ const SITE_FOOTER = '<footer class="brand-footer" aria-label="Lobna et Martin">'
   // Only one of these two shows: login (to the admin page) when logged out,
   // logout when logged in (src/site-chrome.css; the logout click is handled
   // in src/admin-access.js).
-  `<a href="${base}admin/" class="brand-footer-action brand-footer-login">login</a>` +
+  `<a href="#" class="brand-footer-action brand-footer-login">login</a>` +
   '<button type="button" class="brand-footer-action brand-footer-logout">logout</button>' +
   '</footer>'
 
@@ -82,7 +79,10 @@ const CHROME_HEAD = '<script>try {' +
   " try { if (window.top === window) document.documentElement.classList.add('is-loading') } catch (e) {}</script>" +
   // Inline so it paints before any stylesheet has loaded. While loading, the
   // page is blank: only the menu, a spinner and the footer remain.
-  '<style>html.is-loading{background:#d0dad1}' +
+  // The menu stays hidden until site-chrome.css (linked later, same specificity) turns it on, and is
+  // never shown inside the home page's panels (iframes): without this an unstyled copy of the menu
+  // flashes (or stays) there while the stylesheet is still loading, e.g. on a slow phone.
+  '<style>.site-nav{display:none}html.is-embedded .site-nav{display:none!important}html.is-loading{background:#d0dad1}' +
   'html.is-loading body>*:not(.site-nav):not(.brand-footer):not(#page-loader):not(script):not(style):not(:has(.brand-footer)){display:none!important}' +
   'html.is-loading body>:has(.brand-footer)>*:not(.brand-footer){display:none!important}' +
   'html.is-loading body>:has(.brand-footer){flex:0 0 auto!important;height:auto!important}' +
@@ -105,8 +105,7 @@ const PAGE_LOADER = '<div id="page-loader" aria-hidden="true"><i></i></div>' +
 // admin-access.js refreshes the "menu public" setting from the server.
 const CHROME_HEAD_END = '<link rel="preconnect" href="https://l-et-m-api.romain-albasini.workers.dev">' +
   '<link rel="stylesheet" href="/site-chrome.css">' +
-  '<script type="module" src="/admin-access.js"></script>' +
-  '<script type="module" src="/account-menu.js"></script>'
+  '<script type="module" src="/admin-access.js"></script>'
 
 const siteChrome = {
   name: 'site-chrome',

@@ -133,3 +133,14 @@ main {
 
 /* The two-line greeting above the name field: a bit more room before it. */
 #name-form label[for="name"] { margin-bottom: 1rem; line-height: 1.5; }
+
+/* Profile card */
+.profile-card { display: flex; flex-direction: column; gap: 0.75rem; }
+.profile-who { display: flex; align-items: center; gap: 0.8rem; }
+.profile-who .avatar { width: 3.4rem; }
+.profile-who strong { flex: 1; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-card button { box-shadow: none; text-transform: none; letter-spacing: normal; }
+.profile-exit { padding: 0.45rem; color: rgba(37, 37, 37, 0.4); background: transparent; border: 0; border-radius: 0.5rem; cursor: pointer; display: grid; place-items: center; }
+.profile-exit:hover { color: #252525; background: rgba(37, 37, 37, 0.08); }
+.ghost-btn { padding: 0.7rem 1rem; font: inherit; font-weight: 600; color: #252525; background: transparent; border: 1px solid rgba(37, 37, 37, 0.3); border-radius: 0.6rem; cursor: pointer; }
+.ghost-btn:hover { background: rgba(37, 37, 37, 0.08); }
