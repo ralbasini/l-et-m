@@ -11,6 +11,14 @@ import { getSession, fetchMe, register, nameExists, confirmLogin, updateAvatar }
 //   - { edit: true }: change the avatar of the current account (can be cancelled).
 let pending = null
 
+// While a login screen is up, the site menu is hidden. The screen can live inside a panel
+// (iframe) of the home page, so the class goes on the top page as well (same origin).
+function gateOpen (on) {
+  for (const win of new Set([window, window.top])) {
+    try { win.document.documentElement.classList.toggle('gate-open', on) } catch { /* cross-origin */ }
+  }
+}
+
 export function requireGuest ({ edit = false, login = false } = {}) {
   if (pending) return pending
   pending = (async () => {
@@ -61,6 +69,7 @@ function showGate ({ me, edit, cancellable = false }) {
     const builder = mountBuilder(ref('builder'), me && me.avatar ? me.avatar : null, undefined, { collapsed: !edit && !(me && me.avatar) })
     document.body.append(gate)
     document.documentElement.classList.add('needs-login')
+    gateOpen(true)
 
     let step = hasAccount ? 2 : 1
     function render () {
@@ -91,6 +100,7 @@ function showGate ({ me, edit, cancellable = false }) {
     const close = () => {
       gate.remove()
       document.documentElement.classList.remove('needs-login')
+      gateOpen(false)
     }
     // No cancel button; when leaving is allowed (editing, or the footer's login), Esc closes it.
     if (edit || cancellable) {
@@ -153,7 +163,8 @@ export function pickAvatar (initial, title = 'Personnage') {
     gate.querySelector('h1').textContent = title
     const builder = mountBuilder(gate.querySelector('[data-ref="builder"]'), initial)
     document.body.append(gate)
-    gate.querySelector('[data-ref="cancel"]').addEventListener('click', () => { gate.remove(); reject(new Error('cancelled')) })
-    gate.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); gate.remove(); resolve(builder.get()) })
+    gateOpen(true)
+    gate.querySelector('[data-ref="cancel"]').addEventListener('click', () => { gate.remove(); gateOpen(false); reject(new Error('cancelled')) })
+    gate.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); gate.remove(); gateOpen(false); resolve(builder.get()) })
   })
 }

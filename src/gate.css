@@ -30,3 +30,6 @@ html.needs-login body > *:not(#gate) { visibility: hidden !important; }
 #gate button.chip.on { border-color: #356d65; }
 #gate #av-colors button.chip { border-radius: 50%; }
 #gate .confirm-text { margin: 0; font-size: 1.1rem; }
+/* The home page theme makes labels and inputs inline: stack them, full width. */
+#gate label { display: block; margin: 0 0 0.35rem; }
+#gate input[type="text"], #gate input[type="password"] { display: block; width: 100%; height: auto; }

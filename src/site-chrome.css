@@ -230,3 +230,7 @@ html:not(.is-admin) .brand-footer-logout { display: none; }
 :-webkit-full-screen .brand-footer {
   display: none;
 }
+
+/* A login screen is up (src/gate.js): no menu, and no space reserved for it. */
+html.gate-open .site-nav { display: none !important; }
+html.gate-open { --site-nav-height: 0px; --site-nav-offset: 0px; }
