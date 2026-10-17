@@ -4,6 +4,7 @@ import { setMenuPublic, setQuizOn, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin
 import { avatarEl } from '../quiz/avatar.js'
 import '../avatar.css'
 import { toast } from '../toast.js'
+import { clearSession } from '../session.js'
 import '../site-swipe-nav.js'
 
 // Admin panel for the wedding photos, served from github.io but talking to
@@ -333,6 +334,7 @@ function deleteUser (g) {
 document.getElementById('logout-btn').addEventListener('click', async () => {
   try { await apiFetch('logout', { method: 'POST' }) } catch {}
   clearToken()
+  clearSession() // the guest account too: a full logout, the menu goes back to the private view
   // Back to the base page (a full load of the top window, so the menu resets).
   window.top.location.replace(import.meta.env.BASE_URL)
 })

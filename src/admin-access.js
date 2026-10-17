@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './photos.js'
+import { clearSession } from './session.js'
 
 // Galerie / Photos menu entries (marked `data-admin-only`) are shown
 // when either:
@@ -49,6 +50,7 @@ async function logout () {
     })
   } catch {}
   try { localStorage.removeItem(ADMIN_TOKEN_KEY) } catch {}
+  clearSession() // the guest account too: a full logout
   document.documentElement.classList.remove('is-admin')
   // Back to the base page, whichever panel this was clicked in.
   window.top.location.replace(import.meta.env.BASE_URL)
