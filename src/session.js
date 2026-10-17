@@ -86,3 +86,18 @@ export async function updateAvatar (avatar) {
   saveSession({ ...s, avatar: data.avatar })
   return getSession()
 }
+
+// The one logout, used by every logout control (footer, admin page, photos profile):
+// the admin session and the guest account both end, in this browser, for every page.
+// The server call is best effort (tokens are stateless). Then the home page is loaded
+// afresh — the top window too when this runs inside one of its panels.
+export async function logoutAll () {
+  const adminToken = read('lm_admin_token')
+  if (adminToken) {
+    try { await fetch(API_BASE_URL + 'admin/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + adminToken } }) } catch { /* offline */ }
+  }
+  try { localStorage.removeItem('lm_admin_token') } catch { /* ignore */ }
+  clearSession()
+  document.documentElement.classList.remove('is-admin', 'is-guest')
+  window.top.location.replace(import.meta.env.BASE_URL)
+}

@@ -3,7 +3,7 @@ import { makeThumbnail } from '../thumbnail.js'
 import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
 import { requireGuest } from '../gate.js'
-import { clearSession, getSession } from '../session.js'
+import { clearSession, getSession, logoutAll } from '../session.js'
 import { avatarEl } from '../quiz/avatar.js'
 import '../avatar.css'
 
@@ -119,12 +119,7 @@ document.getElementById('profile-edit').addEventListener('click', async () => {
     window.top.location.reload() // every panel picks up the new avatar
   } catch { /* cancelled */ }
 })
-document.getElementById('profile-exit').addEventListener('click', () => {
-  clearSession()
-  const adminOut = document.documentElement.classList.contains('is-admin') && document.querySelector('.brand-footer-logout')
-  if (adminOut) adminOut.click() // an admin also logs out (goes back to the home page)
-  else window.top.location.replace(import.meta.env.BASE_URL)
-})
+document.getElementById('profile-exit').addEventListener('click', logoutAll)
 
 function showUploadStep (guestName) {
   renderProfile()

@@ -1,5 +1,5 @@
 import { API_BASE_URL } from './photos.js'
-import { clearSession } from './session.js'
+import { logoutAll } from './session.js'
 
 // Galerie / Photos menu entries (marked `data-admin-only`) are shown
 // when either:
@@ -35,30 +35,17 @@ export function isShown (link) {
   return getComputedStyle(link).display !== 'none'
 }
 
-// The footer's "logout" button (only shown when logged in — see
-// src/site-chrome.css). Same as the admin dashboard's "Se déconnecter":
-// tell the server (best effort, tokens are stateless anyway), forget the
-// token, then go to the home page (a full load, so every admin-only entry
-// hides again) — the top page too when clicked inside one of its panels.
-async function logout () {
-  let token = ''
-  try { token = localStorage.getItem(ADMIN_TOKEN_KEY) || '' } catch {}
-  try {
-    await fetch(API_BASE_URL + 'admin/logout', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + token },
-    })
-  } catch {}
-  try { localStorage.removeItem(ADMIN_TOKEN_KEY) } catch {}
-  clearSession() // the guest account too: a full logout
-  document.documentElement.classList.remove('is-admin')
-  // Back to the base page, whichever panel this was clicked in.
-  window.top.location.replace(import.meta.env.BASE_URL)
-}
+// The footer's "logout" button (only shown when logged in — see src/site-chrome.css):
+// the shared logout, src/session.js.
+
+// Logging out in one tab logs out every other open tab of the site too.
+window.addEventListener('storage', (e) => {
+  if (window.parent === window && (e.key === ADMIN_TOKEN_KEY || e.key === 'lm_guest_token') && e.oldValue && !e.newValue) location.reload()
+})
 
 document.addEventListener('click', (event) => {
   if (!(event.target instanceof Element)) return
-  if (event.target.closest('.brand-footer-logout')) logout()
+  if (event.target.closest('.brand-footer-logout')) logoutAll()
   // The footer's "login" opens the login screen (name + avatar; an administrator
   // account is then asked for the admin password), not the admin page.
   if (event.target.closest('.brand-footer-login')) {
