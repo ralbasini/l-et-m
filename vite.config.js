@@ -67,7 +67,8 @@ const SITE_FOOTER = '<footer class="brand-footer" aria-label="Lobna et Martin">'
 // html.menu-public from the last value src/admin-access.js cached.
 const CHROME_HEAD = '<script>try {' +
   " if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin');" +
-  " if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public');" +
+  // A logged-in guest is treated like a public site, whatever the setting says.
+  " if (localStorage.getItem('lm_menu_public') === '1' || localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('menu-public');" +
   " if (localStorage.getItem('lm_quiz_enabled') === '1') document.documentElement.classList.add('quiz-on');" +
   " if (localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('is-guest');" +
   // No account yet: hide the page (menu included) until we know whether the site is public.

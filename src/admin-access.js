@@ -24,7 +24,8 @@ export function setQuizOn (on) {
 }
 
 export function setMenuPublic (on) {
-  document.documentElement.classList.toggle('menu-public', on)
+  // A logged-in guest sees the site as public, whatever the setting says.
+  document.documentElement.classList.toggle('menu-public', on || document.documentElement.classList.contains('is-guest'))
   try { localStorage.setItem(MENU_PUBLIC_KEY, on ? '1' : '0') } catch {}
 }
 

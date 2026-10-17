@@ -57,9 +57,10 @@ if (window.parent !== window) {
 
   function render () {
     // A private site (not made public from the dashboard) shows only Mariage to visitors,
-    // even for a direct #galerie / #photos link; logged-in admins see everything.
+    // even for a direct #galerie / #photos link; logged-in admins and guests (who see those menu entries,
+    // see site-chrome.css) can open them.
     const root = document.documentElement
-    const open = root.classList.contains('menu-public') || root.classList.contains('is-admin')
+    const open = root.classList.contains('menu-public') || root.classList.contains('is-admin') || root.classList.contains('is-guest')
     const requested = location.hash.slice(1)
     const page = pages.includes(requested) && (open || requested === 'mariage') ? requested : 'mariage'
     const index = pages.indexOf(page)

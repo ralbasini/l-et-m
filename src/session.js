@@ -21,7 +21,7 @@ export function saveSession ({ token, adminToken, name, avatar }) {
   if (adminToken) { write('lm_admin_token', adminToken); document.documentElement.classList.add('is-admin') } // admin rights: the admin menu
   if (name) write(NAME_KEY, name)
   if (avatar) write(AVATAR_KEY, JSON.stringify(avatar))
-  document.documentElement.classList.add('is-guest') // shows the account menu
+  document.documentElement.classList.add('is-guest', 'menu-public') // a guest sees the site as public
 }
 
 export function clearSession () {
