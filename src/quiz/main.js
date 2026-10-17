@@ -77,7 +77,7 @@ const setEnded = (on) => document.documentElement.classList.toggle('quiz-ended',
 
 function onMessage (m) {
   setEnded(m.t === 'final')
-  if (m.t !== 'ack' && m.t !== 'result') stopRoam()
+  if (['question', 'final', 'error'].includes(m.t)) stopRoam() // not on 'pong' (every 30 s) or 'profile'
   switch (m.t) {
     case 'joined':
       name = m.name
@@ -89,11 +89,11 @@ function onMessage (m) {
       break
     case 'profile':
       name = m.name; av = m.av
-      $('wait-title').textContent = `C'est noté, ${name} !`
+      $('wait-title').textContent = `On y est presque, ${name} !`
       break
     case 'lobby':
       stopTimer(); current = null
-      $('wait-title').textContent = `C'est noté, ${name} !`
+      $('wait-title').textContent = `On y est presque, ${name} !`
       show('wait')
       onStage('wait-avatar', 'happy')
       break
