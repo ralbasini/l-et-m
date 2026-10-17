@@ -9,6 +9,16 @@ const $ = (id) => document.getElementById(id)
 const screens = [...document.querySelectorAll('.screen')]
 const show = (id) => screens.forEach((s) => { s.hidden = s.id !== `screen-${id}` })
 
+// Administrators (a guest account with admin rights logs in with the admin password) get the
+// admin token, which is what authorises the host. No token: offer the login screen.
+$('auth-login').addEventListener('click', async () => {
+  try {
+    const gate = await import('../gate.js')
+    await gate.requireGuest({ login: true })
+    location.reload()
+  } catch { /* cancelled */ }
+})
+
 let token = ''
 try { token = localStorage.getItem(ADMIN_TOKEN_KEY) || '' } catch { /* ignore */ }
 
@@ -347,7 +357,7 @@ function onMessage (m, send) {
   if (['lobby', 'question', 'reveal'].includes(m.t)) stopFinale() // not on 'tally', which keeps arriving
   switch (m.t) {
     case 'error':
-      $('auth-text').textContent = 'Session expirée : reconnectez-vous à l\'administration, puis rechargez cette page.'
+      $('auth-text').textContent = "Session expirée : reconnectez-vous avec un compte administrateur."
       show('auth')
       break
     case 'lobby':

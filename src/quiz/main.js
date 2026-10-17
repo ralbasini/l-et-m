@@ -168,6 +168,9 @@ ${name} !`
   if (m.t !== 'result' && m.t !== 'final') delete document.body.dataset.result
 }
 
+// Administrators get a way to the host (projector) page from here.
+try { if (localStorage.getItem('lm_admin_token')) $('host-link-wrap').hidden = false } catch { /* ignore */ }
+
 async function boot () {
   // Quiz closed: say so, without asking anyone to log in.
   try {

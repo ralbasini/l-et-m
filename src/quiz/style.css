@@ -264,3 +264,8 @@ html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1r
 .result-options .opt > img { aspect-ratio: 16 / 7; }
 .opt .label { overflow-wrap: anywhere; line-height: 1.3; }
 #wait-title { white-space: pre-line; }
+.host-link-wrap { margin-top: 1.5rem; }
+/* Same outlined look as "Lancer le diaporama" on /galerie/. */
+.host-link { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: fit-content; margin: 0 auto; padding: 0.55rem 1.1rem; background: transparent; color: #356d65; border: 1px solid rgba(53, 109, 101, 0.45); border-radius: 0.4rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-decoration: none; transition: color 0.2s, background-color 0.2s, border-color 0.2s; }
+.host-link:hover { background: rgba(53, 109, 101, 0.08); border-color: #356d65; color: #2a5951; }
+.host-link svg { width: 0.9rem; height: 0.9rem; flex: none; }
