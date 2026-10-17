@@ -17,6 +17,15 @@ const N = Number(process.env.PLAYERS || 100)
 const QUESTIONS = JSON.parse(readFileSync(new URL('../src/quiz/questions.json', import.meta.url)))
 const token = process.env.ADMIN_TOKEN || await signToken(process.env.ADMIN_TOKEN_SECRET || 'dev-only-admin-secret-change-me', { role: 'admin' })
 
+// Players are real guest accounts (name + avatar in D1), created through the HTTP API
+// and deleted again at the end. The quiz must be open: the test switches it on and
+// restores the previous setting.
+const API = URL_.replace(/^ws/, 'http').replace(/quiz\/ws.*$/, '')
+const adminHeaders = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+const post = (path, body, headers = { 'Content-Type': 'application/json' }) => fetch(API + path, { method: 'POST', headers, body: JSON.stringify(body) })
+const settingsBefore = await (await fetch(API + 'settings')).json()
+await post('admin/settings', { quizEnabled: true }, adminHeaders)
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 let failures = 0
 function check (cond, label) { if (!cond) { failures++; console.error('FAIL:', label) } }
@@ -63,9 +72,12 @@ const runId = Math.random().toString(36).slice(2, 8)
 for (let i = 0; i < N; i++) {
   const c = new Client('p' + i)
   c.pid = `lt-${runId}-${String(i).padStart(4, '0')}`
-  c.name = 'Joueur ' + i
+  c.name = `LT${runId} ${i}`
+  const res = await post('guest/identify', { name: c.name, avatar: [i % 8, Math.floor(i / 8) % 13, Math.floor(i / 104) % 9] })
+  c.token = (await res.json()).token
+  check(Boolean(c.token), `guest ${i} created`)
   await c.open()
-  c.send({ t: 'join', pid: c.pid, name: c.name, av: [i % 8, Math.floor(i / 8) % 8, Math.floor(i / 64) % 8] })
+  c.send({ t: 'join', token: c.token })
   players.push(c)
   if (i % 20 === 19) await sleep(50)
 }
@@ -74,14 +86,14 @@ console.log(`${N} players joined in ${Date.now() - t0} ms`)
 
 // A duplicate name is refused.
 {
-  const dup = new Client('dup'); await dup.open()
-  dup.send({ t: 'join', pid: `dup-${runId}-0001`, name: 'joueur 3', av: [7, 7, 7] })
-  check((await dup.next('error')).code === 'name_taken', 'duplicate name is rejected')
-  dup.ws.close()
-  const dup2 = new Client('dup2'); await dup2.open()
-  dup2.send({ t: 'join', pid: `dup-${runId}-0002`, name: 'Nouveau', av: [3 % 8, 0, 0] })
-  check((await dup2.next('error')).code === 'avatar_taken', 'duplicate avatar is rejected')
-  dup2.ws.close()
+  const dup = await (await post('guest/identify', { name: `lt${runId} 3`.toUpperCase(), avatar: [7, 12, 8] })).json()
+  check(dup.code === 'name_taken', 'duplicate name (any case) is rejected')
+  const dup2 = await (await post('guest/identify', { name: `Nouveau ${runId}`, avatar: [3, 0, 0] })).json()
+  check(dup2.code === 'avatar_taken', 'duplicate avatar is rejected')
+  const anon = new Client('anon'); await anon.open()
+  anon.send({ t: 'join', token: 'nope' })
+  check((await anon.next('error')).code === 'login_required', 'a phone without a login is refused')
+  anon.ws.close()
 }
 await sleep(300)
 check(host.last('tally').players === N, `host sees ${N} players (saw ${host.last('tally').players})`)
@@ -104,7 +116,8 @@ for (let q = 0; q < QUESTIONS.length; q++) {
       const back = new Client(c.label)
       back.pid = c.pid; back.name = c.name
       await back.open()
-      back.send({ t: 'join', pid: c.pid, name: 'ignored-on-rejoin' })
+      back.token = c.token
+      back.send({ t: 'join', token: c.token })
       check((await back.next('question')).q === 0, 'a reconnecting phone gets the live question back')
       players[i] = back
       c = back
@@ -151,5 +164,9 @@ console.log(`winner: ${final.top[0].n} with ${final.top[0].s} points`)
 host.send({ t: 'cmd', c: 'reset' })
 await sleep(300)
 ;[host, ...players].forEach((c) => c.ws.close())
+// Clean up: the throw-away guests, and the setting as it was.
+const { guests } = await (await fetch(API + 'admin/guests', { headers: adminHeaders })).json()
+for (const g of guests.filter((x) => x.name.startsWith(`LT${runId} `))) await post('admin/guest-delete', { id: g.id }, adminHeaders)
+await post('admin/settings', { quizEnabled: settingsBefore.quizEnabled }, adminHeaders)
 console.log(failures ? `\n${failures} check(s) FAILED` : '\nAll checks passed')
 process.exit(failures ? 1 : 0)

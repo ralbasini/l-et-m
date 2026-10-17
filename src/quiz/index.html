@@ -17,22 +17,10 @@
   <main>
     <p class="brand">L<span>&amp;</span>M</p>
 
-    <section id="screen-join" class="screen" hidden>
-      <h1>Le grooond quiz du mariage</h1>
-      <form id="join-form">
-        <div id="av-preview" class="av-preview"></div>
-        <div class="av-group"><span class="av-label">Animal</span><div id="av-animals" class="av-choices"></div></div>
-        <div class="av-group"><span class="av-label">Pelage</span><div id="av-colors" class="av-choices"></div></div>
-        <div class="av-group"><span class="av-label">Accessoire</span><div id="av-acc" class="av-choices"></div></div>
-        <button type="button" id="av-random" class="ghost">🎲 Au hasard</button>
-        <div id="name-field" class="name-field">
-          <label for="name">Votre prénom</label>
-          <input id="name" type="text" maxlength="20" autocomplete="given-name" placeholder="ex. Camille" required>
-        </div>
-        <p id="join-error" class="error" hidden></p>
-        <button type="submit" id="join-submit">Rejoindre</button>
-        <button type="button" id="edit-cancel" class="ghost" hidden>Annuler</button>
-      </form>
+    <section id="screen-closed" class="screen" hidden>
+      <h1>Quiz fermé</h1>
+      <p id="closed-text">Le quiz n'est pas encore ouvert. Revenez dans un moment !</p>
+      <p><a href="/">Retour au site</a></p>
     </section>
 
     <section id="screen-wait" class="screen" hidden>

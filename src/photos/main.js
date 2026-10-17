@@ -2,19 +2,21 @@ import { API_BASE_URL, photoUrl, loadThumb } from '../photos.js'
 import { makeThumbnail } from '../thumbnail.js'
 import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
+import { requireGuest } from '../gate.js'
+import { clearSession } from '../session.js'
 
 // Guest photo upload, served from github.io but talking to the Cloudflare
 // Worker in cloudflare/ (see cloudflare/src/routes/guest.js). A guest's
 // identity is a bearer token in localStorage (guest id + HMAC signature,
 // verified server-side) rather than a cookie: cross-site cookies get
 // silently blocked by some browsers' privacy modes. Per-browser identity:
-// switching devices still goes through the "Oui, c'est moi" collision flow.
+// the account (name + avatar) is created on the login screen, src/gate.js, shared with the quiz.
 const API = API_BASE_URL + 'guest/'
 const TOKEN_KEY = 'lm_guest_token'
 
 function getToken () { return localStorage.getItem(TOKEN_KEY) || '' }
 function setToken (token) { localStorage.setItem(TOKEN_KEY, token) }
-function clearToken () { localStorage.removeItem(TOKEN_KEY) }
+function clearToken () { clearSession() }
 
 // `retryable` marks failures worth trying again as-is: the connection
 // dropped, or the server/proxy was overloaded (5xx, 408, 429). Note that a
@@ -90,87 +92,24 @@ async function apiFetch (path, { method = 'GET', json, formData } = {}) {
 }
 
 // ── Steps ─────────────────────────────────────────────────────
-const nameStep = document.getElementById('name-step')
-const collisionStep = document.getElementById('collision-step')
 const uploadStep = document.getElementById('upload-step')
 const myPhotosCard = document.getElementById('my-photos')
 
+// "Logged out": the login screen (name + avatar) takes over until there is an account.
 function showNameStep () {
-  nameStep.hidden = false
-  collisionStep.hidden = true
   uploadStep.hidden = true
   myPhotosCard.hidden = true
-}
-
-function showCollisionStep (pendingName) {
-  document.getElementById('collision-name').textContent = pendingName
-  nameStep.hidden = true
-  collisionStep.hidden = false
-  uploadStep.hidden = true
-  myPhotosCard.hidden = true
+  requireGuest().then((s) => enterUploadStep(s.name)).catch(() => {})
 }
 
 function showUploadStep (guestName) {
   document.getElementById('guest-name-label').textContent = guestName
-  nameStep.hidden = true
-  collisionStep.hidden = true
   uploadStep.hidden = false
   myPhotosCard.hidden = false
 }
 
-// ── Name step ─────────────────────────────────────────────────
-const nameForm = document.getElementById('name-form')
-const nameError = document.getElementById('name-error')
-
-// "Continuer" only shows once a name has been typed (Enter works anyway).
-const nameInput = document.getElementById('name')
-const nameSubmitBtn = document.getElementById('name-submit')
-function updateNameSubmit () {
-  nameSubmitBtn.hidden = nameInput.value.trim() === ''
-}
-nameInput.addEventListener('input', updateNameSubmit)
-// After a reset (e.g. "ce n'est pas moi"), once the field is actually cleared.
-nameForm.addEventListener('reset', () => setTimeout(updateNameSubmit))
-
-nameForm.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  nameError.hidden = true
-  const name = document.getElementById('name').value
-  try {
-    const data = await apiFetch('identify', { method: 'POST', json: { name } })
-    if (data.status === 'collision') {
-      showCollisionStep(data.pendingName)
-    } else {
-      setToken(data.token)
-      await enterUploadStep(data.name)
-    }
-  } catch (err) {
-    nameError.textContent = err.message
-    nameError.hidden = false
-  }
-})
-
-document.getElementById('collision-yes').addEventListener('click', async () => {
-  const pendingName = document.getElementById('collision-name').textContent
-  try {
-    const data = await apiFetch('identify', { method: 'POST', json: { confirm_name: pendingName } })
-    setToken(data.token)
-    await enterUploadStep(data.name)
-  } catch (err) {
-    toast(err.message, false)
-    showNameStep()
-  }
-})
-
-document.getElementById('collision-no').addEventListener('click', () => {
-  nameForm.reset()
-  showNameStep()
-})
-
 document.getElementById('not-me-btn').addEventListener('click', () => {
-  clearToken()
-  nameForm.reset()
-  showNameStep()
+  requireGuest({ edit: true }).catch(() => {})
 })
 
 // ── Upload step ───────────────────────────────────────────────

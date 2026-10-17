@@ -69,6 +69,11 @@ runs it from a big screen. No new secret, no new service.
 - **Where**: `/quiz/` (players — put this address or a QR code on the tables)
   and `/quiz/host/` (the projector; it needs you to be logged in at `/admin/`
   in the same browser — that login is what makes you the host).
+- **Players** are the guest accounts (name + avatar, in D1, same as the photo page):
+  they log in once, the quiz reads the account on join. The admin opens the quiz from
+  the dashboard ("Quiz" switch), which also adds "Quiz" to the menu. **Existing database:**
+  `wrangler d1 execute lobna-et-martin --remote --command "ALTER TABLE guests ADD COLUMN avatar TEXT"`
+  then `... "CREATE UNIQUE INDEX idx_guests_avatar ON guests(avatar)"` (never applied by CI).
 - **How it runs**: one Durable Object per room (`src/quiz/room.js`), reached
   over a WebSocket at `/quiz/ws` on the Worker. The server owns the clock and
   the scoring. Scores survive restarts. `?room=name` on the pages (and the

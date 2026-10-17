@@ -31,6 +31,7 @@ const NAV_ITEMS = [
   { page: 'mariage', label: 'Mariage', href: base },
   { page: 'galerie', label: 'Galerie', href: `${base}#galerie`, adminOnly: true },
   { page: 'photos', label: 'Photos', href: `${base}#photos`, adminOnly: true },
+  { page: 'quiz', label: 'Quiz', href: `${base}quiz/`, quizOnly: true },
   { page: 'admin', label: 'Admin', href: `${base}#admin`, loggedInOnly: true },
 ]
 
@@ -41,11 +42,12 @@ function currentPage (htmlPath) {
 }
 
 function siteNav (current) {
-  const links = NAV_ITEMS.map(({ page, label, href, adminOnly, loggedInOnly }) => {
+  const links = NAV_ITEMS.map(({ page, label, href, adminOnly, loggedInOnly, quizOnly }) => {
     const attrs = [`href="${href}"`, `data-page="${page}"`]
     if (page === current) attrs.push('class="is-current"', 'aria-current="page"')
     else if (adminOnly) attrs.push('data-admin-only')
     else if (loggedInOnly) attrs.push('data-logged-in-only')
+    else if (quizOnly) attrs.push('data-quiz-only')
     return `<a ${attrs.join(' ')}>${label}</a>`
   })
   return `<nav class="site-nav" aria-label="Navigation">${links.join('')}</nav>`
@@ -65,7 +67,10 @@ const SITE_FOOTER = '<footer class="brand-footer" aria-label="Lobna et Martin">'
 // html.menu-public from the last value src/admin-access.js cached.
 const CHROME_HEAD = '<script>try {' +
   " if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin');" +
-  " if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public')" +
+  " if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public');" +
+  " if (localStorage.getItem('lm_quiz_enabled') === '1') document.documentElement.classList.add('quiz-on');" +
+  // Public site and no account yet: hide the page until the login screen (src/gate.js) is up.
+  " if (window.top === window && localStorage.getItem('lm_menu_public') === '1' && !localStorage.getItem('lm_admin_token') && !localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('needs-login')" +
   ' } catch (e) {}' +
   // Loading screen: top-level pages only (the home panels are iframes).
   " try { if (window.top === window) document.documentElement.classList.add('is-loading') } catch (e) {}</script>" +

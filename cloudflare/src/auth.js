@@ -67,7 +67,7 @@ export function guestOnly (handler) {
   return async (request, env) => {
     const payload = await verifyToken(env.GUEST_TOKEN_SECRET, getBearerToken(request))
     const guest = payload && payload.guestId
-      ? await env.DB.prepare('SELECT id, name FROM guests WHERE id = ?').bind(payload.guestId).first()
+      ? await env.DB.prepare('SELECT id, name, avatar FROM guests WHERE id = ?').bind(payload.guestId).first()
       : null
     if (!guest) return json({ error: 'Session expirée, merci de recommencer.' }, { status: 401 })
     return handler(request, env, guest)

@@ -16,8 +16,13 @@ CREATE TABLE folders (
 CREATE TABLE guests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
+  avatar TEXT,               -- "animal.colour.accessory" (see src/avatar.js); NULL for guests from before avatars
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- One player per avatar combination. Existing database: apply with
+--   wrangler d1 execute lobna-et-martin --remote --command "ALTER TABLE guests ADD COLUMN avatar TEXT"
+--   wrangler d1 execute lobna-et-martin --remote --command "CREATE UNIQUE INDEX idx_guests_avatar ON guests(avatar)"
+CREATE UNIQUE INDEX idx_guests_avatar ON guests(avatar);
 
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

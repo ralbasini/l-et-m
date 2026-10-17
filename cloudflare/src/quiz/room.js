@@ -1,36 +1,26 @@
 import { DurableObject } from 'cloudflare:workers'
 import { verifyToken } from '../auth.js'
 import QUESTIONS from './questions.json'
+import { avatarFromKey } from '../avatar.js'
+import { isQuizEnabled } from '../routes/settings.js'
 
 // One game room (a Durable Object). The host drives it (start / reveal / next),
-// players join with a name and answer; the server owns the clock and the
+// players join with their guest login (name + avatar live in D1, shared with the photo page) and answer; the server owns the clock and the
 // scoring, so a slow phone can't change its own timing. State is written to
 // the object's storage as it changes, because a hibernated object (no
 // messages for a while) loses its memory but must still know the scores.
 //
 // Wire format: JSON text frames, always { t: <type>, ... }.
-//   client -> server: host {token} | join {pid,name} | answer {q,c} | cmd {c} | ping
+//   client -> server: host {token} | join {token} | refresh | answer {q,c} | cmd {c} | ping
 //   server -> client: lobby | question | ack | tally | reveal | result | final | error
 
-const NAME_MAX = 20
 const MAX_PLAYERS = 300
 const DEFAULT_SECONDS = 20
 const MAX_POINTS = 1000
 const ANSWER_GRACE_MS = 1500 // network latency allowance on top of the timer
-const PID_RE = /^[A-Za-z0-9_-]{8,64}$/
 
 const OPEN = 1
 const secondsOf = (i) => QUESTIONS[i].seconds || DEFAULT_SECONDS
-
-function cleanName (raw) {
-  return String(raw ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX)
-}
-
-const AVATAR_LIMITS = [8, 13, 9] // animals, fur colours, accessories (see src/quiz/avatar.js)
-function parseAvatar (v) {
-  if (!Array.isArray(v) || v.length !== 3) return null
-  return v.every((n, i) => Number.isInteger(n) && n >= 0 && n < AVATAR_LIMITS[i]) ? v : null
-}
 
 export class QuizRoom extends DurableObject {
   constructor (ctx, env) {
@@ -192,7 +182,7 @@ export class QuizRoom extends DurableObject {
     if (msg.t === 'ping') return this.send(ws, { t: 'pong' })
     if (msg.t === 'host') return this.onHost(ws, msg)
     if (msg.t === 'join') return this.onJoin(ws, att, msg)
-    if (msg.t === 'avatar' && att.role === 'player') return this.onAvatar(ws, att.pid, msg)
+    if (msg.t === 'refresh' && att.role === 'player') return this.onRefresh(ws, att)
     if (msg.t === 'answer' && att.role === 'player') return this.onAnswer(ws, att.pid, msg)
     if (msg.t === 'cmd' && att.role === 'host') return this.onCommand(msg.c)
   }
@@ -216,48 +206,46 @@ export class QuizRoom extends DurableObject {
     this.sendState(ws, 'host')
   }
 
-  async onJoin (ws, att, msg) {
-    const pid = String(msg.pid || '')
-    const name = cleanName(msg.name)
-    if (!PID_RE.test(pid)) return this.send(ws, { t: 'error', code: 'bad_request' })
+  // The guest account (D1) is the identity: name and avatar come from there, so the
+  // quiz, the photo page and the admin's user list always agree.
+  async guestFor (token) {
+    const payload = await verifyToken(this.env.GUEST_TOKEN_SECRET, String(token || ''))
+    if (!payload || !payload.guestId) return null
+    const g = await this.env.DB.prepare('SELECT id, name, avatar FROM guests WHERE id = ?').bind(payload.guestId).first()
+    return g && g.avatar ? { id: g.id, name: g.name, v: avatarFromKey(g.avatar) } : null
+  }
 
+  async onJoin (ws, att, msg) {
+    const g = await this.guestFor(msg.token)
+    if (!g) return this.send(ws, { t: 'error', code: 'login_required' })
+    if (!(await isQuizEnabled(this.env))) return this.send(ws, { t: 'error', code: 'quiz_disabled' })
+
+    const pid = `g${g.id}`
     let p = this.players.get(pid)
     if (!p) {
-      if (!name) return this.send(ws, { t: 'error', code: 'name_required' })
       if (this.players.size >= MAX_PLAYERS) return this.send(ws, { t: 'error', code: 'full' })
-      const lower = name.toLocaleLowerCase()
-      for (const o of this.players.values()) {
-        if (o.n.toLocaleLowerCase() === lower) return this.send(ws, { t: 'error', code: 'name_taken' })
-      }
-      // Avatar = [animal, colour, accessory]; each combination belongs to one player.
-      const v = parseAvatar(msg.av)
-      if (!v) return this.send(ws, { t: 'error', code: 'avatar_required' })
-      const key = v.join('.')
-      for (const o of this.players.values()) {
-        if (o.v && o.v.join('.') === key) return this.send(ws, { t: 'error', code: 'avatar_taken' })
-      }
-      p = { n: name, s: 0, d: 0, a: {}, v }
+      p = { n: g.name, s: 0, d: 0, a: {}, v: g.v }
       this.players.set(pid, p)
       await this.savePlayer(pid)
+    } else if (p.n !== g.name || (p.v || []).join('.') !== g.v.join('.')) {
+      p.n = g.name; p.v = g.v // renamed or restyled since the last visit
+      await this.savePlayer(pid)
     }
-    ws.serializeAttachment({ role: 'player', pid })
+    ws.serializeAttachment({ role: 'player', pid, gid: g.id })
     this.send(ws, { t: 'joined', name: p.n })
     this.sendState(ws, 'player', pid)
     this.toHosts(this.tallyMsg())
   }
 
-  // A joined player changes their look (still one player per combination).
-  async onAvatar (ws, pid, msg) {
-    const p = this.players.get(pid)
-    const v = parseAvatar(msg.av)
-    if (!p || !v) return this.send(ws, { t: 'error', code: 'avatar_required' })
-    const key = v.join('.')
-    for (const o of this.players.values()) {
-      if (o !== p && o.v && o.v.join('.') === key) return this.send(ws, { t: 'error', code: 'avatar_taken' })
-    }
-    p.v = v
-    await this.savePlayer(pid)
-    this.send(ws, { t: 'avatar', av: v })
+  // The player changed their avatar on the account: pick it up from D1.
+  async onRefresh (ws, att) {
+    const p = this.players.get(att.pid)
+    const row = att.gid && await this.env.DB.prepare('SELECT name, avatar FROM guests WHERE id = ?').bind(att.gid).first()
+    const v = row && avatarFromKey(row.avatar)
+    if (!p || !v) return
+    p.n = row.name; p.v = v
+    await this.savePlayer(att.pid)
+    this.send(ws, { t: 'profile', name: p.n, av: v })
     this.toHosts(this.tallyMsg())
   }
 

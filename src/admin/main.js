@@ -1,6 +1,8 @@
 import { API_BASE_URL, photoUrl } from '../photos.js'
 import { makeThumbnail } from '../thumbnail.js'
-import { setMenuPublic, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
+import { setMenuPublic, setQuizOn, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
+import { avatarEl } from '../quiz/avatar.js'
+import '../avatar.css'
 import { toast } from '../toast.js'
 import '../site-swipe-nav.js'
 
@@ -74,6 +76,7 @@ function showLogin () {
 function showDashboard () {
   loginView.hidden = true
   dashboardView.hidden = false
+  loadUsers()
   document.getElementById('photos-grid').innerHTML = '<p class="grid-loading">Chargement…</p>'
   // Swallowed here specifically: an expired/invalid token 401s, and
   // apiFetch already reacts to that by calling showLogin() itself — this
@@ -144,6 +147,9 @@ async function loadSettings () {
     menuPublicToggle.checked = Boolean(settings.menuPublic)
     setMenuPublic(menuPublicToggle.checked)
     renderVisibility()
+    quizToggle.checked = Boolean(settings.quizEnabled)
+    setQuizOn(quizToggle.checked)
+    renderQuiz()
     if (settings.maxPerPerson !== undefined) {
       // A value above the slider's range (set earlier) still shows and stays settable.
       maxPerPersonInput.max = Math.max(30, settings.maxPerPerson)
@@ -197,6 +203,82 @@ menuPublicToggle.addEventListener('change', async () => {
     menuPublicToggle.disabled = false
   }
 })
+
+// ── Quiz switch ─────────────────────────────────────────────────
+const quizToggle = document.getElementById('quiz-enabled-toggle')
+const quizBadge = document.getElementById('quiz-badge')
+function renderQuiz () {
+  quizBadge.textContent = quizToggle.checked ? 'Ouvert' : 'Fermé'
+  quizBadge.classList.toggle('is-public', quizToggle.checked)
+}
+quizToggle.addEventListener('change', async () => {
+  const wanted = quizToggle.checked
+  renderQuiz()
+  quizToggle.disabled = true
+  try {
+    const settings = await apiFetch('settings', { method: 'POST', json: { quizEnabled: wanted } })
+    quizToggle.checked = Boolean(settings.quizEnabled)
+    setQuizOn(quizToggle.checked)
+    renderQuiz()
+    toast(settings.quizEnabled ? 'Le quiz est ouvert : il apparaît dans le menu.' : 'Le quiz est fermé.', true)
+  } catch (err) {
+    quizToggle.checked = !wanted
+    renderQuiz()
+    toast(err.message)
+  } finally {
+    quizToggle.disabled = false
+  }
+})
+
+// ── Users ───────────────────────────────────────────────────────
+// The guest accounts: name + avatar, shared by the photo page and the quiz.
+const usersList = document.getElementById('users-list')
+
+function renderUsers (guests) {
+  document.getElementById('users-count').textContent = guests.length
+  if (!guests.length) { usersList.innerHTML = '<li class="users-empty">Aucun invité pour le moment.</li>'; return }
+  usersList.replaceChildren(...guests.map((g) => {
+    const li = document.createElement('li')
+    li.className = 'user-row'
+    li.append(g.avatar ? avatarEl(g.avatar) : Object.assign(document.createElement('span'), { className: 'avatar user-noavatar', textContent: '?' }))
+    const who = document.createElement('span')
+    who.className = 'user-who'
+    who.innerHTML = '<strong></strong><small></small>'
+    who.querySelector('strong').textContent = g.name
+    who.querySelector('small').textContent = `${g.photos} photo${g.photos > 1 ? 's' : ''}`
+    li.append(who)
+    const actions = document.createElement('span')
+    actions.className = 'user-actions'
+    for (const [label, fn] of [['Personnage', () => editUserAvatar(g)], ['Renommer', () => renameUser(g)], ['Supprimer', () => deleteUser(g)]]) {
+      const b = document.createElement('button')
+      b.type = 'button'; b.className = 'link-inline'; b.textContent = label
+      b.addEventListener('click', fn)
+      actions.append(b)
+    }
+    li.append(actions)
+    return li
+  }))
+}
+
+async function loadUsers () {
+  try { renderUsers((await apiFetch('guests')).guests) } catch { /* 401 is handled by apiFetch */ }
+}
+async function userAction (path, json, okMessage) {
+  try { renderUsers((await apiFetch(path, { method: 'POST', json })).guests); toast(okMessage, true) } catch (err) { toast(err.message) }
+}
+async function editUserAvatar (g) {
+  const { pickAvatar } = await import('../gate.js')
+  try { await userAction('guest-update', { id: g.id, avatar: await pickAvatar(g.avatar, g.name) }, 'Personnage enregistré.') } catch { /* cancelled */ }
+}
+function renameUser (g) {
+  const name = prompt(`Nouveau nom pour « ${g.name} » ?`, g.name)
+  if (name && name.trim() && name.trim() !== g.name) userAction('guest-update', { id: g.id, name }, 'Nom enregistré.')
+}
+function deleteUser (g) {
+  if (confirm(`Supprimer « ${g.name} » ? Son nom et son personnage seront libérés (ses photos restent dans la galerie).`)) {
+    userAction('guest-delete', { id: g.id }, 'Utilisateur supprimé.')
+  }
+}
 
 // ── Login ───────────────────────────────────────────────────────
 const loginForm = document.getElementById('login-form')

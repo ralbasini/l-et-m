@@ -17,6 +17,11 @@ import { API_BASE_URL } from './photos.js'
 export const ADMIN_TOKEN_KEY = 'lm_admin_token'
 const MENU_PUBLIC_KEY = 'lm_menu_public'
 
+export function setQuizOn (on) {
+  document.documentElement.classList.toggle('quiz-on', on)
+  try { localStorage.setItem('lm_quiz_enabled', on ? '1' : '0') } catch {}
+}
+
 export function setMenuPublic (on) {
   document.documentElement.classList.toggle('menu-public', on)
   try { localStorage.setItem(MENU_PUBLIC_KEY, on ? '1' : '0') } catch {}
@@ -58,6 +63,14 @@ document.addEventListener('click', (event) => {
 if (window.parent === window) {
   fetch(API_BASE_URL + 'settings', { cache: 'no-store' })
     .then((res) => (res.ok ? res.json() : null))
-    .then((settings) => { if (settings) setMenuPublic(Boolean(settings.menuPublic)) })
-    .catch(() => {})
+    .then((settings) => {
+      if (!settings) { document.documentElement.classList.remove('needs-login'); return }
+      setMenuPublic(Boolean(settings.menuPublic))
+      setQuizOn(Boolean(settings.quizEnabled))
+      // Public site: every visitor needs an account (name + avatar), except a logged-in admin.
+      const isAdmin = document.documentElement.classList.contains('is-admin')
+      if (settings.menuPublic && !isAdmin) import('./gate.js').then((m) => m.requireGuest()).catch(() => document.documentElement.classList.remove('needs-login'))
+      else document.documentElement.classList.remove('needs-login')
+    })
+    .catch(() => { document.documentElement.classList.remove('needs-login') }) // never leave the page hidden
 }

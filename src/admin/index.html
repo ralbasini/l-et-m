@@ -59,6 +59,21 @@
     </div>
 
     <div class="card">
+      <span class="card-title">Quiz <span id="quiz-badge" class="visibility-badge"></span></span>
+      <label class="setting-row">
+        <input type="checkbox" id="quiz-enabled-toggle">
+        <span>Ouvrir le <strong>quiz</strong> : l'entrée « Quiz » apparaît dans le menu pour tous les visiteurs</span>
+      </label>
+      <p class="setting-hint">À activer pendant la journée. Le jeu se pilote depuis <a href="../quiz/host/">la page animateur</a>.</p>
+    </div>
+
+    <div class="card">
+      <span class="card-title">Utilisateurs <span id="users-count" class="visibility-badge"></span></span>
+      <p class="setting-hint">Les comptes des invités (nom + personnage), partagés par les photos et le quiz.</p>
+      <ul id="users-list" class="users-list"></ul>
+    </div>
+
+    <div class="card">
       <span class="card-title">Photos par personne</span>
       <label for="max-per-person" class="slider-label">Nombre maximum de photos par invité : <output id="max-per-person-value" for="max-per-person">…</output></label>
       <input type="range" id="max-per-person" class="slider" min="0" max="30" step="1" value="10" disabled>

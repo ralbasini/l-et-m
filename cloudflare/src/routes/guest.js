@@ -2,6 +2,7 @@ import { json } from '../cors.js'
 import { signToken } from '../auth.js'
 import { registerFolderPath, storePhoto, deletePhotoRows } from '../files.js'
 import { getMaxPerPerson } from './settings.js'
+import { parseAvatar, avatarKey, avatarFromKey, cleanName } from '../avatar.js'
 
 // The per-person limit is a site setting (routes/settings.js, set from the
 // admin dashboard) and is sent to the client as maxPerPerson (src/photos/main.js
@@ -25,6 +26,7 @@ async function guestState (env, guest) {
   const maxPerPerson = await getMaxPerPerson(env)
   return {
     name: guest.name,
+    avatar: avatarFromKey(guest.avatar),
     maxPerPerson,
     // Never negative: a guest above a lowered limit keeps every photo, they
     // just can't add more.
@@ -37,30 +39,57 @@ function guestFolder (name) {
   return `Invités/${name}`
 }
 
-// POST { name } or POST { confirm_name }. Mirrors identify.php: a name
-// that's already taken returns a 'collision' status instead of an error, so
-// the client can offer "Oui, c'est moi" (same guest, another device) before
-// giving up and asking for a different name.
+// POST { name, avatar: [animal, colour, accessory] } creates the account, or logs back in
+// when both match an existing one. One
+// account per name (ignoring case) and one per avatar combination. Guests from
+// before avatars existed have no avatar yet: they may claim their name once.
 export async function identify (request, env) {
   const body = await request.json().catch(() => ({}))
-  const confirmName = (body.confirm_name || '').trim()
-  const wanted = confirmName || (body.name || '').trim()
-  if (!wanted) return json({ error: 'Merci d’indiquer un nom.' }, { status: 400 })
+  const name = cleanName(body.name)
+  const avatar = parseAvatar(body.avatar)
+  if (!name) return json({ error: 'Merci d’indiquer un prénom.' }, { status: 400 })
+  if (!avatar) return json({ error: 'Créez votre personnage.' }, { status: 400 })
 
-  const existing = await env.DB.prepare('SELECT id, name FROM guests WHERE name = ?').bind(wanted).first()
-
-  if (existing && !confirmName) {
-    return json({ status: 'collision', pendingName: wanted })
+  const existing = await env.DB.prepare('SELECT id, name, avatar FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
+  const key = avatarKey(avatar)
+  if (existing && existing.avatar) {
+    // Same name and same avatar: this is the guest coming back (new phone, cleared browser).
+    // The avatar acts as the password; anything else is a different person wanting the name.
+    if (existing.avatar === key) {
+      const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: existing.id })
+      return json({ token, name: existing.name, avatar: avatarFromKey(existing.avatar), resumed: true })
+    }
+    return json({ code: 'name_taken', error: 'Ce prénom est déjà pris. Si c’est vous, recréez exactement votre personnage pour vous reconnecter ; sinon ajoutez par exemple une initiale.' }, { status: 409 })
   }
+  const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ?').bind(key).first()
+  if (taken) return json({ code: 'avatar_taken', error: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.' }, { status: 409 })
 
-  let guest = existing
-  if (!guest) {
-    await env.DB.prepare('INSERT INTO guests (name) VALUES (?)').bind(wanted).run()
-    guest = await env.DB.prepare('SELECT id, name FROM guests WHERE name = ?').bind(wanted).first()
+  try {
+    if (existing) await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, existing.id).run()
+    else await env.DB.prepare('INSERT INTO guests (name, avatar) VALUES (?, ?)').bind(name, key).run()
+  } catch {
+    // Lost a race on the unique indexes.
+    return json({ code: 'avatar_taken', error: 'Ce prénom ou ce personnage vient d’être pris, essayez autre chose.' }, { status: 409 })
   }
-
+  const guest = await env.DB.prepare('SELECT id, name, avatar FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
   const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: guest.id })
-  return json({ token, name: guest.name })
+  return json({ token, name: guest.name, avatar: avatarFromKey(guest.avatar) })
+}
+
+// POST { avatar } — change one's own avatar.
+export async function setAvatar (request, env, guest) {
+  const body = await request.json().catch(() => ({}))
+  const avatar = parseAvatar(body.avatar)
+  if (!avatar) return json({ error: 'Personnage invalide.' }, { status: 400 })
+  const key = avatarKey(avatar)
+  const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ? AND id != ?').bind(key, guest.id).first()
+  if (taken) return json({ code: 'avatar_taken', error: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.' }, { status: 409 })
+  try {
+    await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, guest.id).run()
+  } catch {
+    return json({ code: 'avatar_taken', error: 'Ce personnage vient d’être pris, essayez autre chose.' }, { status: 409 })
+  }
+  return json({ avatar })
 }
 
 export async function me (request, env, guest) {

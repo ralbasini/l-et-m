@@ -17,6 +17,7 @@ const routes = {
 
   'POST /guest/identify': guest.identify,
   'GET /guest/me': guestOnly(guest.me),
+  'POST /guest/avatar': guestOnly(guest.setAvatar),
   'POST /guest/upload': guestOnly(guest.upload),
   'POST /guest/delete': guestOnly(guest.deletePhoto),
 
@@ -33,6 +34,9 @@ const routes = {
   'POST /admin/move': adminOnly(admin.movePhotos),
   'POST /admin/tag': adminOnly(admin.tagPhotos),
   'POST /admin/settings': adminOnly(updateSettings),
+  'GET /admin/guests': adminOnly(admin.listGuests),
+  'POST /admin/guest-update': adminOnly(admin.updateGuest),
+  'POST /admin/guest-delete': adminOnly(admin.deleteGuest),
 }
 
 export default {

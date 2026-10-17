@@ -1,30 +1,24 @@
 import { connect, countdown, countUp, SHAPES } from './socket.js'
 import { roam } from './roam.js'
-import { ANIMALS, ACCESSORIES, COLORS, avatarEl, accessoryEl, randomAvatar } from './avatar.js'
+import { avatarEl } from './avatar.js'
+import { requireGuest } from '../gate.js'
+import { clearSession } from '../session.js'
 
-// Player page. The phone only ever sends two things: who it is (a random id
-// kept in localStorage, so a reload or lost connection rejoins as the same
-// player) and which answer was tapped. Scoring and timing are the server's.
+// Player page. The player is the guest account (name + avatar, created on the login
+// screen in src/gate.js): the phone sends its login token to join, then only the
+// answer it tapped. Scoring and timing are the server's.
 const $ = (id) => document.getElementById(id)
 const screens = [...document.querySelectorAll('.screen')]
 const show = (id) => screens.forEach((s) => { s.hidden = s.id !== `screen-${id}` })
-const store = {
-  get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
-  set: (k, v) => { try { localStorage.setItem(k, v) } catch { /* private mode */ } },
-}
-
 const ERRORS = {
-  name_taken: 'Ce prénom est déjà pris, ajoutez par exemple une initiale.',
-  name_required: 'Entrez votre prénom.',
+  quiz_disabled: "Le quiz n'est pas encore ouvert. Revenez dans un moment !",
   full: 'La partie est complète.',
-  avatar_taken: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.',
-  avatar_required: 'Créez votre personnage.',
   bad_request: 'Erreur, rechargez la page.',
 }
 
-let pid = store.get('lm_quiz_pid')
-if (!pid) { pid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); store.set('lm_quiz_pid', pid) }
-let name = store.get('lm_quiz_name') || ''
+let name = ''
+let av = null
+let token = ''
 let sendFn = () => {}
 let stopRoam = () => {}
 // Puts the player's avatar on a stage, wandering, hopping and flipping.
@@ -37,65 +31,14 @@ function onStage (id, mood) {
 let stopTimer = () => {}
 let current = null
 
-let av = null
-try { av = JSON.parse(store.get('lm_quiz_av')) } catch { /* none yet */ }
-if (!Array.isArray(av) || av.length !== 3) av = randomAvatar()
-
-// Avatar builder: pick an animal, a fur colour and an accessory. Each chip draws
-// the result of choosing it, so the options preview themselves.
-function chip (label, pressed, onClick, child) {
-  const b = document.createElement('button')
-  b.type = 'button'
-  b.className = `chip${pressed ? ' on' : ''}`
-  b.title = label
-  b.setAttribute('aria-label', label)
-  b.setAttribute('aria-pressed', String(pressed))
-  b.append(child)
-  b.addEventListener('click', onClick)
-  return b
-}
-function renderBuilder () {
-  $('av-preview').replaceChildren(avatarEl(av, 'xl bump'))
-  $('av-colors').previousElementSibling.textContent = `Pelage · ${COLORS[av[1]].name}`
-  $('av-animals').replaceChildren(...ANIMALS.map((n, i) => chip(n, av[0] === i, () => { av[0] = i; renderBuilder() }, avatarEl([i, av[1], 0]))))
-  $('av-colors').replaceChildren(...COLORS.map((c, i) => {
-    const sw = document.createElement('span')
-    sw.className = 'swatch'
-    sw.style.background = c.swatch || `radial-gradient(circle at 32% 30%, ${c.light}, ${c.fur} 62%)`
-    sw.style.borderColor = c.dark
-    return chip(c.name, av[1] === i, () => { av[1] = i; renderBuilder() }, sw)
-  }))
-  $('av-acc').replaceChildren(...ACCESSORIES.map((n, i) => {
-    let child
-    if (i === 0) { child = document.createElement('span'); child.className = 'none'; child.textContent = '∅' } else child = accessoryEl(i)
-    return chip(n, av[2] === i, () => { av[2] = i; renderBuilder() }, child)
-  }))
-}
-$('av-random').addEventListener('click', () => { av = randomAvatar(); renderBuilder() })
-renderBuilder()
-
-$('name').value = name
-// Editing the avatar reuses the join form without the name field.
-let editing = false
-function setEditing (on) {
-  editing = on
-  $('name-field').hidden = on
-  $('name').required = !on
-  $('edit-cancel').hidden = !on
-  $('join-submit').textContent = on ? 'Enregistrer' : 'Rejoindre'
-  $('join-error').hidden = true
-  if (on) show('join')
-}
-$('edit-avatar').addEventListener('click', () => { try { av = JSON.parse(store.get('lm_quiz_av')) || av } catch { /* keep */ } renderBuilder(); setEditing(true) })
-$('edit-cancel').addEventListener('click', () => { setEditing(false); show('wait') })
-
-$('join-form').addEventListener('submit', (e) => {
-  e.preventDefault()
-  if (editing) { $('join-error').hidden = true; return sendFn({ t: 'avatar', av }) }
-  name = $('name').value.trim()
-  if (!name) return
-  $('join-error').hidden = true
-  sendFn({ t: 'join', pid, name, av })
+// Change the avatar on the account (same screen as the first login), then tell the room.
+$('edit-avatar').addEventListener('click', async () => {
+  try {
+    const s = await requireGuest({ edit: true })
+    av = s.avatar
+    sendFn({ t: 'refresh' })
+    onStage('wait-avatar', 'happy')
+  } catch { /* cancelled */ }
 })
 
 function showQuestion (m) {
@@ -133,19 +76,15 @@ function onMessage (m) {
   switch (m.t) {
     case 'joined':
       name = m.name
-      store.set('lm_quiz_name', name)
-      store.set('lm_quiz_av', JSON.stringify(av))
       break
     case 'error':
-      if (m.code === 'name_required' && !name) break
-      $('join-error').textContent = ERRORS[m.code] || 'Erreur.'
-      $('join-error').hidden = false
-      show('join')
+      if (m.code === 'login_required') { clearSession(); location.reload(); break } // account gone: log in again
+      $('closed-text').textContent = ERRORS[m.code] || 'Erreur.'
+      show('closed')
       break
-    case 'avatar':
-      store.set('lm_quiz_av', JSON.stringify(av))
-      setEditing(false); show('wait')
-      onStage('wait-avatar', 'happy')
+    case 'profile':
+      name = m.name; av = m.av
+      $('wait-title').textContent = `C'est noté, ${name} !`
       break
     case 'lobby':
       stopTimer(); current = null
@@ -219,13 +158,15 @@ function onMessage (m) {
   if (m.t !== 'result' && m.t !== 'final') delete document.body.dataset.result
 }
 
-connect({
-  onStatus: (online) => { $('offline').hidden = online },
-  onOpen: (send) => {
-    sendFn = send
-    // A returning phone re-joins silently; a new one sees the name form.
-    if (name) send({ t: 'join', pid, name, av })
-    else show('join')
-  },
-  onMessage,
-})
+async function boot () {
+  try {
+    const s = await requireGuest()
+    token = s.token; name = s.name; av = s.avatar
+  } catch { return }
+  connect({
+    onStatus: (online) => { $('offline').hidden = online },
+    onOpen: (send) => { sendFn = send; send({ t: 'join', token }) },
+    onMessage,
+  })
+}
+boot()

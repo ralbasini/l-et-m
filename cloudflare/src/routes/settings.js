@@ -4,7 +4,8 @@ import { json } from '../cors.js'
 // menuPublic: whether Galerie / Photos show in the site menu for everyone,
 // not just logged-in admins (see src/admin-access.js on the main site).
 // maxPerPerson: how many photos one guest may have in their folder (0 closes uploads).
-const DEFAULTS = { menuPublic: false, maxPerPerson: 10 }
+// quizEnabled: the live quiz is open (Quiz shows in the menu, players may join).
+const DEFAULTS = { menuPublic: false, quizEnabled: false, maxPerPerson: 10 }
 const MAX_PER_PERSON_CEILING = 1000
 
 async function readSettings (env) {
@@ -18,6 +19,10 @@ async function readSettings (env) {
 
 // Used by the guest routes. Lowering it never removes anyone's photos: a guest
 // already above it just has nothing left to upload (remaining = max(0, …)).
+export async function isQuizEnabled (env) {
+  return (await readSettings(env)).quizEnabled
+}
+
 export async function getMaxPerPerson (env) {
   return (await readSettings(env)).maxPerPerson
 }

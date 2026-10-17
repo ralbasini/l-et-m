@@ -1,5 +1,6 @@
 import { json } from '../cors.js'
 import { signToken } from '../auth.js'
+import { parseAvatar, avatarKey, avatarFromKey, cleanName } from '../avatar.js'
 import { registerFolderPath, isReservedFolder, TAG_LIST_SQL, splitTags, storePhoto, relocatePhoto, deletePhotoRows, thumbKey, MAX_THUMB_BYTES } from '../files.js'
 
 // Every handler here except login/logout is wrapped in adminOnly() by the
@@ -264,4 +265,54 @@ async function findPhotos (env, paths) {
     rows.push(...results)
   }
   return rows
+}
+
+// ── Guests (the accounts shared by the photo upload page and the quiz) ──
+// photos = what currently sits in the guest's folder, like the guest's own quota.
+export async function listGuests (request, env) {
+  const { results } = await env.DB.prepare(
+    `SELECT g.id, g.name, g.avatar, g.created_at,
+       (SELECT COUNT(*) FROM photos p WHERE p.folder = 'Invités/' || g.name) AS photos
+     FROM guests g ORDER BY g.created_at DESC, g.id DESC`
+  ).all()
+  return json({ guests: results.map((g) => ({ ...g, avatar: avatarFromKey(g.avatar) })) })
+}
+
+// POST { id, name?, avatar? }. Renaming is refused while the guest has photos:
+// their folder is named after them and would be orphaned.
+export async function updateGuest (request, env) {
+  const body = await request.json().catch(() => ({}))
+  const guest = await env.DB.prepare('SELECT id, name FROM guests WHERE id = ?').bind(body.id).first()
+  if (!guest) return json({ error: 'Utilisateur introuvable.' }, { status: 404 })
+  try {
+    if (body.avatar !== undefined) {
+      const avatar = parseAvatar(body.avatar)
+      if (!avatar) return json({ error: 'Personnage invalide.' }, { status: 400 })
+      const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ? AND id != ?').bind(avatarKey(avatar), guest.id).first()
+      if (taken) return json({ error: 'Ce personnage est déjà pris.' }, { status: 409 })
+      await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(avatarKey(avatar), guest.id).run()
+    }
+    if (body.name !== undefined) {
+      const name = cleanName(body.name)
+      if (!name) return json({ error: 'Nom invalide.' }, { status: 400 })
+      if (name !== guest.name) {
+        const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM photos WHERE folder = 'Invités/' || ?").bind(guest.name).first()
+        if (n > 0) return json({ error: 'Impossible de renommer : cet invité a déjà des photos dans son dossier.' }, { status: 409 })
+        const taken = await env.DB.prepare('SELECT id FROM guests WHERE name = ? COLLATE NOCASE AND id != ?').bind(name, guest.id).first()
+        if (taken) return json({ error: 'Ce nom est déjà pris.' }, { status: 409 })
+        await env.DB.prepare('UPDATE guests SET name = ? WHERE id = ?').bind(name, guest.id).run()
+      }
+    }
+  } catch {
+    return json({ error: 'Modification impossible (nom ou personnage déjà pris).' }, { status: 409 })
+  }
+  return listGuests(request, env)
+}
+
+// POST { id }. Frees the name and the avatar; the guest's session stops working.
+// Their photos stay in the gallery.
+export async function deleteGuest (request, env) {
+  const body = await request.json().catch(() => ({}))
+  await env.DB.prepare('DELETE FROM guests WHERE id = ?').bind(body.id).run()
+  return listGuests(request, env)
 }
