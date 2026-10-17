@@ -99,6 +99,16 @@ export class QuizRoom extends DurableObject {
       .map((p) => ({ n: p.n, s: p.s }))
   }
 
+  // Rows for the host's animated leaderboard: who is on top now, what each
+  // player just earned (d), and the rank they held before this question (pr),
+  // so the page can slide each row from its old place to its new one.
+  boardRows (limit) {
+    return [...this.players.values()]
+      .sort((a, b) => b.s - a.s || a.n.localeCompare(b.n))
+      .slice(0, limit)
+      .map((p) => { const r = this.rankOf(p); return { n: p.n, s: p.s, d: p.d, r, pr: p.pr ?? r } })
+  }
+
   rankOf (p) {
     let ahead = 0
     for (const o of this.players.values()) if (o.s > p.s) ahead++
@@ -125,7 +135,7 @@ export class QuizRoom extends DurableObject {
     const qd = QUESTIONS[this.q]
     const counts = qd.options.map(() => 0)
     for (const p of this.players.values()) if (p.a[this.q]) counts[p.a[this.q][0]]++
-    return { t: 'reveal', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, correct: qd.correct, counts, players: this.players.size, top: this.leaderboard(5) }
+    return { t: 'reveal', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, correct: qd.correct, counts, players: this.players.size, board: this.boardRows(8) }
   }
 
   resultMsg (p) {
@@ -133,7 +143,7 @@ export class QuizRoom extends DurableObject {
     const a = p.a[this.q]
     return {
       t: 'result', q: this.q, total: QUESTIONS.length, correct: qd.correct, choice: a ? a[0] : null,
-      delta: p.d, score: p.s, rank: this.rankOf(p), of: this.players.size,
+      delta: p.d, score: p.s, rank: this.rankOf(p), prev: p.pr ?? this.rankOf(p), of: this.players.size,
     }
   }
 
@@ -269,7 +279,11 @@ export class QuizRoom extends DurableObject {
     if (this.phase !== 'question') return
     const qd = QUESTIONS[this.q]
     const windowMs = secondsOf(this.q) * 1000
-    for (const p of this.players.values()) {
+    // Ranks before this question's points, for the leaderboard animation.
+    const before = new Map()
+    for (const [pid, p] of this.players) before.set(pid, this.rankOf(p))
+    for (const [pid, p] of this.players) {
+      p.pr = before.get(pid)
       const a = p.a[this.q]
       // Kahoot-style: full points for an instant right answer, half for the last-second one.
       p.d = a && a[0] === qd.correct ? Math.round(MAX_POINTS * (1 - Math.min(a[1] / windowMs, 1) / 2)) : 0
@@ -302,7 +316,7 @@ export class QuizRoom extends DurableObject {
       this.players.delete(pid)
       await this.ctx.storage.delete(`p:${pid}`)
     }
-    for (const p of this.players.values()) { p.s = 0; p.d = 0; p.a = {} }
+    for (const p of this.players.values()) { p.s = 0; p.d = 0; p.a = {}; delete p.pr }
     await this.ctx.storage.deleteAlarm()
     await this.saveGame()
     await this.saveAllPlayers()

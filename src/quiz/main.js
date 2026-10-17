@@ -1,4 +1,4 @@
-import { connect, countdown, SHAPES } from './socket.js'
+import { connect, countdown, countUp, SHAPES } from './socket.js'
 
 // Player page. The phone only ever sends two things: who it is (a random id
 // kept in localStorage, so a reload or lost connection rejoins as the same
@@ -97,7 +97,14 @@ function onMessage (m) {
       $('result-title').textContent = m.choice === null ? 'Trop tard !' : right ? 'Bonne réponse !' : 'Raté…'
       document.body.dataset.result = m.choice === null ? 'late' : right ? 'right' : 'wrong'
       $('result-delta').textContent = right ? `+${m.delta} points` : '+0 point'
-      $('result-rank').textContent = `${m.rank}${m.rank === 1 ? 'er' : 'e'} sur ${m.of} — ${m.score} points`
+      // Score counts up from what it was before this question; the rank change slides in.
+      const rankText = `${m.rank}${m.rank === 1 ? 'er' : 'e'} sur ${m.of} — `
+      countUp($('result-rank'), m.score - m.delta, m.score, 900, (n) => `${rankText}${n} points`)
+      const moved = m.prev - m.rank
+      const move = $('result-move')
+      move.hidden = moved === 0
+      move.className = `move ${moved > 0 ? 'up' : 'down'}`
+      move.textContent = moved > 0 ? `▲ +${moved} place${moved > 1 ? 's' : ''}` : `▼ ${moved} place${moved < -1 ? 's' : ''}`
       show('result')
       break
     }

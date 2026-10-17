@@ -117,6 +117,9 @@ for (let q = 0; q < QUESTIONS.length; q++) {
   check(reveal.correct === qd.correct, 'reveal carries the right answer')
   check(counted === N, `all ${N} answers counted (got ${counted})`)
   check(reveal.counts[qd.correct] === picks.filter((p) => p === qd.correct).length, 'host counts match what players sent')
+  check(reveal.board.length === Math.min(8, N) && reveal.board[0].r === 1, 'reveal carries a leaderboard topped by rank 1')
+  check(reveal.board.every((r, i, a) => i === 0 || a[i - 1].s >= r.s), 'leaderboard rows are sorted by score')
+  check(reveal.board.every((r) => r.pr >= 1 && r.s >= r.d && (q > 0 || r.pr >= 1)), 'leaderboard rows carry previous rank and earned points')
 
   const results = await Promise.all(players.map((c) => c.next('result', (m) => m.q === q)))
   results.forEach((r, i) => {

@@ -59,4 +59,19 @@ export function countdown (remainingMs, totalMs, tick) {
   return () => clearInterval(id)
 }
 
+export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// Counts a number up from rom to 	o (eased), writing it to el via fmt.
+// Jumps straight to the end for people who asked for less motion.
+export function countUp (el, from, to, ms, fmt = String) {
+  if (reducedMotion() || from === to) { el.textContent = fmt(to); return }
+  const start = performance.now()
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / ms)
+    el.textContent = fmt(Math.round(from + (to - from) * (1 - (1 - t) ** 3)))
+    if (t < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
+
 export const SHAPES = ['▲', '◆', '●', '■']

@@ -7,10 +7,9 @@
   <title>Quiz — Lobna &amp; Martin</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
+  <!-- Owns the site fonts (MoreSugar-Thin, Apricot, Quicksand); declared nowhere else. -->
+  <link rel="stylesheet" href="/site-chrome.css">
 </head>
 <body class="player">
   <div id="offline" class="offline" hidden>Reconnexion…</div>
@@ -50,6 +49,7 @@
       <h1 id="result-title"></h1>
       <p id="result-delta" class="big"></p>
       <p id="result-rank"></p>
+      <p id="result-move" class="move" hidden></p>
     </section>
 
     <section id="screen-final" class="screen" hidden>
