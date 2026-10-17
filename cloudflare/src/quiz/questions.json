@@ -1,33 +1,32 @@
 [
   {
-    "text": "Dans quelle ville a lieu la cérémonie ?",
-    "options": ["Sierre", "Sion", "Martigny", "Bizerte"],
+    "text": "Quelle est la capitale du Kazakhstan ?",
+    "options": ["Almaty", "Bichkek", "Astana", "Tachkent"],
+    "correct": 2
+  },
+  {
+    "text": "Quel est le plus long fleuve d'Europe ?",
+    "options": ["Le Danube", "La Volga", "Le Rhin", "Le Dniepr"],
+    "correct": 1
+  },
+  {
+    "text": "Quel pays compte le plus de fuseaux horaires, territoires d'outre-mer inclus ?",
+    "options": ["La France", "La Russie", "Les États-Unis", "Le Royaume-Uni"],
     "correct": 0
   },
   {
-    "text": "Quel jour Lobna et Martin se marient-ils ?",
-    "options": ["Le 24 octobre", "Le 31 octobre", "Le 7 novembre", "Le 1er novembre"],
+    "text": "Quel est le seul pays au monde dont le drapeau n'est ni carré ni rectangulaire ?",
+    "options": ["Le Bhoutan", "Le Népal", "Le Sri Lanka", "Le Laos"],
     "correct": 1
   },
   {
-    "text": "Quel est le plus grand animal terrestre ?",
-    "options": ["Le rhinocéros", "La girafe", "L'éléphant d'Afrique", "L'hippopotame"],
+    "text": "Quel est le lac le plus profond du monde ?",
+    "options": ["Le lac Supérieur", "Le lac Tanganyika", "Le lac Victoria", "Le lac Baïkal"],
+    "correct": 3
+  },
+  {
+    "text": "Quel est le plus petit pays d'Afrique par sa superficie ?",
+    "options": ["La Gambie", "Djibouti", "Les Seychelles", "Les Comores"],
     "correct": 2
-  },
-  {
-    "text": "Combien de cœurs possède une pieuvre ?",
-    "options": ["1", "2", "3", "8"],
-    "correct": 2
-  },
-  {
-    "text": "Quel est le seul mammifère capable de voler vraiment ?",
-    "options": ["L'écureuil volant", "La chauve-souris", "Le colugo", "Le phalanger volant"],
-    "correct": 1
-  },
-  {
-    "text": "Combien de temps vit en moyenne un éphémère adulte ?",
-    "options": ["Un an", "Un mois", "Une semaine", "Un jour ou moins"],
-    "correct": 3,
-    "seconds": 15
   }
 ]

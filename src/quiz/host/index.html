@@ -13,6 +13,8 @@
 <body class="host">
   <div id="offline" class="offline" hidden>Reconnexion…</div>
 
+  <canvas id="fireworks" hidden></canvas>
+
   <main>
     <section id="screen-auth" class="screen" hidden>
       <h1>Accès animateur</h1>
@@ -46,8 +48,9 @@
     </section>
 
     <section id="screen-final" class="screen" hidden>
-      <h1>Classement final</h1>
-      <ol id="final-top" class="board podium"></ol>
+      <h1>Le podium</h1>
+      <div id="podium" class="podium3"></div>
+      <ol id="final-rest" class="rest"></ol>
     </section>
   </main>
 

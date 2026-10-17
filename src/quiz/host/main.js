@@ -118,8 +118,93 @@ function showBoard () {
   later(settle, 1400)
 }
 
+// ── Final podium ──────────────────────────────────────────────
+// 2nd-1st-3rd blocks rise one after the other (3rd, 2nd, then the winner),
+// then fireworks and confetti run until the host leaves the screen.
+const MEDALS = ['🥇', '🥈', '🥉']
+let stopFireworks = () => {}
+let podiumTimers = []
+
+function fireworks () {
+  const cv = $('fireworks')
+  const ctx = cv.getContext('2d')
+  const fit = () => { cv.width = innerWidth; cv.height = innerHeight }
+  fit(); addEventListener('resize', fit)
+  cv.hidden = false
+  let parts = []; let raf = 0; let last = 0; let nextBurst = 0
+  const burst = (x, y) => {
+    const hue = Math.random() * 360
+    for (let i = 0; i < 80; i++) {
+      const a = Math.random() * Math.PI * 2; const v = 1.5 + Math.random() * 5.5
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, hue: hue + Math.random() * 40, r: 1.5 + Math.random() * 2 })
+    }
+  }
+  const confetti = () => {
+    for (let i = 0; i < 2; i++) parts.push({ x: Math.random() * cv.width, y: -10, vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2.5, life: 1.6, hue: Math.random() * 360, r: 3 + Math.random() * 3, c: true })
+  }
+  const frame = (t) => {
+    const dt = Math.min(2, (t - last) / 16.7 || 1); last = t
+    ctx.clearRect(0, 0, cv.width, cv.height)
+    if (t > nextBurst) { burst(cv.width * (0.1 + Math.random() * 0.8), cv.height * (0.1 + Math.random() * 0.45)); nextBurst = t + 450 + Math.random() * 600 }
+    confetti()
+    parts = parts.filter((p) => p.life > 0 && p.y < cv.height + 20)
+    for (const p of parts) {
+      p.x += p.vx * dt; p.y += p.vy * dt
+      p.vy += (p.c ? 0.02 : 0.07) * dt
+      if (!p.c) { p.vx *= 0.985; p.life -= 0.011 * dt } else p.life -= 0.003 * dt
+      ctx.globalAlpha = Math.max(0, Math.min(1, p.life))
+      ctx.fillStyle = `hsl(${p.hue} 90% 62%)`
+      if (p.c) ctx.fillRect(p.x, p.y, p.r * 1.6, p.r)
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill() }
+    }
+    raf = requestAnimationFrame(frame)
+  }
+  raf = requestAnimationFrame(frame)
+  return () => { cancelAnimationFrame(raf); removeEventListener('resize', fit); cv.hidden = true; ctx.clearRect(0, 0, cv.width, cv.height) }
+}
+
+function stopFinale () {
+  podiumTimers.forEach(clearTimeout); podiumTimers = []
+  stopFireworks(); stopFireworks = () => {}
+  document.body.classList.remove('finale')
+}
+
+function renderFinal (top) {
+  stopFinale()
+  const still = reducedMotion()
+  document.body.classList.add('finale')
+  // Visual order 2 - 1 - 3; with fewer players the missing steps are just skipped.
+  const order = [1, 0, 2].filter((i) => top[i])
+  $('podium').replaceChildren(...order.map((i) => {
+    const r = top[i]
+    const d = document.createElement('div')
+    d.className = `pod pod-${i + 1}`
+    d.innerHTML = '<div class="who"><span class="crown" aria-hidden="true">👑</span><span class="medal"></span><span class="pn"></span><span class="ps"></span></div><div class="step"><span class="place"></span></div>'
+    d.querySelector('.medal').textContent = MEDALS[i]
+    d.querySelector('.pn').textContent = r.n
+    d.querySelector('.ps').textContent = `${r.s} pts`
+    d.querySelector('.place').textContent = i + 1
+    // 3rd rises first, the winner last.
+    const at = still ? 0 : [3000, 1600, 200][i]
+    d.style.setProperty('--at', `${at}ms`)
+    if (!still) podiumTimers.push(setTimeout(() => countUp(d.querySelector('.ps'), 0, r.s, 1200, (n) => `${n} pts`), at + 700))
+    return d
+  }))
+  $('final-rest').replaceChildren(...top.slice(3).map((r, k) => {
+    const li = document.createElement('li')
+    li.innerHTML = '<span class="rk"></span><span class="n"></span><span class="s"></span>'
+    li.querySelector('.rk').textContent = k + 4
+    li.querySelector('.n').textContent = r.n
+    li.querySelector('.s').textContent = r.s
+    li.style.setProperty('--at', `${still ? 0 : 3600 + k * 120}ms`)
+    return li
+  }))
+  if (!still) podiumTimers.push(setTimeout(() => { stopFireworks = fireworks() }, 3700))
+}
+
 function onMessage (m, send) {
   sendFn = send
+  if (m.t !== 'final') stopFinale()
   switch (m.t) {
     case 'error':
       $('auth-text').textContent = 'Session expirée : reconnectez-vous à l\'administration, puis rechargez cette page.'
@@ -164,7 +249,7 @@ function onMessage (m, send) {
     }
     case 'final':
       stopTimer()
-      board($('final-top'), m.top)
+      renderFinal(m.top)
       show('final'); setPhase('final')
       break
   }
