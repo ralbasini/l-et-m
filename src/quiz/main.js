@@ -1,5 +1,5 @@
 import { connect, countdown, countUp, SHAPES } from './socket.js'
-import { ANIMALS, ACCESSORIES, COLORS, avatarEl, randomAvatar } from './avatar.js'
+import { ANIMALS, ACCESSORIES, COLORS, avatarEl, accessoryEl, randomAvatar } from './avatar.js'
 
 // Player page. The phone only ever sends two things: who it is (a random id
 // kept in localStorage, so a reload or lost connection rejoins as the same
@@ -58,7 +58,7 @@ function renderBuilder () {
   }))
   $('av-acc').replaceChildren(...ACCESSORIES.map((n, i) => {
     let child
-    if (i === 0) { child = document.createElement('span'); child.className = 'none'; child.textContent = '∅' } else child = avatarEl([av[0], av[1], i])
+    if (i === 0) { child = document.createElement('span'); child.className = 'none'; child.textContent = '∅' } else child = accessoryEl(i)
     return chip(n, av[2] === i, () => { av[2] = i; renderBuilder() }, child)
   }))
 }

@@ -256,3 +256,5 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 @keyframes swatch-pop { 0% { transform: scale(0.6) rotate(-30deg); } 100% { transform: scale(1.15); } }
 #av-colors { gap: 0.5rem; }
 #av-colors .chip { width: 3.2rem; height: 3.2rem; border-radius: 50%; }
+.chip .acc-icon { display: grid; place-items: center; width: 100%; height: 100%; line-height: 0; }
+.chip .acc-icon svg { width: 2.7rem; height: 2.4rem; }

@@ -87,6 +87,15 @@ export function avatarSvg (v) {
   return `<svg viewBox="0 -12 100 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${defs}${face(col)}${acc(EYE_Y[a] ?? 50, TOP[a] ?? 26)}</svg>`
 }
 
+// An accessory on its own (for the picker), cropped to where it sits on a head.
+const ACC_VIEW = [null, '14 34 72 32', '14 36 72 28', '20 2 60 32', '26 2 48 30', '30 -2 40 34', '28 76 44 28', '56 14 28 28', '20 4 60 42']
+export function accessoryEl (x) {
+  const el = document.createElement('span')
+  el.className = 'acc-icon'
+  el.innerHTML = `<svg viewBox="${ACC_VIEW[x]}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${ACC[x](50, 26)}</svg>`
+  return el
+}
+
 // A <span class="avatar"> holding the drawing; sized by CSS.
 export function avatarEl (v, className = '') {
   const el = document.createElement('span')
