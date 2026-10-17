@@ -39,16 +39,6 @@
     <h1>Ajoutez vos photos</h1>
     <p class="subtitle">Partagez vos souvenirs de la journée...<br>Merci !</p>
 
-    <!-- Profile: who is logged in, change the avatar, log out. -->
-    <div id="profile-card" class="card profile-card" hidden>
-      <div class="profile-who">
-        <span id="profile-avatar"></span>
-        <strong id="profile-name"></strong>
-        <button type="button" id="profile-exit" class="profile-exit" title="Se déconnecter" aria-label="Se déconnecter"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 8l4 4-4 4"/><path d="M19 12H9"/></svg></button>
-      </div>
-      <button type="button" id="profile-edit" class="ghost-btn">Modifier mon avatar</button>
-    </div>
-
     <!-- Step 2: identity known — upload + own photos. -->
     <div id="upload-step" class="card" hidden>
       <a href="../galerie/#galerie" class="btn-link my-photos-link">Voir les photos de tous les invités</a>
@@ -73,6 +63,16 @@
     <div id="my-photos" class="card my-photos" hidden>
       <label>Vos photos</label>
       <div id="photos-grid" class="grid"></div>
+    </div>
+
+    <!-- Profile: who is logged in, change the avatar, log out. -->
+    <div id="profile-card" class="card profile-card" hidden>
+      <div class="profile-who">
+        <span id="profile-avatar"></span>
+        <strong id="profile-name"></strong>
+        <button type="button" id="profile-exit" class="profile-exit" title="Se déconnecter" aria-label="Se déconnecter"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 8l4 4-4 4"/><path d="M19 12H9"/></svg></button>
+      </div>
+      <button type="button" id="profile-edit" class="ghost-btn">Modifier mon avatar</button>
     </div>
   </main>
 

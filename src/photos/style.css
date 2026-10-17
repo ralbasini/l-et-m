@@ -97,7 +97,7 @@ main {
 .my-photos label { text-align: left; }
 
 /* "Voir les photos de tous les invités", above the guest's own photos. */
-.my-photos-link { margin: 0 0 1.25rem; }
+.my-photos-link { display: block; width: fit-content; margin: 0 auto 1.25rem; }
 
 /* Scrolled to after an upload: land below the fixed menu bar. */
 .my-photos { scroll-margin-top: calc(var(--site-nav-offset) + 1rem); }
