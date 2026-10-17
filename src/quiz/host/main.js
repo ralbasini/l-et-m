@@ -1,4 +1,5 @@
 import { connect, countdown, countUp, SHAPES } from '../socket.js'
+import qrcode from 'qrcode-generator'
 import { avatarEl } from '../avatar.js'
 import { perform } from '../roam.js'
 
@@ -30,7 +31,13 @@ let boardTimers = []
 let avatarStops = [] // stop functions of the hopping avatars (leaderboard, podium)
 let phase = 'lobby'
 
-$('join-url').textContent = location.href.replace(/host\/?(\?.*)?$/, '').replace(/^https?:\/\//, '')
+// The address guests type or scan: the site's /quiz, without a trailing slash.
+const joinUrl = new URL('..', location.href).href.replace(/\/$/, '')
+$('join-url').textContent = joinUrl.replace(/^https?:\/\//, '')
+const qr = qrcode(0, 'M')
+qr.addData(joinUrl)
+qr.make()
+$('join-qr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true })
 
 // One primary button whose job follows the game's phase.
 const PRIMARY = {

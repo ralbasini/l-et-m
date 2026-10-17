@@ -240,7 +240,7 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 @keyframes sad { 0%, 100% { transform: rotate(-3deg) scale(1, 0.97); } 50% { transform: rotate(3deg) translateY(0.3rem) scale(1, 0.94); } }
 @media (prefers-reduced-motion: reduce) { .avatar.sad { animation: none; } }
 .teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; animation: dance 1.6s ease-in-out infinite; }
-.stage { position: relative; height: 13rem; width: 100%; margin: 0 0 0.5rem; }
+.stage { position: relative; height: 11rem; width: 100%; margin: 0 0 0.5rem; }
 .stage .avatar { position: absolute; left: 0; bottom: 0; transform-origin: 50% 55%; will-change: transform; }
 .pod .pod-av { position: relative; overflow: visible; }
 .pod .medal-acc { position: absolute; left: 50%; bottom: -12%; width: 38%; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)); }
@@ -269,3 +269,8 @@ html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1r
 .host-link { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: fit-content; margin: 0 auto; padding: 0.55rem 1.1rem; background: transparent; color: #356d65; border: 1px solid rgba(53, 109, 101, 0.45); border-radius: 0.4rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.08em; text-decoration: none; transition: color 0.2s, background-color 0.2s, border-color 0.2s; }
 .host-link:hover { background: rgba(53, 109, 101, 0.08); border-color: #356d65; color: #2a5951; }
 .host-link svg { width: 0.9rem; height: 0.9rem; flex: none; }
+.join-qr { width: 11rem; margin: 0 auto 1.25rem; padding: 0.75rem; background: #fff; border-radius: 0.8rem; box-shadow: 0 6px 20px rgba(37, 37, 37, 0.1); line-height: 0; }
+.join-qr svg { width: 100%; height: auto; display: block; }
+/* Player page: no logo (more room for the avatar and the answers), a slightly smaller avatar. */
+body.player .brand { display: none; }
+.stage .avatar.xl { width: 6rem; }
