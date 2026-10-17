@@ -174,13 +174,20 @@ function onMessage (m) {
       document.body.dataset.result = m.choice === null ? 'late' : right ? 'right' : 'wrong'
       $('result-delta').textContent = right ? `+${m.delta} points` : '+0 point'
       // Score counts up from what it was before this question; the rank change slides in.
+      // After the last question the rank stays secret until the final screen.
+      const lastQ = m.q + 1 >= m.total
       const rankText = `${m.rank}${m.rank === 1 ? 'er' : 'e'} sur ${m.of} — `
-      countUp($('result-rank'), m.score - m.delta, m.score, 900, (n) => `${rankText}${n} points`)
-      const moved = m.prev - m.rank
       const move = $('result-move')
-      move.hidden = moved === 0
-      move.className = `move ${moved > 0 ? 'up' : 'down'}`
-      move.textContent = moved > 0 ? `▲ +${moved} place${moved > 1 ? 's' : ''}` : `▼ ${moved} place${moved < -1 ? 's' : ''}`
+      if (lastQ) {
+        $('result-rank').textContent = 'Le classement final arrive…'
+        move.hidden = true
+      } else {
+        countUp($('result-rank'), m.score - m.delta, m.score, 900, (n) => `${rankText}${n} points`)
+        const moved = m.prev - m.rank
+        move.hidden = moved === 0
+        move.className = `move ${moved > 0 ? 'up' : 'down'}`
+        move.textContent = moved > 0 ? `▲ +${moved} place${moved > 1 ? 's' : ''}` : `▼ ${moved} place${moved < -1 ? 's' : ''}`
+      }
       show('result')
       break
     }

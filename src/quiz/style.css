@@ -140,7 +140,6 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 .race li.up .mv { color: #2c7a3c; }
 .race li.down .mv { color: #a34848; }
 .race li.leader { background: #f1e3b3; }
-.race li.leader .rk::after { content: ' 👑'; }
 
 @keyframes gain-pop { 0% { opacity: 0; transform: translateY(0.6rem) scale(0.5); } 100% { opacity: 1; transform: none; } }
 @keyframes mv-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: none; } }
@@ -261,3 +260,4 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .avatar.sad { transform-origin: 50% 95%; animation: sad 2.4s ease-in-out infinite; }
 @keyframes sad { 0%, 100% { transform: rotate(-3deg) scale(1, 0.97); } 50% { transform: rotate(3deg) translateY(0.3rem) scale(1, 0.94); } }
 @media (prefers-reduced-motion: reduce) { .avatar.sad { animation: none; } }
+.teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; animation: dance 1.6s ease-in-out infinite; }

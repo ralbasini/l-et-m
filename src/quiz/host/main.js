@@ -75,6 +75,12 @@ function showBoard () {
   boardTimers.forEach(clearTimeout)
   boardTimers = []
   const m = lastReveal
+  // No leaderboard after the last question: the podium is the surprise.
+  const last = m.q + 1 >= m.total
+  $('board-title').hidden = last
+  $('b-board').hidden = last
+  $('board-teaser').hidden = !last
+  if (last) return
   const ol = $('b-board')
   const rows = m.board.map((r) => ({ ...r, ps: r.s - r.d }))
   // Old order among the rows shown: by the score each had before this question.
