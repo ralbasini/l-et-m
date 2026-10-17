@@ -158,6 +158,7 @@ function onMessage (m) {
       stopTimer()
       const opts = current ? current.options : []
       const right = m.choice === m.correct
+      $('result-avatar').replaceChildren(avatarEl(av, `xl ${right ? 'dance' : 'sad'}`))
       // All the answers again: the right one lit up, the player's pick tagged.
       $('result-answer').replaceChildren(...opts.map((text, i) => {
         const d = document.createElement('div')
