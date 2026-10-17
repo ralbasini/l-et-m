@@ -68,6 +68,7 @@ function showGate ({ me, edit, cancellable = false }) {
     // First login: just a random avatar, the settings open on request. Editing: settings open.
     const builder = mountBuilder(ref('builder'), me && me.avatar ? me.avatar : null, undefined, { collapsed: !edit && !(me && me.avatar) })
     document.body.append(gate)
+    keepInputVisible(gate)
     document.documentElement.classList.add('needs-login')
     gateOpen(true)
 
@@ -94,6 +95,9 @@ function showGate ({ me, edit, cancellable = false }) {
         ref('sub').textContent = edit ? 'Changez votre look.' : 'Choisis ton avatar !'
         ref('submit').textContent = edit || hasAccount ? 'Enregistrer' : 'Entrer'
       }
+      // Each step has a different height, and the keyboard may be opening or closing:
+      // keep the main button on screen (the focused field is handled by keepInputVisible).
+      setTimeout(() => { if (!document.activeElement.matches?.('input')) ref('submit').scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, 350)
     }
     render()
 
@@ -167,4 +171,20 @@ export function pickAvatar (initial, title = 'Personnage') {
     gate.querySelector('[data-ref="cancel"]').addEventListener('click', () => { gate.remove(); gateOpen(false); reject(new Error('cancelled')) })
     gate.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); gate.remove(); gateOpen(false); resolve(builder.get()) })
   })
+}
+
+// On a phone the on-screen keyboard covers the lower half of the screen. While it is open
+// the screen gets as much extra scroll room as the keyboard takes, and the field being
+// typed in is scrolled into view, so the card is never hidden behind it.
+function keepInputVisible (gate) {
+  const vv = window.visualViewport
+  const reveal = (el) => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
+  const resize = () => {
+    if (!gate.isConnected) { vv.removeEventListener('resize', resize); return }
+    gate.style.paddingBottom = `${Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 20}px`
+    const el = document.activeElement
+    if (gate.contains(el) && el.matches('input')) reveal(el)
+  }
+  gate.addEventListener('focusin', (e) => { if (e.target.matches('input')) reveal(e.target) })
+  if (vv) vv.addEventListener('resize', resize)
 }
