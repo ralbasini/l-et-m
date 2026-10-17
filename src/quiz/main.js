@@ -3,6 +3,7 @@ import { roam } from './roam.js'
 import { avatarEl } from './avatar.js'
 import { requireGuest } from '../gate.js'
 import { clearSession } from '../session.js'
+import { API_BASE_URL } from '../photos.js'
 
 // Player page. The player is the guest account (name + avatar, created on the login
 // screen in src/gate.js): the phone sends its login token to join, then only the
@@ -163,6 +164,11 @@ function onMessage (m) {
 }
 
 async function boot () {
+  // Quiz closed: say so, without asking anyone to log in.
+  try {
+    const settings = await (await fetch(API_BASE_URL + 'settings', { cache: 'no-store' })).json()
+    if (!settings.quizEnabled) { show('closed'); return }
+  } catch { /* offline: let the login / join flow report it */ }
   try {
     const s = await requireGuest()
     token = s.token; name = s.name; av = s.avatar

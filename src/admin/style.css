@@ -338,3 +338,11 @@ button.tag-filter:hover { background: none; text-decoration: underline; }
 .user-actions { display: flex; flex-wrap: wrap; gap: 0.2rem 0.75rem; justify-content: flex-end; }
 .users-empty { color: rgba(37, 37, 37, 0.6); }
 .user-badge { font-style: normal; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.1rem 0.45rem; border-radius: 1rem; background: #356d65; color: #fff; vertical-align: middle; }
+.user-who { align-items: flex-start; }
+.user-actions { flex-wrap: nowrap; gap: 0.15rem; }
+.icon-btn { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; padding: 0; border: 0; border-radius: 0.5rem; background: transparent; color: #356d65; cursor: pointer; }
+.icon-btn:hover { background: #e1ece8; }
+.icon-btn.is-on { background: #356d65; color: #fff; }
+.icon-btn.is-on:hover { background: #2a5951; }
+.icon-btn.is-danger { color: #a34848; }
+.icon-btn.is-danger:hover { background: #f3e1e1; }

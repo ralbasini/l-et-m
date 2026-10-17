@@ -54,8 +54,12 @@ if (window.parent !== window) {
   let shownPage = ''
 
   function render () {
+    // A private site (not made public from the dashboard) shows only Mariage to visitors,
+    // even for a direct #galerie / #photos link; logged-in admins see everything.
+    const root = document.documentElement
+    const open = root.classList.contains('menu-public') || root.classList.contains('is-admin')
     const requested = location.hash.slice(1)
-    const page = pages.includes(requested) ? requested : 'mariage'
+    const page = pages.includes(requested) && (open || requested === 'mariage') ? requested : 'mariage'
     const index = pages.indexOf(page)
 
     if (requested !== page) history.replaceState(null, '', `#${page}`)
@@ -116,6 +120,7 @@ if (window.parent !== window) {
   framesByPage.get('mariage').addEventListener('load', () => idle(preloadPhotos), { once: true })
 
   window.addEventListener('hashchange', render)
+  window.addEventListener('lm:settings', render) // the site-wide settings arrived
   window.addEventListener('message', (event) => {
     if (event.origin !== location.origin || !frames.some((frame) => frame.contentWindow === event.source)) return
     const { type, page, anchor } = event.data || {}

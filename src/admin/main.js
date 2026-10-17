@@ -259,10 +259,21 @@ quizToggle.addEventListener('change', async () => {
 // The guest accounts: name + avatar, shared by the photo page and the quiz.
 const usersList = document.getElementById('users-list')
 
+// Line icons (stroke follows the text colour).
+const svg = (d) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
+const ICONS = {
+  shield: svg('<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>'),
+  shieldOff: svg('<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>'),
+  face: svg('<circle cx="12" cy="12" r="9"/><path d="M8.5 14a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/>'),
+  pencil: svg('<path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/>'),
+  trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+}
+
 function renderUsers (guests) {
   document.getElementById('users-count').textContent = guests.length
   if (!guests.length) { usersList.innerHTML = '<li class="users-empty">Aucun invité pour le moment.</li>'; return }
-  usersList.replaceChildren(...guests.map((g) => {
+  const sorted = [...guests].sort((x, y) => x.name.localeCompare(y.name, 'fr', { sensitivity: 'base' }))
+  usersList.replaceChildren(...sorted.map((g) => {
     const li = document.createElement('li')
     li.className = 'user-row'
     li.append(g.avatar ? avatarEl(g.avatar) : Object.assign(document.createElement('span'), { className: 'avatar user-noavatar', textContent: '?' }))
@@ -275,9 +286,15 @@ function renderUsers (guests) {
     li.append(who)
     const actions = document.createElement('span')
     actions.className = 'user-actions'
-    for (const [label, fn] of [[g.isAdmin ? 'Retirer admin' : 'Rendre admin', () => toggleAdmin(g)], ['Personnage', () => editUserAvatar(g)], ['Renommer', () => renameUser(g)], ['Supprimer', () => deleteUser(g)]]) {
+    for (const [label, icon, fn, cls] of [
+      [g.isAdmin ? 'Retirer les droits admin' : 'Rendre admin', g.isAdmin ? ICONS.shieldOff : ICONS.shield, () => toggleAdmin(g), g.isAdmin ? 'is-on' : ''],
+      ['Modifier le personnage', ICONS.face, () => editUserAvatar(g), ''],
+      ['Renommer', ICONS.pencil, () => renameUser(g), ''],
+      ['Supprimer', ICONS.trash, () => deleteUser(g), 'is-danger'],
+    ]) {
       const b = document.createElement('button')
-      b.type = 'button'; b.className = 'link-inline'; b.textContent = label
+      b.type = 'button'; b.className = `icon-btn ${cls}`.trim(); b.innerHTML = icon
+      b.title = label; b.setAttribute('aria-label', label)
       b.addEventListener('click', fn)
       actions.append(b)
     }
