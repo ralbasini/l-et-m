@@ -1,4 +1,5 @@
 import { connect, countdown, countUp, SHAPES } from '../socket.js'
+import { avatarEl } from '../avatar.js'
 
 // Host page: the big screen. Same key the admin page stores its login under
 // (see src/admin-access.js) — being logged in there is what makes you the host.
@@ -85,6 +86,7 @@ function showBoard () {
     const li = document.createElement('li')
     li.innerHTML = '<span class="rk"></span><span class="n"></span><span class="gain"></span><span class="s"></span><span class="mv"></span>'
     li.querySelector('.n').textContent = r.n
+    li.querySelector('.n').before(avatarEl(r.v))
     li.querySelector('.rk').textContent = still ? r.r : r.pr
     li.querySelector('.s').textContent = still ? r.s : r.ps
     li.style.transform = `translateY(${(still ? i : before.get(r.n)) * ROW_STEP}rem)`
@@ -190,6 +192,7 @@ function renderFinal (top) {
     const d = document.createElement('div')
     d.className = `pod pod-${i + 1}`
     d.innerHTML = '<div class="who"><span class="crown" aria-hidden="true">👑</span><span class="medal"></span><span class="pn"></span><span class="ps"></span></div><div class="step"><span class="place"></span></div>'
+    d.querySelector('.who').prepend(avatarEl(r.v, 'pod-av'))
     d.querySelector('.medal').textContent = MEDALS[i]
     d.querySelector('.pn').textContent = r.n
     d.querySelector('.ps').textContent = `${r.s} pts`
@@ -205,11 +208,99 @@ function renderFinal (top) {
     li.innerHTML = '<span class="rk"></span><span class="n"></span><span class="s"></span>'
     li.querySelector('.rk').textContent = k + 4
     li.querySelector('.n').textContent = r.n
+    li.querySelector('.n').before(avatarEl(r.v))
     li.querySelector('.s').textContent = r.s
     li.style.setProperty('--at', `${still ? 0 : 3600 + k * 120}ms`)
     return li
   }))
   if (!still) podiumTimers.push(setTimeout(() => { stopFireworks = fireworks() }, 2500))
+}
+
+// Lobby: everyone who joined walks left and right around an arena, taking small
+// hops and, now and then, a backflip. Cards are placed by script every frame.
+const LANES = 4
+const LANE_GAP = 70 // px between rows; rows further down draw on top
+const LANE_TOP = 95 // room above the first row for backflips
+const lobbyCards = new Map()
+let lobbyRaf = 0
+let lobbyLast = 0
+
+// Each avatar decides on its own what to do next: walk left or right for a
+// while, stand still, hop on the spot, or throw a backflip.
+function nextMove (w, t) {
+  const r = Math.random()
+  w.jump = null
+  if (r < 0.4) {
+    w.kind = 'walk'; w.dir = Math.random() < 0.5 ? -1 : 1; w.speed = 30 + Math.random() * 70
+    w.until = t + 700 + Math.random() * 2600
+    if (Math.random() < 0.4) w.jump = { t0: t, dur: 420, h: 12 + Math.random() * 10 } // a hop in the stride
+  } else if (r < 0.62) {
+    w.kind = 'pause'; w.until = t + 500 + Math.random() * 2200
+  } else if (r < 0.88) {
+    const hops = 1 + Math.floor(Math.random() * 3)
+    w.kind = 'hop'; w.hops = hops; w.until = t + hops * 440
+    w.jump = { t0: t, dur: 420, h: 14 + Math.random() * 12 }
+  } else {
+    w.kind = 'flip'; w.until = t + 950
+    w.jump = { t0: t, dur: 900, h: 70, flip: true }
+  }
+}
+
+function stepLobby (t) {
+  lobbyRaf = 0
+  if ($('screen-lobby').hidden || !lobbyCards.size) return
+  const W = $('lobby-players').clientWidth
+  const dt = Math.min(0.05, (t - (lobbyLast || t)) / 1000); lobbyLast = t
+  for (const w of lobbyCards.values()) {
+    if (t >= w.until) nextMove(w, t)
+    if (w.kind === 'walk') {
+      w.x += w.dir * w.speed * dt
+      const max = Math.max(0, W - 96)
+      if (w.x < 0) { w.x = 0; w.dir = 1 } else if (w.x > max) { w.x = max; w.dir = -1 }
+    }
+    let y = 0; let rot = 0
+    if (w.jump) {
+      const u = Math.min(1, (t - w.jump.t0) / w.jump.dur)
+      y = -4 * w.jump.h * u * (1 - u)
+      // Backflip: leans back against the walking direction, a full turn in mid-air.
+      if (w.jump.flip) rot = -w.dir * 360 * (u < 0.15 ? 0 : u > 0.85 ? 1 : (u - 0.15) / 0.7)
+      if (u >= 1) w.jump = w.kind === 'hop' && t + 420 < w.until ? { t0: t, dur: 420, h: 14 + Math.random() * 12 } : null
+    }
+    w.li.style.transform = `translate3d(${w.x.toFixed(1)}px, ${(LANE_TOP + w.lane * LANE_GAP + y).toFixed(1)}px, 0)`
+    w.flip.style.transform = `rotate(${rot.toFixed(1)}deg)`
+  }
+  lobbyRaf = requestAnimationFrame(stepLobby)
+}
+
+function renderLobby (who) {
+  const arena = $('lobby-players')
+  const names = new Set(who.map(([n]) => n))
+  for (const [n, w] of lobbyCards) {
+    if (!names.has(n)) { w.li.remove(); lobbyCards.delete(n) }
+  }
+  for (const [n, v] of who) {
+    if (lobbyCards.has(n)) continue
+    const li = document.createElement('li')
+    const pop = document.createElement('div')
+    pop.className = 'pop'
+    const flip = document.createElement('span')
+    flip.className = 'flip'
+    flip.append(avatarEl(v))
+    const s = document.createElement('span')
+    s.className = 'nm'
+    s.textContent = n
+    pop.append(flip, s)
+    li.append(pop)
+    const now = performance.now()
+    const lane = lobbyCards.size % LANES
+    li.style.zIndex = lane
+    arena.append(li)
+    lobbyCards.set(n, {
+      li, flip, lane, jump: null, kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
+      x: Math.random() * Math.max(0, arena.clientWidth - 96), until: now + Math.random() * 1500,
+    })
+  }
+  if (!lobbyRaf && lobbyCards.size) lobbyRaf = requestAnimationFrame(stepLobby)
 }
 
 function onMessage (m, send) {
@@ -223,9 +314,11 @@ function onMessage (m, send) {
     case 'lobby':
       stopTimer(); current = null
       show('lobby'); setPhase('lobby')
+      if (!lobbyRaf && lobbyCards.size) lobbyRaf = requestAnimationFrame(stepLobby)
       break
     case 'tally':
       $('lobby-count').textContent = m.online
+      if (m.who) renderLobby(m.who)
       $('answered').textContent = m.answered
       $('answered-of').textContent = m.online
       break

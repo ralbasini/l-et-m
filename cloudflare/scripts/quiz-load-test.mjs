@@ -65,7 +65,7 @@ for (let i = 0; i < N; i++) {
   c.pid = `lt-${runId}-${String(i).padStart(4, '0')}`
   c.name = 'Joueur ' + i
   await c.open()
-  c.send({ t: 'join', pid: c.pid, name: c.name })
+  c.send({ t: 'join', pid: c.pid, name: c.name, av: [i % 8, Math.floor(i / 8) % 8, Math.floor(i / 64) % 8] })
   players.push(c)
   if (i % 20 === 19) await sleep(50)
 }
@@ -75,9 +75,13 @@ console.log(`${N} players joined in ${Date.now() - t0} ms`)
 // A duplicate name is refused.
 {
   const dup = new Client('dup'); await dup.open()
-  dup.send({ t: 'join', pid: `dup-${runId}-0001`, name: 'joueur 3' })
+  dup.send({ t: 'join', pid: `dup-${runId}-0001`, name: 'joueur 3', av: [7, 7, 7] })
   check((await dup.next('error')).code === 'name_taken', 'duplicate name is rejected')
   dup.ws.close()
+  const dup2 = new Client('dup2'); await dup2.open()
+  dup2.send({ t: 'join', pid: `dup-${runId}-0002`, name: 'Nouveau', av: [3 % 8, 0, 0] })
+  check((await dup2.next('error')).code === 'avatar_taken', 'duplicate avatar is rejected')
+  dup2.ws.close()
 }
 await sleep(300)
 check(host.last('tally').players === N, `host sees ${N} players (saw ${host.last('tally').players})`)
@@ -133,6 +137,7 @@ for (let q = 0; q < QUESTIONS.length; q++) {
 
 const final = await host.next('final')
 const playerFinals = await Promise.all(players.map((c) => c.next('final')))
+check(final.top.every((r) => Array.isArray(r.v) && r.v.length === 3), 'leaderboard rows carry an avatar')
 check(final.top.length === Math.min(10, N), 'host gets a top 10')
 check(final.top.every((r, i, a) => i === 0 || a[i - 1].s >= r.s), 'leaderboard is sorted')
 check(playerFinals.every((f) => f.of === N && f.rank >= 1 && f.rank <= N), 'every player gets a rank')

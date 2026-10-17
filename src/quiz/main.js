@@ -1,4 +1,5 @@
 import { connect, countdown, countUp, SHAPES } from './socket.js'
+import { ANIMALS, ACCESSORIES, COLORS, avatarEl, randomAvatar } from './avatar.js'
 
 // Player page. The phone only ever sends two things: who it is (a random id
 // kept in localStorage, so a reload or lost connection rejoins as the same
@@ -15,6 +16,8 @@ const ERRORS = {
   name_taken: 'Ce prénom est déjà pris, ajoutez par exemple une initiale.',
   name_required: 'Entrez votre prénom.',
   full: 'La partie est complète.',
+  avatar_taken: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.',
+  avatar_required: 'Créez votre personnage.',
   bad_request: 'Erreur, rechargez la page.',
 }
 
@@ -25,13 +28,49 @@ let sendFn = () => {}
 let stopTimer = () => {}
 let current = null
 
+let av = null
+try { av = JSON.parse(store.get('lm_quiz_av')) } catch { /* none yet */ }
+if (!Array.isArray(av) || av.length !== 3) av = randomAvatar()
+
+// Avatar builder: pick an animal, a fur colour and an accessory. Each chip draws
+// the result of choosing it, so the options preview themselves.
+function chip (label, pressed, onClick, child) {
+  const b = document.createElement('button')
+  b.type = 'button'
+  b.className = `chip${pressed ? ' on' : ''}`
+  b.title = label
+  b.setAttribute('aria-label', label)
+  b.setAttribute('aria-pressed', String(pressed))
+  b.append(child)
+  b.addEventListener('click', onClick)
+  return b
+}
+function renderBuilder () {
+  $('av-preview').replaceChildren(avatarEl(av, 'xl'))
+  $('av-animals').replaceChildren(...ANIMALS.map((n, i) => chip(n, av[0] === i, () => { av[0] = i; renderBuilder() }, avatarEl([i, av[1], 0]))))
+  $('av-colors').replaceChildren(...COLORS.map((c, i) => {
+    const sw = document.createElement('span')
+    sw.className = 'swatch'
+    sw.style.background = c.fur
+    sw.style.borderColor = c.dark
+    return chip(c.name, av[1] === i, () => { av[1] = i; renderBuilder() }, sw)
+  }))
+  $('av-acc').replaceChildren(...ACCESSORIES.map((n, i) => {
+    let child
+    if (i === 0) { child = document.createElement('span'); child.className = 'none'; child.textContent = '∅' } else child = avatarEl([av[0], av[1], i])
+    return chip(n, av[2] === i, () => { av[2] = i; renderBuilder() }, child)
+  }))
+}
+$('av-random').addEventListener('click', () => { av = randomAvatar(); renderBuilder() })
+renderBuilder()
+
 $('name').value = name
 $('join-form').addEventListener('submit', (e) => {
   e.preventDefault()
   name = $('name').value.trim()
   if (!name) return
   $('join-error').hidden = true
-  sendFn({ t: 'join', pid, name })
+  sendFn({ t: 'join', pid, name, av })
 })
 
 function showQuestion (m) {
@@ -69,6 +108,7 @@ function onMessage (m) {
     case 'joined':
       name = m.name
       store.set('lm_quiz_name', name)
+      store.set('lm_quiz_av', JSON.stringify(av))
       break
     case 'error':
       if (m.code === 'name_required' && !name) break
@@ -79,6 +119,7 @@ function onMessage (m) {
     case 'lobby':
       stopTimer(); current = null
       $('wait-title').textContent = `C'est noté, ${name} !`
+      $('wait-avatar').replaceChildren(avatarEl(av, 'xl'))
       show('wait')
       break
     case 'question':
@@ -143,7 +184,7 @@ connect({
   onOpen: (send) => {
     sendFn = send
     // A returning phone re-joins silently; a new one sees the name form.
-    if (name) send({ t: 'join', pid, name })
+    if (name) send({ t: 'join', pid, name, av })
     else show('join')
   },
   onMessage,

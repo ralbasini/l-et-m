@@ -20,6 +20,11 @@
     <section id="screen-join" class="screen" hidden>
       <h1>Le quiz du mariage</h1>
       <form id="join-form">
+        <div id="av-preview" class="av-preview"></div>
+        <div class="av-group"><span class="av-label">Animal</span><div id="av-animals" class="av-choices"></div></div>
+        <div class="av-group"><span class="av-label">Pelage</span><div id="av-colors" class="av-choices"></div></div>
+        <div class="av-group"><span class="av-label">Accessoire</span><div id="av-acc" class="av-choices"></div></div>
+        <button type="button" id="av-random" class="ghost">🎲 Au hasard</button>
         <label for="name">Votre prénom</label>
         <input id="name" type="text" maxlength="20" autocomplete="given-name" placeholder="ex. Camille" required>
         <p id="join-error" class="error" hidden></p>
@@ -28,6 +33,7 @@
     </section>
 
     <section id="screen-wait" class="screen" hidden>
+      <div id="wait-avatar" class="av-preview"></div>
       <h1 id="wait-title">C'est noté !</h1>
       <p id="wait-text">Le quiz va bientôt commencer. Gardez cette page ouverte.</p>
     </section>

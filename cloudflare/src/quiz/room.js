@@ -26,6 +26,12 @@ function cleanName (raw) {
   return String(raw ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX)
 }
 
+const AVATAR_LIMITS = [8, 8, 9] // animals, fur colours, accessories (see src/quiz/avatar.js)
+function parseAvatar (v) {
+  if (!Array.isArray(v) || v.length !== 3) return null
+  return v.every((n, i) => Number.isInteger(n) && n >= 0 && n < AVATAR_LIMITS[i]) ? v : null
+}
+
 export class QuizRoom extends DurableObject {
   constructor (ctx, env) {
     super(ctx, env)
@@ -96,7 +102,7 @@ export class QuizRoom extends DurableObject {
     return [...this.players.values()]
       .sort((a, b) => b.s - a.s || a.n.localeCompare(b.n))
       .slice(0, limit)
-      .map((p) => ({ n: p.n, s: p.s }))
+      .map((p) => ({ n: p.n, s: p.s, v: p.v }))
   }
 
   // Rows for the host's animated leaderboard: who is on top now, what each
@@ -106,7 +112,7 @@ export class QuizRoom extends DurableObject {
     return [...this.players.values()]
       .sort((a, b) => b.s - a.s || a.n.localeCompare(b.n))
       .slice(0, limit)
-      .map((p) => { const r = this.rankOf(p); return { n: p.n, s: p.s, d: p.d, r, pr: p.pr ?? r } })
+      .map((p) => { const r = this.rankOf(p); return { n: p.n, s: p.s, v: p.v, d: p.d, r, pr: p.pr ?? r } })
   }
 
   rankOf (p) {
@@ -152,7 +158,11 @@ export class QuizRoom extends DurableObject {
   }
 
   tallyMsg () {
-    return { t: 'tally', players: this.players.size, online: this.onlinePids().size, answered: this.answeredCount() }
+    const online = this.onlinePids()
+    const msg = { t: 'tally', players: this.players.size, online: online.size, answered: this.answeredCount() }
+    // In the lobby the host shows who has joined (avatar + name).
+    if (this.phase === 'lobby') msg.who = [...online].map((pid) => this.players.get(pid)).filter(Boolean).map((p) => [p.n, p.v])
+    return msg
   }
 
   // The current screen, for someone who just connected or reconnected.
@@ -216,7 +226,14 @@ export class QuizRoom extends DurableObject {
       for (const o of this.players.values()) {
         if (o.n.toLocaleLowerCase() === lower) return this.send(ws, { t: 'error', code: 'name_taken' })
       }
-      p = { n: name, s: 0, d: 0, a: {} }
+      // Avatar = [animal, colour, accessory]; each combination belongs to one player.
+      const v = parseAvatar(msg.av)
+      if (!v) return this.send(ws, { t: 'error', code: 'avatar_required' })
+      const key = v.join('.')
+      for (const o of this.players.values()) {
+        if (o.v && o.v.join('.') === key) return this.send(ws, { t: 'error', code: 'avatar_taken' })
+      }
+      p = { n: name, s: 0, d: 0, a: {}, v }
       this.players.set(pid, p)
       await this.savePlayer(pid)
     }
