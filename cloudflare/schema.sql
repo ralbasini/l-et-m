@@ -16,9 +16,11 @@ CREATE TABLE folders (
 CREATE TABLE guests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
+  is_admin INTEGER NOT NULL DEFAULT 0, -- 1 = may enter the admin panel (needs the admin password to log in)
   avatar TEXT,               -- "animal.colour.accessory" (see src/avatar.js); NULL for guests from before avatars
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Admin rights (existing database): wrangler d1 execute lobna-et-martin --remote --command "ALTER TABLE guests ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0"
 -- Avatars may repeat. Existing database: apply with
 --   wrangler d1 execute lobna-et-martin --remote --command "ALTER TABLE guests ADD COLUMN avatar TEXT"
 --   (and, if you ran the earlier unique index: ... --command "DROP INDEX IF EXISTS idx_guests_avatar")

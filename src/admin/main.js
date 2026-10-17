@@ -148,7 +148,6 @@ async function loadSettings () {
     setMenuPublic(menuPublicToggle.checked)
     renderVisibility()
     quizToggle.checked = Boolean(settings.quizEnabled)
-    setQuizOn(quizToggle.checked)
     renderQuiz()
     if (settings.maxPerPerson !== undefined) {
       // A value above the slider's range (set earlier) still shows and stays settable.
@@ -192,6 +191,7 @@ menuPublicToggle.addEventListener('change', async () => {
     menuPublicToggle.checked = Boolean(settings.menuPublic)
     setMenuPublic(menuPublicToggle.checked)
     renderVisibility()
+    renderQuiz()
     toast(settings.menuPublic
       ? 'Galerie et Photos sont maintenant visibles pour tous.'
       : 'Galerie et Photos sont maintenant masquées pour les visiteurs.', true)
@@ -207,9 +207,13 @@ menuPublicToggle.addEventListener('change', async () => {
 // ── Quiz switch ─────────────────────────────────────────────────
 const quizToggle = document.getElementById('quiz-enabled-toggle')
 const quizBadge = document.getElementById('quiz-badge')
+// The quiz is only really open when the site is public too.
 function renderQuiz () {
-  quizBadge.textContent = quizToggle.checked ? 'Ouvert' : 'Fermé'
-  quizBadge.classList.toggle('is-public', quizToggle.checked)
+  const open = quizToggle.checked && menuPublicToggle.checked
+  quizBadge.textContent = open ? 'Ouvert' : 'Fermé'
+  quizBadge.classList.toggle('is-public', open)
+  setQuizOn(open)
+  document.getElementById('quiz-private-hint').hidden = menuPublicToggle.checked
 }
 quizToggle.addEventListener('change', async () => {
   const wanted = quizToggle.checked
@@ -218,9 +222,8 @@ quizToggle.addEventListener('change', async () => {
   try {
     const settings = await apiFetch('settings', { method: 'POST', json: { quizEnabled: wanted } })
     quizToggle.checked = Boolean(settings.quizEnabled)
-    setQuizOn(quizToggle.checked)
     renderQuiz()
-    toast(settings.quizEnabled ? 'Le quiz est ouvert : il apparaît dans le menu.' : 'Le quiz est fermé.', true)
+    toast(settings.quizEnabled && menuPublicToggle.checked ? 'Le quiz est ouvert : il apparaît dans le menu.' : 'Le quiz est fermé.', true)
   } catch (err) {
     quizToggle.checked = !wanted
     renderQuiz()
@@ -245,11 +248,12 @@ function renderUsers (guests) {
     who.className = 'user-who'
     who.innerHTML = '<strong></strong><small></small>'
     who.querySelector('strong').textContent = g.name
+    if (g.isAdmin) who.querySelector('strong').insertAdjacentHTML('afterend', ' <em class="user-badge">admin</em>')
     who.querySelector('small').textContent = `${g.photos} photo${g.photos > 1 ? 's' : ''}`
     li.append(who)
     const actions = document.createElement('span')
     actions.className = 'user-actions'
-    for (const [label, fn] of [['Personnage', () => editUserAvatar(g)], ['Renommer', () => renameUser(g)], ['Supprimer', () => deleteUser(g)]]) {
+    for (const [label, fn] of [[g.isAdmin ? 'Retirer admin' : 'Rendre admin', () => toggleAdmin(g)], ['Personnage', () => editUserAvatar(g)], ['Renommer', () => renameUser(g)], ['Supprimer', () => deleteUser(g)]]) {
       const b = document.createElement('button')
       b.type = 'button'; b.className = 'link-inline'; b.textContent = label
       b.addEventListener('click', fn)
@@ -269,6 +273,12 @@ async function userAction (path, json, okMessage) {
 async function editUserAvatar (g) {
   const { pickAvatar } = await import('../gate.js')
   try { await userAction('guest-update', { id: g.id, avatar: await pickAvatar(g.avatar, g.name) }, 'Personnage enregistré.') } catch { /* cancelled */ }
+}
+function toggleAdmin (g) {
+  const msg = g.isAdmin
+    ? `Retirer les droits d'administrateur à « ${g.name} » ?`
+    : `Donner les droits d'administrateur à « ${g.name} » ? Cette personne aura accès au menu Admin (avec le mot de passe administrateur).`
+  if (confirm(msg)) userAction('guest-update', { id: g.id, isAdmin: !g.isAdmin }, g.isAdmin ? 'Droits retirés.' : 'Droits d\'administrateur accordés.')
 }
 function renameUser (g) {
   const name = prompt(`Nouveau nom pour « ${g.name} » ?`, g.name)

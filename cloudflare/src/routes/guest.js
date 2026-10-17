@@ -2,6 +2,7 @@ import { json } from '../cors.js'
 import { signToken } from '../auth.js'
 import { registerFolderPath, storePhoto, deletePhotoRows } from '../files.js'
 import { getMaxPerPerson } from './settings.js'
+import { verifyAdminPassword } from './admin.js'
 import { parseAvatar, avatarKey, avatarFromKey, cleanName } from '../avatar.js'
 
 // The per-person limit is a site setting (routes/settings.js, set from the
@@ -27,6 +28,7 @@ async function guestState (env, guest) {
   return {
     name: guest.name,
     avatar: avatarFromKey(guest.avatar),
+    isAdmin: Boolean(guest.is_admin),
     maxPerPerson,
     // Never negative: a guest above a lowered limit keeps every photo, they
     // just can't add more.
@@ -50,8 +52,22 @@ export async function identify (request, env) {
   if (!name) return json({ error: 'Merci d’indiquer un prénom.' }, { status: 400 })
   if (!avatar) return json({ error: 'Créez votre personnage.' }, { status: 400 })
 
-  const existing = await env.DB.prepare('SELECT id, name, avatar FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
+  const existing = await env.DB.prepare('SELECT id, name, avatar, is_admin FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
   const key = avatarKey(avatar)
+
+  // An account with admin rights is never reachable with just a name and an avatar: the
+  // admin password proves it is really them (and then also hands out the admin token).
+  let adminToken = null
+  if (existing && existing.is_admin) {
+    if (!body.password) return json({ code: 'password_required', error: 'Compte administrateur : entrez le mot de passe.' }, { status: 401 })
+    const refused = await verifyAdminPassword(request, env, body.password)
+    if (refused) return refused
+    adminToken = await signToken(env.ADMIN_TOKEN_SECRET, { role: 'admin' })
+    await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, existing.id).run()
+    const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: existing.id })
+    return json({ token, adminToken, name: existing.name, avatar, resumed: true })
+  }
+
   if (existing && existing.avatar) {
     // Same name and same avatar: this is the guest coming back (new phone, cleared browser).
     // The avatar acts as the password; anything else is a different person wanting the name.

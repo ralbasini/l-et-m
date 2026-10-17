@@ -22,7 +22,10 @@ async function passwordMatches (given, expected) {
   return crypto.subtle.timingSafeEqual(await sha256(given), await sha256(expected))
 }
 
-export async function login (request, env) {
+// Checks the shared admin password with the per-IP lockout. null = correct, otherwise the
+// error Response to send back. Used by the admin login and by guest accounts that hold
+// admin rights (their name + avatar alone must never be enough to get in).
+export async function verifyAdminPassword (request, env, password) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown'
   const now = Date.now()
   const attempts = await env.DB.prepare(
@@ -34,7 +37,6 @@ export async function login (request, env) {
     return json({ error: `Trop de tentatives. Réessayez dans ${minutes} min.` }, { status: 429 })
   }
 
-  const { password } = await request.json().catch(() => ({}))
   if (!(await passwordMatches(password, env.ADMIN_PASSWORD))) {
     // A lock that has expired starts a fresh count.
     const previous = attempts && attempts.locked_until === 0 ? attempts.failures : 0
@@ -48,6 +50,13 @@ export async function login (request, env) {
   }
 
   await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run()
+  return null
+}
+
+export async function login (request, env) {
+  const { password } = await request.json().catch(() => ({}))
+  const refused = await verifyAdminPassword(request, env, password)
+  if (refused) return refused
   const token = await signToken(env.ADMIN_TOKEN_SECRET, { role: 'admin' })
   return json({ token })
 }
@@ -271,20 +280,23 @@ async function findPhotos (env, paths) {
 // photos = what currently sits in the guest's folder, like the guest's own quota.
 export async function listGuests (request, env) {
   const { results } = await env.DB.prepare(
-    `SELECT g.id, g.name, g.avatar, g.created_at,
+    `SELECT g.id, g.name, g.avatar, g.is_admin AS isAdmin, g.created_at,
        (SELECT COUNT(*) FROM photos p WHERE p.folder = 'Invités/' || g.name) AS photos
      FROM guests g ORDER BY g.created_at DESC, g.id DESC`
   ).all()
-  return json({ guests: results.map((g) => ({ ...g, avatar: avatarFromKey(g.avatar) })) })
+  return json({ guests: results.map((g) => ({ ...g, isAdmin: Boolean(g.isAdmin), avatar: avatarFromKey(g.avatar) })) })
 }
 
-// POST { id, name?, avatar? }. Renaming is refused while the guest has photos:
+// POST { id, name?, avatar?, isAdmin? }. Renaming is refused while the guest has photos:
 // their folder is named after them and would be orphaned.
 export async function updateGuest (request, env) {
   const body = await request.json().catch(() => ({}))
   const guest = await env.DB.prepare('SELECT id, name FROM guests WHERE id = ?').bind(body.id).first()
   if (!guest) return json({ error: 'Utilisateur introuvable.' }, { status: 404 })
   try {
+    if (typeof body.isAdmin === 'boolean') {
+      await env.DB.prepare('UPDATE guests SET is_admin = ? WHERE id = ?').bind(body.isAdmin ? 1 : 0, guest.id).run()
+    }
     if (body.avatar !== undefined) {
       const avatar = parseAvatar(body.avatar)
       if (!avatar) return json({ error: 'Personnage invalide.' }, { status: 400 })

@@ -16,8 +16,9 @@ export function getSession () {
   return { token: read(GUEST_TOKEN_KEY), name: read(NAME_KEY), avatar: Array.isArray(avatar) ? avatar : null }
 }
 
-export function saveSession ({ token, name, avatar }) {
+export function saveSession ({ token, adminToken, name, avatar }) {
   if (token) write(GUEST_TOKEN_KEY, token)
+  if (adminToken) { write('lm_admin_token', adminToken); document.documentElement.classList.add('is-admin') } // admin rights: the admin menu
   if (name) write(NAME_KEY, name)
   if (avatar) write(AVATAR_KEY, JSON.stringify(avatar))
   document.documentElement.classList.add('is-guest') // shows the account menu
@@ -55,15 +56,15 @@ export async function fetchMe () {
   try {
     const me = await call('guest/me', { token: s.token })
     saveSession({ ...s, name: me.name, avatar: me.avatar })
-    return { token: s.token, name: me.name, avatar: me.avatar }
+    return { token: s.token, name: me.name, avatar: me.avatar, isAdmin: me.isAdmin }
   } catch (err) {
     if (err.code === '401') { clearSession(); return null }
     return s.avatar ? s : null
   }
 }
 
-export async function register (name, avatar) {
-  const data = await call('guest/identify', { method: 'POST', body: { name, avatar } })
+export async function register (name, avatar, password) {
+  const data = await call('guest/identify', { method: 'POST', body: { name, avatar, ...(password ? { password } : {}) } })
   saveSession(data)
   return data
 }

@@ -37,6 +37,10 @@ function showGate ({ me, edit }) {
             <label for="gate-name">Votre prénom</label>
             <input id="gate-name" type="text" maxlength="20" autocomplete="given-name" placeholder="ex. Camille" ${hasAccount ? '' : 'required'}>
           </div>
+          <div data-ref="pwField" hidden>
+            <label for="gate-pw">Mot de passe administrateur</label>
+            <input id="gate-pw" type="password" autocomplete="current-password">
+          </div>
           <p class="error" data-ref="error" hidden></p>
           <button type="submit" data-ref="submit">${edit || hasAccount ? 'Enregistrer' : 'Entrer'}</button>
           ${edit ? '<button type="button" class="ghost" data-ref="cancel">Annuler</button>' : ''}
@@ -64,10 +68,11 @@ function showGate ({ me, edit }) {
       btn.disabled = true
       try {
         if (hasAccount) await updateAvatar(builder.get())
-        else await register(gate.querySelector('#gate-name').value, builder.get())
+        else await register(gate.querySelector('#gate-name').value, builder.get(), gate.querySelector('#gate-pw').value)
         close()
         resolve(getSession())
       } catch (err) {
+        if (err.code === 'password_required') { ref('pwField').hidden = false; gate.querySelector('#gate-pw').focus() }
         error.textContent = err.message
         error.hidden = false
         btn.disabled = false

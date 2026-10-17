@@ -248,3 +248,9 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .pod .step { flex-direction: column; align-items: center; }
 .pod .step .ps { margin-top: 0.5rem; font-size: 1.7rem; font-weight: 600; opacity: 1; color: rgba(37, 37, 37, 0.8); }
 .pod-1 .step .ps { font-size: 2.1rem; color: #5a4310; }
+
+/* Site menu: hidden during the game, shown on the final screen (with room for it). */
+html:not(.quiz-ended) .site-nav { display: none; }
+html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1rem) + 1rem); justify-content: flex-start; }
+.btn-link { display: inline-block; margin-top: 0.5rem; padding: 0.9rem 1.5rem; border-radius: 0.6rem; background: var(--green); color: #fff; font-weight: 600; text-decoration: none; }
+.btn-link:hover { background: var(--green-dark); }

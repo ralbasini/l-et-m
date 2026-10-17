@@ -20,7 +20,8 @@ async function readSettings (env) {
 // Used by the guest routes. Lowering it never removes anyone's photos: a guest
 // already above it just has nothing left to upload (remaining = max(0, …)).
 export async function isQuizEnabled (env) {
-  return (await readSettings(env)).quizEnabled
+  const s = await readSettings(env)
+  return s.quizEnabled && s.menuPublic // a private site never has a live quiz
 }
 
 export async function getMaxPerPerson (env) {

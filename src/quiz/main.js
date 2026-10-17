@@ -71,7 +71,11 @@ function answer (choice) {
   document.querySelectorAll('.opt').forEach((b) => { b.disabled = true })
 }
 
+// The site menu is part of this page but only appears once the quiz is over.
+const setEnded = (on) => document.documentElement.classList.toggle('quiz-ended', on)
+
 function onMessage (m) {
+  setEnded(m.t === 'final')
   if (m.t !== 'ack' && m.t !== 'result') stopRoam()
   switch (m.t) {
     case 'joined':
