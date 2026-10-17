@@ -263,3 +263,9 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; animation: dance 1.6s ease-in-out infinite; }
 .stage { position: relative; height: 13rem; width: 100%; margin: 0 0 0.5rem; }
 .stage .avatar { position: absolute; left: 0; bottom: 0; transform-origin: 50% 55%; will-change: transform; }
+.pod .pod-av { position: relative; overflow: visible; }
+.pod .medal-acc { position: absolute; left: 50%; bottom: -12%; width: 38%; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)); }
+.pod-1 .medal-acc { width: 34%; }
+.pod .step { flex-direction: column; align-items: center; }
+.pod .step .ps { margin-top: 0.5rem; font-size: 1.7rem; font-weight: 600; opacity: 1; color: rgba(37, 37, 37, 0.8); }
+.pod-1 .step .ps { font-size: 2.1rem; color: #5a4310; }

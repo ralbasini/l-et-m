@@ -144,14 +144,14 @@ function onMessage (m) {
       break
     case 'avatar':
       store.set('lm_quiz_av', JSON.stringify(av))
-      $('wait-avatar').replaceChildren(avatarEl(av, 'xl'))
       setEditing(false); show('wait')
+      onStage('wait-avatar', 'happy')
       break
     case 'lobby':
       stopTimer(); current = null
       $('wait-title').textContent = `C'est noté, ${name} !`
-      $('wait-avatar').replaceChildren(avatarEl(av, 'xl'))
       show('wait')
+      onStage('wait-avatar', 'happy')
       break
     case 'question':
       showQuestion(m)

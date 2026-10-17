@@ -1,5 +1,6 @@
 import { connect, countdown, countUp, SHAPES } from '../socket.js'
 import { avatarEl } from '../avatar.js'
+import { perform } from '../roam.js'
 
 // Host page: the big screen. Same key the admin page stores its login under
 // (see src/admin-access.js) — being logged in there is what makes you the host.
@@ -16,6 +17,7 @@ let stopTimer = () => {}
 let current = null // the question being shown
 let lastReveal = null // the latest reveal message, which also carries the leaderboard
 let boardTimers = []
+let avatarStops = [] // stop functions of the hopping avatars (leaderboard, podium)
 let phase = 'lobby'
 
 $('join-url').textContent = location.href.replace(/host\/?(\?.*)?$/, '').replace(/^https?:\/\//, '')
@@ -124,14 +126,40 @@ function showBoard () {
     if (r.d > 0) { items[i].querySelector('.gain').textContent = `+${r.d}`; items[i].classList.add('scored') }
   }), 500)
   later(settle, 1400)
+  // Once the rows have settled, the avatars start hopping about (an occasional backflip too).
+  later(() => items.forEach((li) => avatarStops.push(perform(li.querySelector('.avatar'), { flip: 0.35, gap: [1000, 3500], height: 0.7 }))), 2800)
 }
 
 // ── Final podium ──────────────────────────────────────────────
 // 2nd-1st-3rd blocks rise one after the other (3rd, 2nd, then the winner),
 // then fireworks and confetti run until the host leaves the screen.
-const MEDALS = ['🥇', '🥈', '🥉']
+const MEDAL_COLORS = [['#f6df8a', '#c9a23c'], ['#eef1f0', '#9fb0ac'], ['#efc29a', '#a8693a']]
+const medalSvg = (i) => {
+  const [a, b] = MEDAL_COLORS[i]
+  return `<svg class="medal-acc" viewBox="0 0 40 52" aria-hidden="true"><path d="M8 0 L20 22 L32 0 L26 0 L20 10 L14 0z" fill="#d6455d"/><path d="M14 0 L20 10 L26 0z" fill="#b8324a"/><circle cx="20" cy="33" r="15" fill="${b}"/><circle cx="20" cy="33" r="12" fill="${a}" stroke="${b}" stroke-width="1.5"/><text x="20" y="39" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="17" fill="${b}">${i + 1}</text></svg>`
+}
 let stopFireworks = () => {}
 let podiumTimers = []
+
+// Falling confetti: coloured paper, with the odd chili and half-wheel of raclette.
+// The two food sprites are drawn once to small canvases, then just stamped.
+function makeSprites () {
+  const chili = document.createElement('canvas')
+  chili.width = chili.height = 34
+  const c1 = chili.getContext('2d')
+  c1.font = '26px sans-serif'; c1.textAlign = 'center'; c1.textBaseline = 'middle'
+  c1.fillText('🌶️', 17, 18)
+  const cheese = document.createElement('canvas')
+  cheese.width = cheese.height = 34
+  const c2 = cheese.getContext('2d')
+  c2.translate(17, 21)
+  c2.beginPath(); c2.arc(0, 0, 14, Math.PI, 0); c2.closePath()
+  c2.fillStyle = '#f7cf4a'; c2.fill()
+  c2.lineWidth = 3; c2.strokeStyle = '#d99a1c'; c2.stroke()
+  c2.fillStyle = '#e0a928'
+  for (const [hx, hy, hr] of [[-6, -4, 2.4], [3, -8, 2], [6, -2, 2.8], [-1, -2, 1.6]]) { c2.beginPath(); c2.arc(hx, hy, hr, 0, 7); c2.fill() }
+  return { chili, cheese }
+}
 
 function fireworks () {
   const cv = $('fireworks')
@@ -139,42 +167,28 @@ function fireworks () {
   const fit = () => { cv.width = innerWidth; cv.height = innerHeight }
   fit(); addEventListener('resize', fit)
   cv.hidden = false
-  let parts = []; let rockets = []; let raf = 0; let last = 0; let nextBurst = 0
-  const burst = (x, y, hue) => {
-    for (let i = 0; i < 110; i++) {
-      const a = Math.random() * Math.PI * 2; const v = 1.5 + Math.random() * 5.5
-      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, hue: hue + Math.random() * 50, r: 1.5 + Math.random() * 2.5 })
-    }
-  }
-  const confetti = () => {
-    for (let i = 0; i < 2; i++) parts.push({ x: Math.random() * cv.width, y: -10, vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2.5, life: 1.6, hue: Math.random() * 360, r: 3 + Math.random() * 3, c: true })
+  const sprites = makeSprites()
+  let parts = []; let raf = 0; let last = 0
+  const spawn = () => {
+    const r = Math.random()
+    parts.push({
+      x: Math.random() * cv.width, y: -20, vx: (Math.random() - 0.5) * 1.6, vy: 1.5 + Math.random() * 2.2,
+      hue: Math.random() * 360, w: 6 + Math.random() * 6, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.2,
+      k: r < 0.05 ? 'chili' : r < 0.1 ? 'cheese' : null,
+    })
   }
   const frame = (t) => {
     const dt = Math.min(2, (t - last) / 16.7 || 1); last = t
     ctx.clearRect(0, 0, cv.width, cv.height)
-    if (t > nextBurst) { // launch a rocket that explodes at the top of its climb
-      const x = cv.width * (0.08 + Math.random() * 0.84)
-      rockets.push({ x, y: cv.height, vy: -(9 + Math.random() * 4), hue: Math.random() * 360, top: cv.height * (0.12 + Math.random() * 0.4) })
-      nextBurst = t + 350 + Math.random() * 500
-    }
-    rockets = rockets.filter((r) => {
-      r.y += r.vy * dt
-      ctx.globalAlpha = 1; ctx.fillStyle = `hsl(${r.hue} 100% 80%)`
-      ctx.beginPath(); ctx.arc(r.x, r.y, 3, 0, 7); ctx.fill()
-      if (r.y > r.top) return true
-      burst(r.x, r.y, r.hue); return false
-    })
-    confetti()
-    parts = parts.filter((p) => p.life > 0 && p.y < cv.height + 20)
+    if (parts.length < 140) for (let i = 0; i < 2; i++) spawn()
+    parts = parts.filter((p) => p.y < cv.height + 30)
     for (const p of parts) {
-      p.x += p.vx * dt; p.y += p.vy * dt
-      p.vy += (p.c ? 0.02 : 0.07) * dt
-      if (!p.c) { p.vx *= 0.985; p.life -= 0.011 * dt } else p.life -= 0.003 * dt
-      ctx.globalAlpha = Math.max(0, Math.min(1, p.life))
-      ctx.fillStyle = `hsl(${p.hue} 90% 62%)`
-      if (p.c) ctx.fillRect(p.x, p.y, p.r * 1.6, p.r)
-      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill() }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt
+      ctx.setTransform(Math.cos(p.rot), Math.sin(p.rot), -Math.sin(p.rot), Math.cos(p.rot), p.x, p.y)
+      if (p.k) ctx.drawImage(sprites[p.k], -17, -17)
+      else { ctx.fillStyle = `hsl(${p.hue} 90% 62%)`; ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2) }
     }
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
     raf = requestAnimationFrame(frame)
   }
   raf = requestAnimationFrame(frame)
@@ -182,6 +196,7 @@ function fireworks () {
 }
 
 function stopFinale () {
+  avatarStops.forEach((f) => f()); avatarStops = []
   podiumTimers.forEach(clearTimeout); podiumTimers = []
   stopFireworks(); stopFireworks = () => {}
   document.body.classList.remove('finale')
@@ -197,15 +212,18 @@ function renderFinal (top) {
     const r = top[i]
     const d = document.createElement('div')
     d.className = `pod pod-${i + 1}`
-    d.innerHTML = '<div class="who"><span class="crown" aria-hidden="true">👑</span><span class="medal"></span><span class="pn"></span><span class="ps"></span></div><div class="step"><span class="place"></span></div>'
-    d.querySelector('.who').prepend(avatarEl(r.v, 'pod-av'))
-    d.querySelector('.medal').textContent = MEDALS[i]
+    d.innerHTML = '<div class="who"><span class="pn"></span></div><div class="step"><span class="place"></span><span class="ps"></span></div>'
+    // The medal hangs on the avatar like an accessory, so it moves with every hop and flip.
+    const av = avatarEl(r.v, 'pod-av')
+    av.insertAdjacentHTML('beforeend', medalSvg(i))
+    d.querySelector('.who').prepend(av)
     d.querySelector('.pn').textContent = r.n
     d.querySelector('.ps').textContent = `${r.s} pts`
     d.querySelector('.place').textContent = i + 1
     // 3rd rises first, the winner last.
     const at = still ? 0 : [3000, 1600, 200][i]
     d.style.setProperty('--at', `${at}ms`)
+    podiumTimers.push(setTimeout(() => avatarStops.push(perform(d.querySelector('.pod-av'), { flip: 0.65, gap: [400, 1800] })), at + 1700))
     if (!still) podiumTimers.push(setTimeout(() => countUp(d.querySelector('.ps'), 0, r.s, 1200, (n) => `${n} pts`), at + 700))
     return d
   }))
@@ -240,9 +258,9 @@ function nextMove (w, t) {
     w.kind = 'walk'; w.dir = Math.random() < 0.5 ? -1 : 1; w.speed = 30 + Math.random() * 70
     w.until = t + 700 + Math.random() * 2600
     if (Math.random() < 0.4) w.jump = { t0: t, dur: 420, h: 12 + Math.random() * 10 } // a hop in the stride
-  } else if (r < 0.62) {
+  } else if (r < 0.52) {
     w.kind = 'pause'; w.until = t + 500 + Math.random() * 2200
-  } else if (r < 0.88) {
+  } else if (r < 0.7) {
     const hops = 1 + Math.floor(Math.random() * 3)
     w.kind = 'hop'; w.hops = hops; w.until = t + hops * 440
     w.jump = { t0: t, dur: 420, h: 14 + Math.random() * 12 }
@@ -316,7 +334,7 @@ function renderLobby (who) {
 
 function onMessage (m, send) {
   sendFn = send
-  if (m.t !== 'final') stopFinale()
+  if (['lobby', 'question', 'reveal'].includes(m.t)) stopFinale() // not on 'tally', which keeps arriving
   switch (m.t) {
     case 'error':
       $('auth-text').textContent = 'Session expirée : reconnectez-vous à l\'administration, puis rechargez cette page.'

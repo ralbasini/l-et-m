@@ -4,7 +4,7 @@
 //   mood 'happy': lively, with plenty of hops and flips.
 //   mood 'sad':   slow, mostly standing around, no flips.
 const MOODS = {
-  happy: { walk: 0.4, pause: 0.15, hop: 0.3, flip: 0.15, speed: [40, 95] },
+  happy: { walk: 0.3, pause: 0.1, hop: 0.25, flip: 0.35, speed: [40, 95] },
   sad: { walk: 0.4, pause: 0.5, hop: 0.1, flip: 0, speed: [18, 40] },
 }
 
@@ -63,4 +63,34 @@ export function roam (stage, el, mood = 'happy') {
   }
   raf = requestAnimationFrame(frame)
   return () => cancelAnimationFrame(raf)
+}
+
+// For avatars that stay in place (podium, leaderboard rows): every so often the
+// avatar hops once to three times or throws a backflip, each on its own random timer.
+export function perform (el, { flip = 0.45, gap = [700, 2600], height = 1 } = {}) {
+  let timer = 0
+  let stopped = false
+  const hop = (h) => ({ transform: `translateY(${-h * height}px)` })
+  const go = () => {
+    if (stopped || !el.isConnected) return
+    let done
+    if (Math.random() < flip) {
+      done = el.animate([
+        { transform: 'translateY(0) rotate(0) scale(1, 1)', offset: 0 },
+        { transform: 'translateY(0) rotate(0) scale(1.1, 0.88)', offset: 0.12 },
+        { transform: `translateY(${-60 * height}px) rotate(-180deg)`, offset: 0.5 },
+        { transform: 'translateY(0) rotate(-360deg) scale(1.1, 0.9)', offset: 0.9 },
+        { transform: 'translateY(0) rotate(-360deg) scale(1, 1)', offset: 1 },
+      ], { duration: 950, easing: 'ease-in-out' }).finished
+    } else {
+      const n = 1 + Math.floor(Math.random() * 3)
+      const frames = [{ transform: 'translateY(0)' }]
+      for (let i = 0; i < n; i++) frames.push(hop(14 + Math.random() * 12), { transform: 'translateY(0) scale(1.08, 0.92)' })
+      frames.push({ transform: 'translateY(0)' })
+      done = el.animate(frames, { duration: n * 480, easing: 'ease-in-out' }).finished
+    }
+    done.then(() => { timer = setTimeout(go, gap[0] + Math.random() * (gap[1] - gap[0])) }, () => {})
+  }
+  timer = setTimeout(go, Math.random() * gap[1])
+  return () => { stopped = true; clearTimeout(timer) }
 }
