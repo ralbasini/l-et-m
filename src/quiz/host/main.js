@@ -13,7 +13,7 @@ const show = (id) => screens.forEach((s) => { s.hidden = s.id !== `screen-${id}`
 // admin token, which is what authorises the host. No token: offer the login screen.
 $('auth-login').addEventListener('click', async () => {
   try {
-    const gate = await import('../gate.js')
+    const gate = await import('../../gate.js')
     await gate.requireGuest({ login: true })
     location.reload()
   } catch { /* cancelled */ }

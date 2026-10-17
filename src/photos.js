@@ -3,7 +3,16 @@
 // On localhost the site talks to `wrangler dev` (port 8787), like the quiz does, so unreleased Worker
 // changes can be tried. Gallery photos are then the local (empty) bucket: in the console,
 // localStorage.lm_api = 'prod' goes back to the deployed Worker, localStorage.removeItem('lm_api') undoes it.
+// Shortcut: open any local page with ?api=prod (real Worker, real accounts, real quiz room) or ?api=local.
+// It covers everything, the quiz WebSocket included, since they all build on API_BASE_URL.
 const onLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname)
+if (onLocalhost) {
+  try {
+    const wanted = new URLSearchParams(location.search).get('api')
+    if (wanted === 'prod') localStorage.setItem('lm_api', 'prod')
+    else if (wanted === 'local') localStorage.removeItem('lm_api')
+  } catch { /* ignore */ }
+}
 let useProd = false
 try { useProd = localStorage.getItem('lm_api') === 'prod' } catch { /* ignore */ }
 export const API_BASE_URL = onLocalhost && !useProd ? 'http://127.0.0.1:8787/' : 'https://l-et-m-api.romain-albasini.workers.dev/'

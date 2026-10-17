@@ -5,9 +5,9 @@ import { API_BASE_URL } from '../photos.js'
 // re-identifies itself so the server can hand back the current screen.
 // ?room=xyz in the page URL picks another room (handy for rehearsals).
 const room = new URLSearchParams(location.search).get('room')
-// Opened from localhost, it talks to `wrangler dev` (port 8787) instead of the deployed Worker.
-const local = ['localhost', '127.0.0.1'].includes(location.hostname)
-const WS_URL = (local ? 'ws://127.0.0.1:8787/' : API_BASE_URL.replace(/^http/, 'ws')) + 'quiz/ws' + (room ? `?room=${encodeURIComponent(room)}` : '')
+// Same Worker as every other call (src/photos.js): `wrangler dev` on localhost, the deployed one
+// otherwise, or the deployed one from localhost with ?api=prod.
+const WS_URL = API_BASE_URL.replace(/^http/, 'ws') + 'quiz/ws' + (room ? `?room=${encodeURIComponent(room)}` : '')
 
 export function connect ({ onOpen, onMessage, onStatus = () => {} }) {
   let ws
