@@ -1,4 +1,4 @@
-import { connect, countdown, countUp, reducedMotion, SHAPES } from '../socket.js'
+import { connect, countdown, countUp, SHAPES } from '../socket.js'
 
 // Host page: the big screen. Same key the admin page stores its login under
 // (see src/admin-access.js) — being logged in there is what makes you the host.
@@ -78,7 +78,7 @@ function showBoard () {
   const rows = m.board.map((r) => ({ ...r, ps: r.s - r.d }))
   // Old order among the rows shown: by the score each had before this question.
   const before = new Map([...rows].sort((a, b) => b.ps - a.ps || a.n.localeCompare(b.n)).map((r, i) => [r.n, i]))
-  const still = reducedMotion()
+  const still = false // projector: always animated, even if the laptop has OS animations off
   ol.style.height = `${rows.length * ROW_STEP}rem`
 
   const items = rows.map((r, i) => {
@@ -131,12 +131,11 @@ function fireworks () {
   const fit = () => { cv.width = innerWidth; cv.height = innerHeight }
   fit(); addEventListener('resize', fit)
   cv.hidden = false
-  let parts = []; let raf = 0; let last = 0; let nextBurst = 0
-  const burst = (x, y) => {
-    const hue = Math.random() * 360
-    for (let i = 0; i < 80; i++) {
+  let parts = []; let rockets = []; let raf = 0; let last = 0; let nextBurst = 0
+  const burst = (x, y, hue) => {
+    for (let i = 0; i < 110; i++) {
       const a = Math.random() * Math.PI * 2; const v = 1.5 + Math.random() * 5.5
-      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, hue: hue + Math.random() * 40, r: 1.5 + Math.random() * 2 })
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, hue: hue + Math.random() * 50, r: 1.5 + Math.random() * 2.5 })
     }
   }
   const confetti = () => {
@@ -145,7 +144,18 @@ function fireworks () {
   const frame = (t) => {
     const dt = Math.min(2, (t - last) / 16.7 || 1); last = t
     ctx.clearRect(0, 0, cv.width, cv.height)
-    if (t > nextBurst) { burst(cv.width * (0.1 + Math.random() * 0.8), cv.height * (0.1 + Math.random() * 0.45)); nextBurst = t + 450 + Math.random() * 600 }
+    if (t > nextBurst) { // launch a rocket that explodes at the top of its climb
+      const x = cv.width * (0.08 + Math.random() * 0.84)
+      rockets.push({ x, y: cv.height, vy: -(9 + Math.random() * 4), hue: Math.random() * 360, top: cv.height * (0.12 + Math.random() * 0.4) })
+      nextBurst = t + 350 + Math.random() * 500
+    }
+    rockets = rockets.filter((r) => {
+      r.y += r.vy * dt
+      ctx.globalAlpha = 1; ctx.fillStyle = `hsl(${r.hue} 100% 80%)`
+      ctx.beginPath(); ctx.arc(r.x, r.y, 3, 0, 7); ctx.fill()
+      if (r.y > r.top) return true
+      burst(r.x, r.y, r.hue); return false
+    })
     confetti()
     parts = parts.filter((p) => p.life > 0 && p.y < cv.height + 20)
     for (const p of parts) {
@@ -171,7 +181,7 @@ function stopFinale () {
 
 function renderFinal (top) {
   stopFinale()
-  const still = reducedMotion()
+  const still = false // projector: always animated, even if the laptop has OS animations off
   document.body.classList.add('finale')
   // Visual order 2 - 1 - 3; with fewer players the missing steps are just skipped.
   const order = [1, 0, 2].filter((i) => top[i])
@@ -199,7 +209,7 @@ function renderFinal (top) {
     li.style.setProperty('--at', `${still ? 0 : 3600 + k * 120}ms`)
     return li
   }))
-  if (!still) podiumTimers.push(setTimeout(() => { stopFireworks = fireworks() }, 3700))
+  if (!still) podiumTimers.push(setTimeout(() => { stopFireworks = fireworks() }, 2500))
 }
 
 function onMessage (m, send) {

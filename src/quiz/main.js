@@ -92,8 +92,20 @@ function onMessage (m) {
       }
       break
     case 'result': {
-      stopTimer(); current = null
+      stopTimer()
+      const opts = current ? current.options : []
       const right = m.choice === m.correct
+      // All the answers again: the right one lit up, the player's pick tagged.
+      $('result-answer').replaceChildren(...opts.map((text, i) => {
+        const d = document.createElement('div')
+        d.className = `opt opt-${i}${i === m.correct ? ' is-correct' : ' is-wrong'}${i === m.choice ? ' is-mine' : ''}`
+        d.innerHTML = '<span class="shape" aria-hidden="true"></span><span class="label"></span><span class="tag"></span>'
+        d.querySelector('.shape').textContent = SHAPES[i]
+        d.querySelector('.label').textContent = text
+        d.querySelector('.tag').textContent = i === m.correct ? '✓' : i === m.choice ? '✗' : ''
+        return d
+      }))
+      current = null
       $('result-title').textContent = m.choice === null ? 'Trop tard !' : right ? 'Bonne réponse !' : 'Raté…'
       document.body.dataset.result = m.choice === null ? 'late' : right ? 'right' : 'wrong'
       $('result-delta').textContent = right ? `+${m.delta} points` : '+0 point'

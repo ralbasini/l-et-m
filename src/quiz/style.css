@@ -9,12 +9,12 @@
   --ink: #252525;
   --green: #356d65;
   --green-dark: #2a5951;
-  /* Answer colours: distinct enough to tell apart, muted enough to sit on the sage page.
+  /* Answer colours: soft pastels that sit on the sage page, with dark text.
      Each also carries a shape (▲ ◆ ● ■) so colour is never the only cue. */
-  --opt-0: #356d65;
-  --opt-1: #b8672f;
-  --opt-2: #7a4e6d;
-  --opt-3: #a8862f;
+  --opt-0: #9ccbc0;
+  --opt-1: #efbfa5;
+  --opt-2: #cbb8dc;
+  --opt-3: #ecdc9e;
 }
 
 html, body {
@@ -23,6 +23,8 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font-family: 'Quicksand', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 body { min-height: 100dvh; display: flex; flex-direction: column; }
@@ -30,7 +32,8 @@ main { flex: 1; width: 100%; max-width: 40rem; margin: 0 auto; padding: 1.25rem 
 .host main { max-width: 70rem; padding: 2rem 3rem; }
 
 h1 { font-family: 'MoreSugar-Thin', Georgia, serif; font-weight: 400; font-size: 1.9rem; margin: 0.5rem 0 1rem; }
-h2 { font-size: 1.35rem; line-height: 1.3; margin: 0.75rem 0 1.25rem; }
+h2, h3 { font-family: 'MoreSugar-Thin', Georgia, serif; font-weight: 400; }
+h2 { font-size: 1.9rem; line-height: 1.2; margin: 0.75rem 0 1.25rem; }
 h3 { margin: 1.5rem 0 0.5rem; }
 p { margin: 0.5rem 0; }
 a { color: var(--green-dark); }
@@ -41,20 +44,20 @@ a { color: var(--green-dark); }
 .error { color: #a34848; font-weight: 600; }
 .hint, .meta { color: rgba(37, 37, 37, 0.65); }
 .meta { display: flex; justify-content: space-between; font-weight: 600; margin: 0.5rem 0; }
-.big { font-size: 2rem; font-weight: 700; margin: 0.5rem 0; }
+.big { font-size: 2rem; font-weight: 600; margin: 0.5rem 0; }
 
 /* ── Forms and buttons ─────────────────────────────────────── */
 form { display: flex; flex-direction: column; gap: 0.75rem; text-align: left; background: #fff; padding: 1.25rem; border-radius: 0.9rem; box-shadow: 0 6px 20px rgba(37, 37, 37, 0.08); }
 label { font-weight: 600; }
 input[type="text"] { font: inherit; font-size: 1.1rem; padding: 0.8rem 0.9rem; border: 1px solid rgba(37, 37, 37, 0.25); border-radius: 0.6rem; }
-button { font: inherit; font-weight: 700; font-size: 1.05rem; padding: 0.9rem 1.25rem; border: 0; border-radius: 0.6rem; background: var(--green); color: #fff; cursor: pointer; }
+button { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 0.9rem 1.25rem; border: 0; border-radius: 0.6rem; background: var(--green); color: #fff; cursor: pointer; }
 button:not(.opt):hover { background: var(--green-dark); }
 button.ghost, button.ghost:hover { color: var(--ink); border: 1px solid rgba(37, 37, 37, 0.3); }
 button.ghost { background: transparent; }
 button.ghost:hover { background: rgba(37, 37, 37, 0.08); }
 button:disabled { cursor: default; }
 
-.offline { position: fixed; inset: 0 0 auto 0; z-index: 10; padding: 0.5rem; background: #a34848; color: #fff; font-weight: 700; text-align: center; }
+.offline { position: fixed; inset: 0 0 auto 0; z-index: 10; padding: 0.5rem; background: #a34848; color: #fff; font-weight: 600; text-align: center; }
 
 /* ── Countdown bar ─────────────────────────────────────────── */
 .timer { height: 0.6rem; background: rgba(37, 37, 37, 0.12); border-radius: 1rem; overflow: hidden; }
@@ -62,8 +65,14 @@ button:disabled { cursor: default; }
 
 /* ── Answers ───────────────────────────────────────────────── */
 .options { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
-.opt { position: relative; display: flex; align-items: center; gap: 0.9rem; min-height: 4.25rem; padding: 0.8rem 1rem; border-radius: 0.8rem; color: #fff; font-weight: 700; font-size: 1.1rem; text-align: left; overflow: hidden; }
-.opt .shape { font-size: 1.5rem; width: 1.75rem; text-align: center; flex: none; }
+.opt { position: relative; display: flex; align-items: center; gap: 0.9rem; min-height: 4.25rem; padding: 0.8rem 1rem; border-radius: 0.8rem; color: var(--ink); font-weight: 600; font-size: 1.1rem; text-align: left; overflow: hidden; box-shadow: 0 3px 10px rgba(37, 37, 37, 0.1); }
+.opt .shape { font-size: 0; width: 1.75rem; height: 1.75rem; display: grid; place-items: center; flex: none; }
+.opt .shape::before { content: ''; display: block; background: var(--shape); }
+.opt-0 .shape::before { width: 1.45rem; height: 1.3rem; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.opt-1 .shape::before { width: 1.5rem; height: 1.5rem; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.opt-2 .shape::before { width: 1.3rem; height: 1.3rem; border-radius: 50%; }
+.opt-3 .shape::before { width: 1.2rem; height: 1.2rem; border-radius: 0.2rem; }
+.opt-0 { --shape: #3f8a7b; } .opt-1 { --shape: #cf7a50; } .opt-2 { --shape: #8f68b0; } .opt-3 { --shape: #bf9a2c; }
 .opt .label { flex: 1; }
 .opt-0 { background: var(--opt-0); } .opt-1 { background: var(--opt-1); }
 .opt-2 { background: var(--opt-2); } .opt-3 { background: var(--opt-3); }
@@ -77,21 +86,21 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 /* ── Leaderboard ───────────────────────────────────────────── */
 .board { list-style: none; counter-reset: rank; padding: 0; margin: 1rem auto; max-width: 30rem; text-align: left; }
 .board li { counter-increment: rank; display: flex; gap: 0.75rem; padding: 0.55rem 0.9rem; margin: 0.35rem 0; background: #fff; border-radius: 0.6rem; font-weight: 600; }
-.board li::before { content: counter(rank); font-weight: 700; color: var(--green); min-width: 1.5rem; }
+.board li::before { content: counter(rank); font-weight: 600; color: var(--green); min-width: 1.5rem; }
 .board .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board .s { font-variant-numeric: tabular-nums; }
 .board li:nth-child(1) { background: #f1e3b3; }
 
 /* ── Host (projector) ──────────────────────────────────────── */
 .host h1 { font-size: 3.4rem; }
-.host h2 { font-size: 2.4rem; margin: 1rem 0 2rem; }
+.host h2 { font-size: 3.2rem; margin: 1rem 0 2rem; }
 .host .brand { font-size: 3.5rem; }
 .host .options { grid-template-columns: 1fr 1fr; gap: 1rem; }
 .host .opt { min-height: 6rem; font-size: 1.6rem; }
 .host .big-time { font-size: 2.5rem; }
 .host .meta { font-size: 1.2rem; }
 .join-hint { font-size: 1.4rem; }
-.join-url { font-size: 2.2rem; font-weight: 700; color: var(--green-dark); word-break: break-all; margin: 1rem 0 2rem; }
+.join-url { font-size: 2.2rem; font-weight: 600; color: var(--green-dark); word-break: break-all; margin: 1rem 0 2rem; }
 .count { font-size: 1.6rem; }
 .answered { font-size: 1.4rem; margin-top: 1.5rem; font-weight: 600; }
 .host .board { max-width: 40rem; }
@@ -102,7 +111,6 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 /* On reveal, each block shows how many chose it; wrong answers dim. */
 .host .opt .num { font-size: 1.6rem; opacity: 0; }
 #r-options .opt { isolation: isolate; }
-#r-options .opt::after { content: ''; position: absolute; left: 0.9rem; right: 0.9rem; bottom: 0.4rem; height: 0.35rem; border-radius: 1rem; background: linear-gradient(90deg, rgba(255, 255, 255, 0.85) var(--fill, 0%), rgba(255, 255, 255, 0.22) var(--fill, 0%)); }
 #r-options .opt .num { opacity: 1; }
 #r-options .opt.is-wrong { opacity: 0.45; }
 #r-options .opt.is-correct { outline: 0.4rem solid #1f3d38; }
@@ -119,7 +127,7 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
    Rows are absolutely placed by transform so they can glide to their new
    rank; 3.7rem per row (3.2rem tall + gap) must match ROW_STEP in host/main.js. */
 .race { position: relative; list-style: none; padding: 0; margin: 1.25rem auto 0; max-width: 44rem; text-align: left; }
-.race li { position: absolute; left: 0; right: 0; height: 3.2rem; display: flex; align-items: center; gap: 0.9rem; padding: 0 1.1rem; background: #fff; border-radius: 0.8rem; box-shadow: 0 3px 10px rgba(37, 37, 37, 0.08); font-size: 1.5rem; font-weight: 700; transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.6s; will-change: transform; }
+.race li { position: absolute; left: 0; right: 0; height: 3.2rem; display: flex; align-items: center; gap: 0.9rem; padding: 0 1.1rem; background: #fff; border-radius: 0.8rem; box-shadow: 0 3px 10px rgba(37, 37, 37, 0.08); font-size: 1.5rem; font-weight: 600; transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.6s; will-change: transform; }
 .race .rk { min-width: 2rem; color: var(--green); font-variant-numeric: tabular-nums; text-align: center; }
 .race .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .race .s { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
@@ -140,21 +148,20 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 
 /* ── Player result screen: points pop in, rank change slides in ── */
 #screen-result .big { animation: gain-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-.move { display: inline-block; margin: 0.5rem 0 0; padding: 0.35rem 0.9rem; border-radius: 2rem; font-weight: 700; background: rgba(255, 255, 255, 0.7); animation: mv-in 0.6s ease 0.9s both; }
+.move { display: inline-block; margin: 0.5rem 0 0; padding: 0.35rem 0.9rem; border-radius: 2rem; font-weight: 600; background: rgba(255, 255, 255, 0.7); animation: mv-in 0.6s ease 0.9s both; }
 .move.up { color: #2c7a3c; }
 .move.down { color: #a34848; }
 
 @media (prefers-reduced-motion: reduce) {
-  .race li, .race li *, #screen-result .big, .move { animation: none !important; transition: none !important; }
-  .race .gain, .race .mv { opacity: 1; }
+  #screen-result .big, .move { animation: none !important; transition: none !important; }
 }
 @media (max-width: 40rem) { .race li { font-size: 1.15rem; } }
 /* Host reveal: compact 2x2 answers on top, the animated leaderboard below */
-.host #screen-reveal h2 { margin: 0.25rem 0 0.75rem; font-size: 1.9rem; }
+.host #screen-reveal h2 { margin: 0.25rem 0 0.75rem; font-size: 2.5rem; }
 .host #r-options { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-.host #r-options .opt { min-height: 3.6rem; padding: 0.4rem 0.9rem 0.95rem; font-size: 1.2rem; }
+.host #r-options .opt { min-height: 3.2rem; padding: 0.4rem 0.9rem; font-size: 1.2rem; }
 .host #r-options .opt .num { font-size: 1.2rem; }
-.host .reveal-board h3 { font-size: 1.6rem; margin: 1rem 0 0; }
+.host .reveal-board h3 { font-size: 2.2rem; margin: 1rem 0 0; }
 .host .reveal-board .race { margin-top: 0.6rem; max-width: none; }
 
 /* ── Final podium (host) ──────────────────────────────────────── */
@@ -169,7 +176,7 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .pod .who { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; margin-bottom: 0.6rem; opacity: 0; animation: pod-drop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--at) + 0.6s) both; }
 .pod .medal { font-size: 3rem; line-height: 1; }
 .pod-1 .medal { font-size: 4rem; }
-.pod .pn { font-size: 1.9rem; font-weight: 700; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pod .pn { font-size: 1.9rem; font-weight: 600; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pod-1 .pn { font-size: 2.5rem; color: #f1e3b3; }
 .pod .ps { font-size: 1.3rem; opacity: 0.85; font-variant-numeric: tabular-nums; }
 .pod .crown { display: none; position: absolute; top: -2.8rem; font-size: 2.6rem; animation: crown-bob 1.6s ease-in-out infinite; }
@@ -192,7 +199,10 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 @keyframes pod-drop { 0% { opacity: 0; transform: translateY(-3rem) scale(0.6); } 100% { opacity: 1; transform: none; } }
 @keyframes crown-bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-0.5rem) rotate(6deg); } }
 @keyframes shimmer { 0%, 100% { text-shadow: 0 0 0 rgba(255, 230, 140, 0); } 50% { text-shadow: 0 0 1.4rem rgba(255, 230, 140, 0.9); } }
-@media (prefers-reduced-motion: reduce) {
-  .pod .who, .pod .step, .pod .crown, .rest li, body.host.finale h1 { animation: none !important; opacity: 1; transform: none; }
-}
 @media (max-width: 40rem) { .podium3 { gap: 0.5rem; } .pod .pn { font-size: 1.1rem; } .pod-1 .pn { font-size: 1.4rem; } }
+.result-options { margin: 0.75rem 0; }
+.result-options .opt { min-height: 3.2rem; padding: 0.55rem 0.9rem; font-size: 1.05rem; }
+.result-options .opt.is-wrong { opacity: 0.4; }
+.result-options .opt.is-wrong.is-mine { opacity: 1; filter: grayscale(0.6); }
+.result-options .opt.is-correct { outline: 0.3rem solid #1f3d38; }
+.result-options .tag { font-size: 1.4rem; }
