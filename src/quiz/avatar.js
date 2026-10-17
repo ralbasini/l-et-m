@@ -1,5 +1,5 @@
 // Player avatars: [animal, fur colour, accessory], drawn as inline SVG.
-// 8 x 8 x 9 = 576 combinations, and the room gives each one to a single player
+// 8 x 13 x 9 = 936 combinations, and the room gives each one to a single player
 // (cloudflare/src/quiz/room.js keeps AVATAR_LIMITS in sync with these lists).
 
 export const ANIMALS = ['Lion', 'Chat', 'Chien', 'Ours', 'Lapin', 'Souris', 'Cochon', 'Hibou']
@@ -14,6 +14,13 @@ export const COLORS = [
   { name: 'Neige', fur: '#f7f5f0', dark: '#d9d5cc', light: '#ffffff' },
   { name: 'Ardoise', fur: '#4a4d55', dark: '#33353b', light: '#767a84' },
   { name: 'Rose', fur: '#efb2c3', dark: '#d98ba1', light: '#f9d9e2' },
+  { name: 'Bleu ciel', fur: '#8fc7ee', dark: '#5f9fd0', light: '#cfe8f8' },
+  { name: 'Menthe', fur: '#9fe0bd', dark: '#62bd8c', light: '#d6f5e5' },
+  { name: 'Violet', fur: '#b79be0', dark: '#8d6cc4', light: '#e0d3f5' },
+  // Rainbow fur: a gradient (see avatarSvg), with a solid swatch colour for the picker.
+  { name: 'Arc-en-ciel', fur: 'rainbow', dark: '#8d6cc4', light: '#fff3d6', swatch: 'conic-gradient(#f26d6d, #f4c95d, #7bd88f, #6ec6f2, #b58ce8, #f26d6d)' },
+  // Calico: white with orange and black patches (a pattern, like the rainbow is a gradient).
+  { name: 'Lamaya', fur: 'calico', dark: '#e08a3c', light: '#ffffff', swatch: 'radial-gradient(circle at 28% 30%, #e08a3c 0 26%, transparent 28%), radial-gradient(circle at 74% 38%, #2f2f33 0 22%, transparent 24%), radial-gradient(circle at 60% 80%, #e08a3c 0 24%, transparent 26%), #fbf7ee' },
 ]
 export const LIMITS = [ANIMALS.length, COLORS.length, ACCESSORIES.length]
 
@@ -60,12 +67,24 @@ const ACC = [
   (_, t) => `<g transform="translate(0 ${t - 24})"><path d="M28 30 C28 6 72 6 72 30z" fill="#d6202f"/><path d="M34 29 C34 11 66 11 66 29z" fill="#fff"/><text x="50" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="8" letter-spacing=".4" fill="#d6202f">SION</text><circle cx="50" cy="9" r="2.4" fill="#a8141f"/><path d="M22 31 Q50 40 78 31 Q50 25 22 31z" fill="#a8141f"/></g>`,
 ]
 
+let gradientId = 0
 export function avatarSvg (v) {
   const [a, c, x] = Array.isArray(v) ? v : [0, 5, 0]
-  const col = COLORS[c] || COLORS[0]
+  let col = COLORS[c] || COLORS[0]
+  let defs = ''
+  if (col.fur === 'calico') {
+    const id = `lm-ca${gradientId++}`
+    defs = `<defs><pattern id="${id}" patternUnits="userSpaceOnUse" width="100" height="104"><rect width="100" height="104" fill="#fbf7ee"/><ellipse cx="30" cy="34" rx="19" ry="14" fill="#e08a3c" transform="rotate(-20 30 34)"/><ellipse cx="74" cy="42" rx="12" ry="14" fill="#2f2f33"/><ellipse cx="62" cy="82" rx="17" ry="11" fill="#e08a3c" transform="rotate(15 62 82)"/><circle cx="22" cy="74" r="9" fill="#2f2f33"/><circle cx="84" cy="16" r="9" fill="#e08a3c"/><circle cx="50" cy="14" r="6" fill="#2f2f33"/></pattern></defs>`
+    col = { ...col, fur: `url(#${id})` }
+  } else if (col.fur === 'rainbow') {
+    // One id per drawing: a gradient defined inside a hidden screen would not resolve.
+    const id = `lm-rb${gradientId++}`
+    defs = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f26d6d"/><stop offset=".25" stop-color="#f4c95d"/><stop offset=".5" stop-color="#7bd88f"/><stop offset=".75" stop-color="#6ec6f2"/><stop offset="1" stop-color="#b58ce8"/></linearGradient></defs>`
+    col = { ...col, fur: `url(#${id})` }
+  }
   const face = FACES[a] || FACES[0]
   const acc = ACC[x] || ACC[0]
-  return `<svg viewBox="0 -12 100 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${face(col)}${acc(EYE_Y[a] ?? 50, TOP[a] ?? 26)}</svg>`
+  return `<svg viewBox="0 -12 100 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">${defs}${face(col)}${acc(EYE_Y[a] ?? 50, TOP[a] ?? 26)}</svg>`
 }
 
 // A <span class="avatar"> holding the drawing; sized by CSS.

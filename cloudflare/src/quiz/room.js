@@ -26,7 +26,7 @@ function cleanName (raw) {
   return String(raw ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX)
 }
 
-const AVATAR_LIMITS = [8, 8, 9] // animals, fur colours, accessories (see src/quiz/avatar.js)
+const AVATAR_LIMITS = [8, 13, 9] // animals, fur colours, accessories (see src/quiz/avatar.js)
 function parseAvatar (v) {
   if (!Array.isArray(v) || v.length !== 3) return null
   return v.every((n, i) => Number.isInteger(n) && n >= 0 && n < AVATAR_LIMITS[i]) ? v : null
@@ -117,7 +117,9 @@ export class QuizRoom extends DurableObject {
 
   rankOf (p) {
     let ahead = 0
-    for (const o of this.players.values()) if (o.s > p.s) ahead++
+    // Ties are broken by name, like the leaderboard order, so every player has a distinct place
+    // and a climb past a tied player still counts as one.
+    for (const o of this.players.values()) if (o.s > p.s || (o.s === p.s && o.n.localeCompare(p.n) < 0)) ahead++
     return ahead + 1
   }
 

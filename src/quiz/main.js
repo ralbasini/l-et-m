@@ -46,12 +46,13 @@ function chip (label, pressed, onClick, child) {
   return b
 }
 function renderBuilder () {
-  $('av-preview').replaceChildren(avatarEl(av, 'xl'))
+  $('av-preview').replaceChildren(avatarEl(av, 'xl bump'))
+  $('av-colors').previousElementSibling.textContent = `Pelage · ${COLORS[av[1]].name}`
   $('av-animals').replaceChildren(...ANIMALS.map((n, i) => chip(n, av[0] === i, () => { av[0] = i; renderBuilder() }, avatarEl([i, av[1], 0]))))
   $('av-colors').replaceChildren(...COLORS.map((c, i) => {
     const sw = document.createElement('span')
     sw.className = 'swatch'
-    sw.style.background = c.fur
+    sw.style.background = c.swatch || `radial-gradient(circle at 32% 30%, ${c.light}, ${c.fur} 62%)`
     sw.style.borderColor = c.dark
     return chip(c.name, av[1] === i, () => { av[1] = i; renderBuilder() }, sw)
   }))
@@ -148,6 +149,7 @@ function onMessage (m) {
     case 'ack':
       if (current && m.q === current.q) {
         stopTimer()
+        $('sent-avatar').replaceChildren(avatarEl(av, 'xl dance'))
         $('sent-choice').textContent = `${SHAPES[m.c]} ${current.options[m.c]}`
         show('sent')
       }
