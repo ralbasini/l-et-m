@@ -19,13 +19,11 @@ let phase = 'lobby'
 
 $('join-url').textContent = location.href.replace(/host\/?(\?.*)?$/, '').replace(/^https?:\/\//, '')
 
-// One primary button whose job follows the game's phase. 'board' is a
-// host-side step (answers -> leaderboard): no message goes to the server.
+// One primary button whose job follows the game's phase.
 const PRIMARY = {
   lobby: ['Démarrer le quiz', 'start'],
   question: ['Afficher la réponse', 'reveal'],
-  reveal: ['Voir le classement', 'board'],
-  board: ['Question suivante', 'next'],
+  reveal: ['Question suivante', 'next'],
   final: null,
 }
 function setPhase (p) {
@@ -33,12 +31,11 @@ function setPhase (p) {
   const cfg = PRIMARY[p]
   $('controls').hidden = false
   $('btn-primary').hidden = !cfg
-  if (cfg) $('btn-primary').textContent = p === 'board' && current && current.q + 1 >= current.total ? 'Voir le podium final' : cfg[0]
+  if (cfg) $('btn-primary').textContent = p === 'reveal' && current && current.q + 1 >= current.total ? 'Voir le podium final' : cfg[0]
 }
 $('btn-primary').addEventListener('click', () => {
   const cfg = PRIMARY[phase]
   if (!cfg) return
-  if (cfg[1] === 'board') return showBoard()
   sendFn({ t: 'cmd', c: cfg[1] })
 })
 $('btn-reset').addEventListener('click', () => { if (confirm('Remettre les scores à zéro et revenir au salon d\'attente ?')) sendFn({ t: 'cmd', c: 'reset' }) })
@@ -83,7 +80,6 @@ function showBoard () {
   const before = new Map([...rows].sort((a, b) => b.ps - a.ps || a.n.localeCompare(b.n)).map((r, i) => [r.n, i]))
   const still = reducedMotion()
   ol.style.height = `${rows.length * ROW_STEP}rem`
-  $('b-count').textContent = `Après la question ${m.q + 1} / ${m.total}`
 
   const items = rows.map((r, i) => {
     const li = document.createElement('li')
@@ -96,7 +92,6 @@ function showBoard () {
     return li
   })
   ol.replaceChildren(...items)
-  show('board'); setPhase('board')
 
   const settle = () => rows.forEach((r, i) => {
     const li = items[i]
@@ -164,6 +159,7 @@ function onMessage (m, send) {
       })
       current = { q: m.q, total: m.total }
       show('reveal'); setPhase('reveal')
+      showBoard()
       break
     }
     case 'final':

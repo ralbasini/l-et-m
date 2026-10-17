@@ -10,9 +10,24 @@
     "correct": 1
   },
   {
-    "text": "TODO — remplacez ces questions d'exemple par les vôtres (cloudflare/src/quiz/questions.json)",
-    "options": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
-    "correct": 2,
+    "text": "Quel est le plus grand animal terrestre ?",
+    "options": ["Le rhinocéros", "La girafe", "L'éléphant d'Afrique", "L'hippopotame"],
+    "correct": 2
+  },
+  {
+    "text": "Combien de cœurs possède une pieuvre ?",
+    "options": ["1", "2", "3", "8"],
+    "correct": 2
+  },
+  {
+    "text": "Quel est le seul mammifère capable de voler vraiment ?",
+    "options": ["L'écureuil volant", "La chauve-souris", "Le colugo", "Le phalanger volant"],
+    "correct": 1
+  },
+  {
+    "text": "Combien de temps vit en moyenne un éphémère adulte ?",
+    "options": ["Un an", "Un mois", "Une semaine", "Un jour ou moins"],
+    "correct": 3,
     "seconds": 15
   }
 ]

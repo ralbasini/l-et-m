@@ -149,3 +149,10 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
   .race .gain, .race .mv { opacity: 1; }
 }
 @media (max-width: 40rem) { .race li { font-size: 1.15rem; } }
+/* Host reveal: compact 2x2 answers on top, the animated leaderboard below */
+.host #screen-reveal h2 { margin: 0.25rem 0 0.75rem; font-size: 1.9rem; }
+.host #r-options { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.host #r-options .opt { min-height: 3.2rem; padding: 0.4rem 0.9rem; font-size: 1.2rem; }
+.host #r-options .opt .num { font-size: 1.2rem; }
+.host .reveal-board h3 { font-size: 1.6rem; margin: 1rem 0 0; }
+.host .reveal-board .race { margin-top: 0.6rem; max-width: none; }
