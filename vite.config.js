@@ -73,8 +73,8 @@ const CHROME_HEAD = '<script>try {' +
   " if (localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('is-guest');" +
   // No account yet: hide the page (menu included) until we know whether the site is public.
   // Public (or never checked before): the login screen (src/gate.js) takes over; private:
-  // src/admin-access.js lifts this as soon as /settings answers. Last known value '0' skips the wait.
-  " if (window.top === window && localStorage.getItem('lm_menu_public') !== '0' && !localStorage.getItem('lm_admin_token') && !localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('needs-login')" +
+  // src/admin-access.js lifts this as soon as /settings answers. Never skipped: a stale cached value must not let the page show before the login on a site that just went public.
+  " if (window.top === window && !localStorage.getItem('lm_admin_token') && !localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('needs-login')" +
   ' } catch (e) {}' +
   // Loading screen: top-level pages only (the home panels are iframes).
   " try { if (window.top === window) document.documentElement.classList.add('is-loading') } catch (e) {}</script>" +
