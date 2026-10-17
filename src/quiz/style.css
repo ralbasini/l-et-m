@@ -261,3 +261,5 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 @keyframes sad { 0%, 100% { transform: rotate(-3deg) scale(1, 0.97); } 50% { transform: rotate(3deg) translateY(0.3rem) scale(1, 0.94); } }
 @media (prefers-reduced-motion: reduce) { .avatar.sad { animation: none; } }
 .teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; animation: dance 1.6s ease-in-out infinite; }
+.stage { position: relative; height: 13rem; width: 100%; margin: 0 0 0.5rem; }
+.stage .avatar { position: absolute; left: 0; bottom: 0; transform-origin: 50% 55%; will-change: transform; }

@@ -1,4 +1,5 @@
 import { connect, countdown, countUp, SHAPES } from './socket.js'
+import { roam } from './roam.js'
 import { ANIMALS, ACCESSORIES, COLORS, avatarEl, accessoryEl, randomAvatar } from './avatar.js'
 
 // Player page. The phone only ever sends two things: who it is (a random id
@@ -25,6 +26,14 @@ let pid = store.get('lm_quiz_pid')
 if (!pid) { pid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); store.set('lm_quiz_pid', pid) }
 let name = store.get('lm_quiz_name') || ''
 let sendFn = () => {}
+let stopRoam = () => {}
+// Puts the player's avatar on a stage, wandering, hopping and flipping.
+function onStage (id, mood) {
+  stopRoam()
+  const el = avatarEl(av, 'xl')
+  $(id).replaceChildren(el)
+  stopRoam = roam($(id), el, mood)
+}
 let stopTimer = () => {}
 let current = null
 
@@ -120,6 +129,7 @@ function answer (choice) {
 }
 
 function onMessage (m) {
+  if (m.t !== 'ack' && m.t !== 'result') stopRoam()
   switch (m.t) {
     case 'joined':
       name = m.name
@@ -149,16 +159,15 @@ function onMessage (m) {
     case 'ack':
       if (current && m.q === current.q) {
         stopTimer()
-        $('sent-avatar').replaceChildren(avatarEl(av, 'xl dance'))
         $('sent-choice').textContent = `${SHAPES[m.c]} ${current.options[m.c]}`
         show('sent')
+        onStage('sent-avatar', 'happy')
       }
       break
     case 'result': {
       stopTimer()
       const opts = current ? current.options : []
       const right = m.choice === m.correct
-      $('result-avatar').replaceChildren(avatarEl(av, `xl ${right ? 'dance' : 'sad'}`))
       // All the answers again: the right one lit up, the player's pick tagged.
       $('result-answer').replaceChildren(...opts.map((text, i) => {
         const d = document.createElement('div')
@@ -189,6 +198,7 @@ function onMessage (m) {
         move.textContent = moved > 0 ? `▲ +${moved} place${moved > 1 ? 's' : ''}` : `▼ ${moved} place${moved < -1 ? 's' : ''}`
       }
       show('result')
+      onStage('result-avatar', right ? 'happy' : 'sad')
       break
     }
     case 'final':
