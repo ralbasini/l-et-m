@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quiz — Lobna &amp; Martin</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="player">
+  <div id="offline" class="offline" hidden>Reconnexion…</div>
+
+  <main>
+    <p class="brand">L<span>&amp;</span>M</p>
+
+    <section id="screen-join" class="screen" hidden>
+      <h1>Le quiz du mariage</h1>
+      <form id="join-form">
+        <label for="name">Votre prénom</label>
+        <input id="name" type="text" maxlength="20" autocomplete="given-name" placeholder="ex. Camille" required>
+        <p id="join-error" class="error" hidden></p>
+        <button type="submit">Rejoindre</button>
+      </form>
+    </section>
+
+    <section id="screen-wait" class="screen" hidden>
+      <h1 id="wait-title">C'est noté !</h1>
+      <p id="wait-text">Le quiz va bientôt commencer. Gardez cette page ouverte.</p>
+    </section>
+
+    <section id="screen-question" class="screen" hidden>
+      <div class="timer"><div id="timer-bar"></div></div>
+      <p class="meta"><span id="q-count"></span><span id="q-time"></span></p>
+      <h2 id="q-text"></h2>
+      <div id="q-options" class="options"></div>
+    </section>
+
+    <section id="screen-sent" class="screen" hidden>
+      <h1>Réponse envoyée</h1>
+      <p>Réponse choisie : <strong id="sent-choice"></strong></p>
+      <p class="hint">En attente des autres joueurs…</p>
+    </section>
+
+    <section id="screen-result" class="screen" hidden>
+      <h1 id="result-title"></h1>
+      <p id="result-delta" class="big"></p>
+      <p id="result-rank"></p>
+    </section>
+
+    <section id="screen-final" class="screen" hidden>
+      <h1>Fin du quiz</h1>
+      <p id="final-rank" class="big"></p>
+      <p id="final-score"></p>
+      <ol id="final-top" class="board"></ol>
+    </section>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

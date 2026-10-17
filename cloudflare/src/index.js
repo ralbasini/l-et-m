@@ -6,6 +6,8 @@ import { adminOnly, guestOnly } from './auth.js'
 import { isImgPath, serveImg } from './routes/img.js'
 import { getSettings, updateSettings } from './routes/settings.js'
 
+export { QuizRoom } from './quiz/room.js'
+
 // One route table for the whole API. /admin/* routes (except login/logout)
 // are wrapped in adminOnly(), /guest/* ones (except identify) in guestOnly()
 // — the check lives here, not in each handler.
@@ -38,6 +40,11 @@ export default {
     if (request.method === 'OPTIONS') return handleOptions()
 
     const url = new URL(request.url)
+    // Live quiz: the WebSocket goes straight to the game room's Durable Object.
+    if (url.pathname === '/quiz/ws') {
+      const room = /^[a-z0-9-]{1,20}$/.test(url.searchParams.get('room') || '') ? url.searchParams.get('room') : 'main'
+      return env.QUIZ.get(env.QUIZ.idFromName(room)).fetch(request)
+    }
     if ((request.method === 'GET' || request.method === 'HEAD') && isImgPath(url.pathname)) {
       return serveImg(request, env)
     }

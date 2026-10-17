@@ -139,6 +139,9 @@ export default defineConfig({
         slideshow: r('src/slideshow/index.html'),
         admin: r('src/admin/index.html'),
         photos: r('src/photos/index.html'),
+        // Live quiz: phones (/quiz/) and the projector / host screen (/quiz/host/).
+        quiz: r('src/quiz/index.html'),
+        quizhost: r('src/quiz/host/index.html'),
         // Redirect-only stubs, kept as thin forwards so an already-shared
         // URL/QR code doesn't just start 404ing after a page moved:
         // /guest -> /photos, /mariage -> / (root), /slideshow -> /diaporama.

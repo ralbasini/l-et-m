@@ -1,0 +1,116 @@
+/* Quiz — shared by the player page (phones) and the host page (projector).
+   Same palette as the rest of the site: sage background, deep green accent. */
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+:root {
+  --bg: #d0dad1;
+  --ink: #252525;
+  --green: #356d65;
+  --green-dark: #2a5951;
+  /* Answer colours: distinct enough to tell apart, muted enough to sit on the sage page.
+     Each also carries a shape (▲ ◆ ● ■) so colour is never the only cue. */
+  --opt-0: #356d65;
+  --opt-1: #b8672f;
+  --opt-2: #7a4e6d;
+  --opt-3: #a8862f;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Quicksand', system-ui, sans-serif;
+}
+
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+main { flex: 1; width: 100%; max-width: 40rem; margin: 0 auto; padding: 1.25rem 1.25rem 2rem; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+.host main { max-width: 70rem; padding: 2rem 3rem; }
+
+h1 { font-size: 1.75rem; margin: 0.5rem 0 1rem; }
+h2 { font-size: 1.35rem; line-height: 1.3; margin: 0.75rem 0 1.25rem; }
+h3 { margin: 1.5rem 0 0.5rem; }
+p { margin: 0.5rem 0; }
+a { color: var(--green-dark); }
+
+.brand { font-family: 'Apricot', 'MoreSugar-Thin', cursive; font-size: 2rem; color: #abb9a2; margin: 0 0 0.5rem; }
+.brand span { margin: 0 0.1em; }
+
+.error { color: #a34848; font-weight: 600; }
+.hint, .meta { color: rgba(37, 37, 37, 0.65); }
+.meta { display: flex; justify-content: space-between; font-weight: 600; margin: 0.5rem 0; }
+.big { font-size: 2rem; font-weight: 700; margin: 0.5rem 0; }
+
+/* ── Forms and buttons ─────────────────────────────────────── */
+form { display: flex; flex-direction: column; gap: 0.75rem; text-align: left; background: #fff; padding: 1.25rem; border-radius: 0.9rem; box-shadow: 0 6px 20px rgba(37, 37, 37, 0.08); }
+label { font-weight: 600; }
+input[type="text"] { font: inherit; font-size: 1.1rem; padding: 0.8rem 0.9rem; border: 1px solid rgba(37, 37, 37, 0.25); border-radius: 0.6rem; }
+button { font: inherit; font-weight: 700; font-size: 1.05rem; padding: 0.9rem 1.25rem; border: 0; border-radius: 0.6rem; background: var(--green); color: #fff; cursor: pointer; }
+button:not(.opt):hover { background: var(--green-dark); }
+button.ghost, button.ghost:hover { color: var(--ink); border: 1px solid rgba(37, 37, 37, 0.3); }
+button.ghost { background: transparent; }
+button.ghost:hover { background: rgba(37, 37, 37, 0.08); }
+button:disabled { cursor: default; }
+
+.offline { position: fixed; inset: 0 0 auto 0; z-index: 10; padding: 0.5rem; background: #a34848; color: #fff; font-weight: 700; text-align: center; }
+
+/* ── Countdown bar ─────────────────────────────────────────── */
+.timer { height: 0.6rem; background: rgba(37, 37, 37, 0.12); border-radius: 1rem; overflow: hidden; }
+.timer > div { height: 100%; background: var(--green); transform-origin: left; transition: transform 0.1s linear; }
+
+/* ── Answers ───────────────────────────────────────────────── */
+.options { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+.opt { position: relative; display: flex; align-items: center; gap: 0.9rem; min-height: 4.25rem; padding: 0.8rem 1rem; border-radius: 0.8rem; color: #fff; font-weight: 700; font-size: 1.1rem; text-align: left; overflow: hidden; }
+.opt .shape { font-size: 1.5rem; width: 1.75rem; text-align: center; flex: none; }
+.opt .label { flex: 1; }
+.opt-0 { background: var(--opt-0); } .opt-1 { background: var(--opt-1); }
+.opt-2 { background: var(--opt-2); } .opt-3 { background: var(--opt-3); }
+button.opt:hover { filter: brightness(1.08); }
+button.opt:disabled { filter: grayscale(0.5) brightness(0.9); }
+
+/* Player result screen: the whole page tints with the outcome. */
+body[data-result="right"] { background: #bcd6b8; }
+body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
+
+/* ── Leaderboard ───────────────────────────────────────────── */
+.board { list-style: none; counter-reset: rank; padding: 0; margin: 1rem auto; max-width: 30rem; text-align: left; }
+.board li { counter-increment: rank; display: flex; gap: 0.75rem; padding: 0.55rem 0.9rem; margin: 0.35rem 0; background: #fff; border-radius: 0.6rem; font-weight: 600; }
+.board li::before { content: counter(rank); font-weight: 700; color: var(--green); min-width: 1.5rem; }
+.board .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board .s { font-variant-numeric: tabular-nums; }
+.board li:nth-child(1) { background: #f1e3b3; }
+
+/* ── Host (projector) ──────────────────────────────────────── */
+.host h1 { font-size: 3rem; }
+.host h2 { font-size: 2.4rem; margin: 1rem 0 2rem; }
+.host .brand { font-size: 3.5rem; }
+.host .options { grid-template-columns: 1fr 1fr; gap: 1rem; }
+.host .opt { min-height: 6rem; font-size: 1.6rem; }
+.host .big-time { font-size: 2.5rem; }
+.host .meta { font-size: 1.2rem; }
+.join-hint { font-size: 1.4rem; }
+.join-url { font-size: 2.2rem; font-weight: 700; color: var(--green-dark); word-break: break-all; margin: 1rem 0 2rem; }
+.count { font-size: 1.6rem; }
+.answered { font-size: 1.4rem; margin-top: 1.5rem; font-weight: 600; }
+.host .board { max-width: 40rem; }
+.host .board li { font-size: 1.4rem; }
+.podium li:nth-child(2) { background: #e3e6e3; }
+.podium li:nth-child(3) { background: #e8cdb4; }
+
+/* On reveal, each block shows how many chose it; wrong answers dim. */
+.host .opt .num { font-size: 1.6rem; opacity: 0; }
+#r-options .opt { isolation: isolate; }
+#r-options .opt::after { content: ''; position: absolute; left: 0; bottom: 0; height: 0.45rem; width: var(--fill, 0); background: rgba(255, 255, 255, 0.55); }
+#r-options .opt .num { opacity: 1; }
+#r-options .opt.is-wrong { opacity: 0.45; }
+#r-options .opt.is-correct { outline: 0.4rem solid #1f3d38; }
+
+.controls { position: sticky; bottom: 0; display: flex; justify-content: center; gap: 1rem; padding: 1rem; background: rgba(208, 218, 209, 0.92); border-top: 1px solid rgba(37, 37, 37, 0.1); }
+.controls button { min-width: 14rem; font-size: 1.2rem; }
+
+@media (min-width: 40rem) {
+  .player .options { grid-template-columns: 1fr 1fr; }
+  .player .opt { min-height: 6rem; }
+}

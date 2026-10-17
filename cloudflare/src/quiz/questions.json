@@ -1,0 +1,18 @@
+[
+  {
+    "text": "Dans quelle ville a lieu la cérémonie ?",
+    "options": ["Sierre", "Sion", "Martigny", "Bizerte"],
+    "correct": 0
+  },
+  {
+    "text": "Quel jour Lobna et Martin se marient-ils ?",
+    "options": ["Le 24 octobre", "Le 31 octobre", "Le 7 novembre", "Le 1er novembre"],
+    "correct": 1
+  },
+  {
+    "text": "TODO — remplacez ces questions d'exemple par les vôtres (cloudflare/src/quiz/questions.json)",
+    "options": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+    "correct": 2,
+    "seconds": 15
+  }
+]
