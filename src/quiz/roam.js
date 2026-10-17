@@ -18,6 +18,7 @@ export function roam (stage, el, mood = 'happy') {
   let kind = 'pause'
   let until = 0
   let jump = null
+  const phase = Math.random() * 6.28
 
   const next = (t) => {
     const r = Math.random()
@@ -59,6 +60,8 @@ export function roam (stage, el, mood = 'happy') {
       if (jump.flip) rot = -dir * 360 * (u < 0.15 ? 0 : u > 0.85 ? 1 : (u - 0.15) / 0.7)
       if (u >= 1) jump = kind === 'hop' && t + 420 < until ? { t0: t, dur: 420, h: 14 + Math.random() * 12 } : null
     }
+    // Walking: a small rock from side to side, clockwise then anticlockwise.
+    if (kind === 'walk' && !(jump && jump.flip)) rot += Math.sin(t / 110 + phase) * (mood === 'sad' ? 3 : 7)
     el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${rot.toFixed(1)}deg)`
   }
   raf = requestAnimationFrame(frame)

@@ -298,6 +298,8 @@ function stepLobby (t) {
       if (w.jump.flip) rot = -w.dir * 360 * (u < 0.15 ? 0 : u > 0.85 ? 1 : (u - 0.15) / 0.7)
       if (u >= 1) w.jump = w.kind === 'hop' && t + 420 < w.until ? { t0: t, dur: 420, h: 14 + Math.random() * 12 } : null
     }
+    // Walking: a small rock from side to side, clockwise then anticlockwise, on its own beat.
+    if (w.kind === 'walk' && !(w.jump && w.jump.flip)) rot += Math.sin(t / 110 + w.phase) * 7
     w.li.style.transform = `translate3d(${w.x.toFixed(1)}px, ${(LANE_TOP + w.lane * LANE_GAP + y).toFixed(1)}px, 0)`
     w.flip.style.transform = `rotate(${rot.toFixed(1)}deg)`
   }
@@ -333,7 +335,7 @@ function renderLobby (who) {
     li.style.zIndex = lane
     arena.append(li)
     lobbyCards.set(n, {
-      li, flip, lane, jump: null, key: JSON.stringify(v), kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
+      li, flip, lane, jump: null, phase: Math.random() * 6.28, key: JSON.stringify(v), kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
       x: Math.random() * Math.max(0, arena.clientWidth - 96), until: now + Math.random() * 1500,
     })
   }
