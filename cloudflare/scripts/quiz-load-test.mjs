@@ -88,8 +88,6 @@ console.log(`${N} players joined in ${Date.now() - t0} ms`)
 {
   const dup = await (await post('guest/identify', { name: `lt${runId} 3`.toUpperCase(), avatar: [7, 12, 8] })).json()
   check(dup.code === 'name_taken', 'duplicate name (any case) is rejected')
-  const dup2 = await (await post('guest/identify', { name: `Nouveau ${runId}`, avatar: [3, 0, 0] })).json()
-  check(dup2.code === 'avatar_taken', 'duplicate avatar is rejected')
   const anon = new Client('anon'); await anon.open()
   anon.send({ t: 'join', token: 'nope' })
   check((await anon.next('error')).code === 'login_required', 'a phone without a login is refused')

@@ -61,6 +61,8 @@ document.addEventListener('click', (event) => {
 // Embedded panels (iframes of the one-pager) share localStorage with the
 // top page, which does the fetch — no need for one request per panel.
 if (window.parent === window) {
+  // Safety: never keep the page hidden for long if the server does not answer.
+  setTimeout(() => { if (!document.getElementById('gate')) document.documentElement.classList.remove('needs-login') }, 8000)
   fetch(API_BASE_URL + 'settings', { cache: 'no-store' })
     .then((res) => (res.ok ? res.json() : null))
     .then((settings) => {

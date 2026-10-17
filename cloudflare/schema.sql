@@ -19,10 +19,9 @@ CREATE TABLE guests (
   avatar TEXT,               -- "animal.colour.accessory" (see src/avatar.js); NULL for guests from before avatars
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
--- One player per avatar combination. Existing database: apply with
+-- Avatars may repeat. Existing database: apply with
 --   wrangler d1 execute lobna-et-martin --remote --command "ALTER TABLE guests ADD COLUMN avatar TEXT"
---   wrangler d1 execute lobna-et-martin --remote --command "CREATE UNIQUE INDEX idx_guests_avatar ON guests(avatar)"
-CREATE UNIQUE INDEX idx_guests_avatar ON guests(avatar);
+--   (and, if you ran the earlier unique index: ... --command "DROP INDEX IF EXISTS idx_guests_avatar")
 
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

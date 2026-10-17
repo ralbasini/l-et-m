@@ -288,8 +288,6 @@ export async function updateGuest (request, env) {
     if (body.avatar !== undefined) {
       const avatar = parseAvatar(body.avatar)
       if (!avatar) return json({ error: 'Personnage invalide.' }, { status: 400 })
-      const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ? AND id != ?').bind(avatarKey(avatar), guest.id).first()
-      if (taken) return json({ error: 'Ce personnage est déjà pris.' }, { status: 409 })
       await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(avatarKey(avatar), guest.id).run()
     }
     if (body.name !== undefined) {

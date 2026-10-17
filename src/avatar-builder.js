@@ -3,14 +3,19 @@ import { ANIMALS, ACCESSORIES, COLORS, avatarEl, accessoryEl, randomAvatar } fro
 // Avatar picker: an animal, a fur colour and an accessory. Each chip draws what
 // choosing it gives, so the options preview themselves. Used by the login screen.
 // Returns { get, set } — get() is the current [animal, colour, accessory].
-export function mountBuilder (box, initial, onChange = () => {}) {
+export function mountBuilder (box, initial, onChange = () => {}, { collapsed = false } = {}) {
   let av = Array.isArray(initial) ? [...initial] : randomAvatar()
   box.innerHTML = `
     <div class="av-preview" data-ref="preview"></div>
-    <div class="av-group"><span class="av-label">Animal</span><div class="av-choices" data-ref="animals"></div></div>
-    <div class="av-group"><span class="av-label" data-ref="colorLabel">Pelage</span><div class="av-choices" id="av-colors" data-ref="colors"></div></div>
-    <div class="av-group"><span class="av-label">Accessoire</span><div class="av-choices" data-ref="acc"></div></div>
-    <button type="button" class="ghost" data-ref="random">🎲 Au hasard</button>`
+    <div class="av-options" data-ref="options"${collapsed ? ' hidden' : ''}>
+      <div class="av-group"><span class="av-label">Animal</span><div class="av-choices" data-ref="animals"></div></div>
+      <div class="av-group"><span class="av-label" data-ref="colorLabel">Pelage</span><div class="av-choices" id="av-colors" data-ref="colors"></div></div>
+      <div class="av-group"><span class="av-label">Accessoire</span><div class="av-choices" data-ref="acc"></div></div>
+    </div>
+    <div class="av-actions">
+      <button type="button" class="ghost" data-ref="random">🎲 Au hasard</button>
+      ${collapsed ? '<button type="button" class="ghost" data-ref="toggle">Modifier mon avatar</button>' : ''}
+    </div>`
   const ref = (n) => box.querySelector(`[data-ref="${n}"]`)
 
   function chip (label, pressed, onClick, child) {
@@ -43,6 +48,14 @@ export function mountBuilder (box, initial, onChange = () => {}) {
   }
   function pick (slot, i) { av[slot] = i; render(); onChange(av) }
   ref('random').addEventListener('click', () => { av = randomAvatar(); render(); onChange(av) })
+  const toggle = ref('toggle')
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const open = ref('options').hidden
+      ref('options').hidden = !open
+      toggle.textContent = open ? 'Masquer les réglages' : 'Modifier mon avatar'
+    })
+  }
   render()
   return { get: () => [...av], set: (v) => { av = [...v]; render() } }
 }

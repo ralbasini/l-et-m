@@ -50,7 +50,10 @@ function siteNav (current) {
     else if (quizOnly) attrs.push('data-quiz-only')
     return `<a ${attrs.join(' ')}>${label}</a>`
   })
-  return `<nav class="site-nav" aria-label="Navigation">${links.join('')}</nav>`
+  // Account menu (top right): shown only once a guest account exists, see src/account-menu.js.
+  const burger = '<button type="button" class="nav-burger" aria-label="Mon compte" aria-expanded="false" aria-controls="nav-account"><span></span><span></span><span></span></button>' +
+    '<div id="nav-account" class="nav-account" hidden></div>'
+  return `<nav class="site-nav" aria-label="Navigation">${links.join('')}${burger}</nav>`
 }
 
 const SITE_FOOTER = '<footer class="brand-footer" aria-label="Lobna et Martin">' +
@@ -69,8 +72,11 @@ const CHROME_HEAD = '<script>try {' +
   " if (localStorage.getItem('lm_admin_token')) document.documentElement.classList.add('is-admin');" +
   " if (localStorage.getItem('lm_menu_public') === '1') document.documentElement.classList.add('menu-public');" +
   " if (localStorage.getItem('lm_quiz_enabled') === '1') document.documentElement.classList.add('quiz-on');" +
-  // Public site and no account yet: hide the page until the login screen (src/gate.js) is up.
-  " if (window.top === window && localStorage.getItem('lm_menu_public') === '1' && !localStorage.getItem('lm_admin_token') && !localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('needs-login')" +
+  " if (localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('is-guest');" +
+  // No account yet: hide the page (menu included) until we know whether the site is public.
+  // Public (or never checked before): the login screen (src/gate.js) takes over; private:
+  // src/admin-access.js lifts this as soon as /settings answers. Last known value '0' skips the wait.
+  " if (window.top === window && localStorage.getItem('lm_menu_public') !== '0' && !localStorage.getItem('lm_admin_token') && !localStorage.getItem('lm_guest_token')) document.documentElement.classList.add('needs-login')" +
   ' } catch (e) {}' +
   // Loading screen: top-level pages only (the home panels are iframes).
   " try { if (window.top === window) document.documentElement.classList.add('is-loading') } catch (e) {}</script>" +
@@ -99,7 +105,8 @@ const PAGE_LOADER = '<div id="page-loader" aria-hidden="true"><i></i></div>' +
 // admin-access.js refreshes the "menu public" setting from the server.
 const CHROME_HEAD_END = '<link rel="preconnect" href="https://l-et-m-api.romain-albasini.workers.dev">' +
   '<link rel="stylesheet" href="/site-chrome.css">' +
-  '<script type="module" src="/admin-access.js"></script>'
+  '<script type="module" src="/admin-access.js"></script>' +
+  '<script type="module" src="/account-menu.js"></script>'
 
 const siteChrome = {
   name: 'site-chrome',

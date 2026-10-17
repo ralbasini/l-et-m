@@ -41,7 +41,7 @@ function guestFolder (name) {
 
 // POST { name, avatar: [animal, colour, accessory] } creates the account, or logs back in
 // when both match an existing one. One
-// account per name (ignoring case) and one per avatar combination. Guests from
+// account per name (ignoring case); avatars may repeat. Guests from
 // before avatars existed have no avatar yet: they may claim their name once.
 export async function identify (request, env) {
   const body = await request.json().catch(() => ({}))
@@ -61,15 +61,13 @@ export async function identify (request, env) {
     }
     return json({ code: 'name_taken', error: 'Ce prénom est déjà pris. Si c’est vous, recréez exactement votre personnage pour vous reconnecter ; sinon ajoutez par exemple une initiale.' }, { status: 409 })
   }
-  const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ?').bind(key).first()
-  if (taken) return json({ code: 'avatar_taken', error: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.' }, { status: 409 })
 
   try {
     if (existing) await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, existing.id).run()
     else await env.DB.prepare('INSERT INTO guests (name, avatar) VALUES (?, ?)').bind(name, key).run()
   } catch {
-    // Lost a race on the unique indexes.
-    return json({ code: 'avatar_taken', error: 'Ce prénom ou ce personnage vient d’être pris, essayez autre chose.' }, { status: 409 })
+    // Lost a race on the unique name.
+    return json({ code: 'name_taken', error: 'Ce prénom vient d’être pris, essayez autre chose.' }, { status: 409 })
   }
   const guest = await env.DB.prepare('SELECT id, name, avatar FROM guests WHERE name = ? COLLATE NOCASE').bind(name).first()
   const token = await signToken(env.GUEST_TOKEN_SECRET, { guestId: guest.id })
@@ -82,13 +80,7 @@ export async function setAvatar (request, env, guest) {
   const avatar = parseAvatar(body.avatar)
   if (!avatar) return json({ error: 'Personnage invalide.' }, { status: 400 })
   const key = avatarKey(avatar)
-  const taken = await env.DB.prepare('SELECT id FROM guests WHERE avatar = ? AND id != ?').bind(key, guest.id).first()
-  if (taken) return json({ code: 'avatar_taken', error: 'Ce personnage est déjà pris : changez la couleur ou un accessoire.' }, { status: 409 })
-  try {
-    await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, guest.id).run()
-  } catch {
-    return json({ code: 'avatar_taken', error: 'Ce personnage vient d’être pris, essayez autre chose.' }, { status: 409 })
-  }
+  await env.DB.prepare('UPDATE guests SET avatar = ? WHERE id = ?').bind(key, guest.id).run()
   return json({ avatar })
 }
 

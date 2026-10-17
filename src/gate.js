@@ -30,7 +30,7 @@ function showGate ({ me, edit }) {
       <div class="gate-inner">
         <p class="brand">L<span>&amp;</span>M</p>
         <h1>${edit ? 'Votre personnage' : hasAccount ? 'Bonjour !' : 'Bienvenue !'}</h1>
-        <p class="sub">${edit ? 'Changez votre look.' : hasAccount ? 'Créez votre personnage pour continuer.' : 'Entrez votre prénom et créez votre personnage. Déjà venu ? Même prénom, même personnage : vous retrouvez votre compte.'}</p>
+        <p class="sub">${edit ? 'Changez votre look.' : hasAccount ? 'Créez votre personnage pour continuer.' : "Merci de renseigner ton nom, et choisir ton avatar !"}</p>
         <form>
           <div data-ref="builder"></div>
           <div data-ref="nameField"${hasAccount ? ' hidden' : ''}>
@@ -44,7 +44,8 @@ function showGate ({ me, edit }) {
       </div>`
     if (hasAccount && !edit) gate.querySelector('h1').textContent = `Bonjour ${me.name} !`
     const ref = (n) => gate.querySelector(`[data-ref="${n}"]`)
-    const builder = mountBuilder(ref('builder'), me && me.avatar ? me.avatar : null)
+    // First login: just a random avatar, the settings open on request. Editing: settings open.
+    const builder = mountBuilder(ref('builder'), me && me.avatar ? me.avatar : null, undefined, { collapsed: !edit && !(me && me.avatar) })
     document.body.append(gate)
     document.documentElement.classList.add('needs-login')
 

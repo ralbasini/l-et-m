@@ -20,10 +20,12 @@ export function saveSession ({ token, name, avatar }) {
   if (token) write(GUEST_TOKEN_KEY, token)
   if (name) write(NAME_KEY, name)
   if (avatar) write(AVATAR_KEY, JSON.stringify(avatar))
+  document.documentElement.classList.add('is-guest') // shows the account menu
 }
 
 export function clearSession () {
   try { [GUEST_TOKEN_KEY, NAME_KEY, AVATAR_KEY].forEach((k) => localStorage.removeItem(k)) } catch { /* ignore */ }
+  document.documentElement.classList.remove('is-guest')
 }
 
 class SessionError extends Error {
