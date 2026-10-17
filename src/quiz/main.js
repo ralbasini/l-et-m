@@ -54,6 +54,7 @@ function showQuestion (m) {
     b.className = `opt opt-${i}`
     b.innerHTML = `<span class="shape" aria-hidden="true">${SHAPES[i]}</span><span class="label"></span>`
     b.querySelector('.label').textContent = text
+    if (m.images && m.images[i]) { const img = Object.assign(document.createElement('img'), { src: m.images[i], alt: text, draggable: false }); b.prepend(img) }
     b.addEventListener('click', () => answer(i))
     return b
   }))
@@ -111,6 +112,7 @@ function onMessage (m) {
     case 'result': {
       stopTimer()
       const opts = current ? current.options : []
+      const images = current ? current.images : null
       const right = m.choice === m.correct
       // All the answers again: the right one lit up, the player's pick tagged.
       $('result-answer').replaceChildren(...opts.map((text, i) => {
@@ -120,6 +122,7 @@ function onMessage (m) {
         d.querySelector('.shape').textContent = SHAPES[i]
         d.querySelector('.label').textContent = text
         d.querySelector('.tag').textContent = i === m.correct ? '✓' : i === m.choice ? '✗' : ''
+        if (images && images[i]) d.prepend(Object.assign(document.createElement('img'), { src: images[i], alt: text, draggable: false }))
         return d
       }))
       current = null

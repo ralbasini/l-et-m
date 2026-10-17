@@ -254,3 +254,12 @@ html:not(.quiz-ended) .site-nav { display: none; }
 html.quiz-ended body.player main { padding-top: calc(var(--site-nav-offset, 3.1rem) + 1rem); justify-content: flex-start; }
 .btn-link { display: inline-block; margin-top: 0.5rem; padding: 0.9rem 1.5rem; border-radius: 0.6rem; background: var(--green); color: #fff; font-weight: 600; text-decoration: none; }
 .btn-link:hover { background: var(--green-dark); }
+
+/* Picture answers: the image on top (full width), shape + label + count under it. Long
+   answers wrap onto several lines instead of being cut. */
+.opt.has-img, .opt:has(> img) { flex-wrap: wrap; padding: 0.5rem; }
+.opt > img { flex: 0 0 100%; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 0.55rem; display: block; background: #e3ebf1; }
+.opt:has(> img) .label { overflow-wrap: anywhere; }
+.host #r-options .opt > img { aspect-ratio: 16 / 7; }
+.result-options .opt > img { aspect-ratio: 16 / 7; }
+.opt .label { overflow-wrap: anywhere; line-height: 1.3; }

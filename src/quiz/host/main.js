@@ -43,13 +43,21 @@ $('btn-primary').addEventListener('click', () => {
 })
 $('btn-reset').addEventListener('click', () => { if (confirm('Remettre les scores à zéro et revenir au salon d\'attente ?')) sendFn({ t: 'cmd', c: 'reset' }) })
 
-function optionBlocks (box, options, extra) {
+// A picture answer: the image fills the top of the block, the label sits under it.
+function optionImage (src, alt) {
+  const img = document.createElement('img')
+  img.src = src; img.alt = alt; img.draggable = false
+  return img
+}
+
+function optionBlocks (box, options, extra, images) {
   box.replaceChildren(...options.map((text, i) => {
     const d = document.createElement('div')
     d.className = `opt opt-${i}`
     d.innerHTML = '<span class="shape" aria-hidden="true"></span><span class="label"></span><span class="num"></span>'
     d.querySelector('.shape').textContent = SHAPES[i]
     d.querySelector('.label').textContent = text
+    if (images && images[i]) d.prepend(optionImage(images[i], text))
     if (extra) extra(d, i)
     return d
   }))
@@ -355,7 +363,7 @@ function onMessage (m, send) {
       stopTimer(); current = m
       $('q-count').textContent = `Question ${m.q + 1} / ${m.total}`
       $('q-text').textContent = m.text
-      optionBlocks($('q-options'), m.options)
+      optionBlocks($('q-options'), m.options, null, m.images)
       stopTimer = countdown(m.remaining, m.seconds * 1000, (s, frac) => {
         $('timer-bar').style.transform = `scaleX(${frac})`
         $('q-time').textContent = s
@@ -373,7 +381,7 @@ function onMessage (m, send) {
         d.classList.toggle('is-wrong', i !== m.correct)
         d.querySelector('.num').textContent = m.counts[i]
         d.style.setProperty('--fill', `${Math.round((m.counts[i] / max) * 100)}%`)
-      })
+      }, m.images)
       current = { q: m.q, total: m.total }
       show('reveal'); setPhase('reveal')
       showBoard()

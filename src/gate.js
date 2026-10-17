@@ -19,7 +19,15 @@ function gateOpen (on) {
   }
 }
 
-export function requireGuest ({ edit = false, login = false } = {}) {
+// After a login the guest lands on the Photos page, unless they came for a specific
+// panel (#galerie…). Reloads the top window so every panel starts with the account.
+export function goAfterLogin () {
+  const top = window.top
+  if (!top.location.hash || top.location.hash === '#mariage') top.location.hash = 'photos'
+  top.location.reload()
+}
+
+export function requireGuest ({ edit = false, login = false, reload = false } = {}) {
   if (pending) return pending
   pending = (async () => {
     // login: the footer's "login" link always shows the form (name, avatar and, for an
@@ -27,12 +35,12 @@ export function requireGuest ({ edit = false, login = false } = {}) {
     if (login) return showGate({ me: null, edit: false, cancellable: true })
     const me = await fetchMe()
     if (me && me.avatar && !edit) return me
-    return showGate({ me, edit })
+    return showGate({ me, edit, reload })
   })().finally(() => { pending = null })
   return pending
 }
 
-function showGate ({ me, edit, cancellable = false }) {
+function showGate ({ me, edit, cancellable = false, reload = false }) {
   return new Promise((resolve, reject) => {
     let hasAccount = Boolean(me)
     // No account yet: two steps, first the name, then the avatar. With an account
@@ -135,6 +143,14 @@ function showGate ({ me, edit, cancellable = false }) {
           }
         } else if (hasAccount) await updateAvatar(builder.get())
         else await register(gate.querySelector('#gate-name').value, builder.get())
+        if (reload) {
+          // Public-site login: keep the screen up (a spinner) while the page loads again with
+          // the account in place, instead of uncovering a half-ready Mariage page for a moment.
+          gate.innerHTML = '<div class="gate-loading"><i></i></div>'
+          resolve(getSession())
+          goAfterLogin()
+          return
+        }
         close()
         resolve(getSession())
       } catch (err) {
@@ -173,18 +189,24 @@ export function pickAvatar (initial, title = 'Personnage') {
   })
 }
 
-// On a phone the on-screen keyboard covers the lower half of the screen. While it is open
-// the screen gets as much extra scroll room as the keyboard takes, and the field being
-// typed in is scrolled into view, so the card is never hidden behind it.
+// On a phone the on-screen keyboard covers the lower part of the screen. Chrome on Android
+// (Samsung included) leaves the page the same size and only shrinks what is *visible*
+// (the visual viewport), so the login screen is fitted to that visible area while the
+// keyboard is up, with extra scroll room below the card, and the field being typed in is
+// brought to the middle of it. Samsung's keyboard animates slowly, hence the second pass.
 function keepInputVisible (gate) {
   const vv = window.visualViewport
-  const reveal = (el) => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)
-  const resize = () => {
-    if (!gate.isConnected) { vv.removeEventListener('resize', resize); return }
-    gate.style.paddingBottom = `${Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 20}px`
+  const reveal = (el) => [200, 600].forEach((ms) => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), ms))
+  const fit = () => {
+    if (!gate.isConnected) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); return }
+    const keyboard = window.innerHeight - vv.height > 120
+    gate.style.top = `${vv.offsetTop}px`
+    gate.style.bottom = 'auto'
+    gate.style.height = `${vv.height}px`
+    gate.style.paddingBottom = keyboard ? '40vh' : ''
     const el = document.activeElement
-    if (gate.contains(el) && el.matches('input')) reveal(el)
+    if (keyboard && gate.contains(el) && el.matches('input')) reveal(el)
   }
   gate.addEventListener('focusin', (e) => { if (e.target.matches('input')) reveal(e.target) })
-  if (vv) vv.addEventListener('resize', resize)
+  if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit) }
 }

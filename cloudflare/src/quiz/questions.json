@@ -1,32 +1,92 @@
 [
   {
     "text": "Quelle est la capitale du Kazakhstan ?",
-    "options": ["Almaty", "Bichkek", "Astana", "Tachkent"],
+    "options": [
+      "Almaty",
+      "Bichkek",
+      "Astana",
+      "Tachkent"
+    ],
     "correct": 2
   },
   {
     "text": "Quel est le plus long fleuve d'Europe ?",
-    "options": ["Le Danube", "La Volga", "Le Rhin", "Le Dniepr"],
+    "options": [
+      "Le Danube",
+      "La Volga",
+      "Le Rhin",
+      "Le Dniepr"
+    ],
     "correct": 1
   },
   {
     "text": "Quel pays compte le plus de fuseaux horaires, territoires d'outre-mer inclus ?",
-    "options": ["La France", "La Russie", "Les États-Unis", "Le Royaume-Uni"],
+    "options": [
+      "La France",
+      "La Russie",
+      "Les États-Unis",
+      "Le Royaume-Uni"
+    ],
     "correct": 0
   },
   {
     "text": "Quel est le seul pays au monde dont le drapeau n'est ni carré ni rectangulaire ?",
-    "options": ["Le Bhoutan", "Le Népal", "Le Sri Lanka", "Le Laos"],
+    "options": [
+      "Le Bhoutan",
+      "Le Népal",
+      "Le Sri Lanka",
+      "Le Laos"
+    ],
     "correct": 1
   },
   {
     "text": "Quel est le lac le plus profond du monde ?",
-    "options": ["Le lac Supérieur", "Le lac Tanganyika", "Le lac Victoria", "Le lac Baïkal"],
+    "options": [
+      "Le lac Supérieur",
+      "Le lac Tanganyika",
+      "Le lac Victoria",
+      "Le lac Baïkal"
+    ],
     "correct": 3
   },
   {
     "text": "Quel est le plus petit pays d'Afrique par sa superficie ?",
-    "options": ["La Gambie", "Djibouti", "Les Seychelles", "Les Comores"],
+    "options": [
+      "La Gambie",
+      "Djibouti",
+      "Les Seychelles",
+      "Les Comores"
+    ],
     "correct": 2
+  },
+  {
+    "text": "Quelle est la plus belle Subaru ?",
+    "options": [
+      "Photo A",
+      "Photo B",
+      "Photo C",
+      "Photo D"
+    ],
+    "images": [
+      "/quiz-img/subaru-1.svg",
+      "/quiz-img/subaru-2.svg",
+      "/quiz-img/subaru-3.svg",
+      "/quiz-img/subaru-4.svg"
+    ],
+    "correct": 3,
+    "seconds": 20,
+    "_demo": true
+  },
+  {
+    "text": "Selon la légende, comment Lobna et Martin se sont-ils rencontrés pour la première fois ?",
+    "options": [
+      "Par hasard, dans une file d'attente interminable devant une boulangerie, un dimanche matin pluvieux",
+      "Lors d'une soirée entre amis où ils ont passé la nuit entière à discuter de voyages, de fromage et de musique",
+      "Sur un quai de gare, en attendant un train qui avait presque deux heures de retard à cause de la neige",
+      "Au bureau, en se disputant gentiment la dernière tasse propre de la cuisine commune du troisième étage"
+    ],
+    "correct": 1,
+    "seconds": 25,
+    "_demo": true
   }
 ]

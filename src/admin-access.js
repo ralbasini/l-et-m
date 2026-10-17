@@ -51,8 +51,7 @@ document.addEventListener('click', (event) => {
   if (event.target.closest('.brand-footer-login')) {
     event.preventDefault()
     import('./gate.js')
-      .then((m) => m.requireGuest({ login: true }))
-      .then(() => window.top.location.reload())
+      .then((m) => m.requireGuest({ login: true }).then(() => m.goAfterLogin()))
       .catch(() => { /* cancelled */ })
   }
 })
@@ -71,7 +70,7 @@ if (window.parent === window) {
       window.dispatchEvent(new Event('lm:settings'))
       // Public site: every visitor needs an account (name + avatar), except a logged-in admin.
       const isAdmin = document.documentElement.classList.contains('is-admin')
-      if (settings.menuPublic && !isAdmin) import('./gate.js').then((m) => m.requireGuest()).catch(() => document.documentElement.classList.remove('needs-login'))
+      if (settings.menuPublic && !isAdmin) import('./gate.js').then((m) => m.requireGuest({ reload: true })).catch(() => document.documentElement.classList.remove('needs-login'))
       else document.documentElement.classList.remove('needs-login')
     })
     .catch(() => { document.documentElement.classList.remove('needs-login') }) // never leave the page hidden
