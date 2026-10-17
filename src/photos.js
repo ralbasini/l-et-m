@@ -1,6 +1,12 @@
 // Backend: the Cloudflare Worker in cloudflare/. Photos live in R2 and are served by that same Worker under
 // /img/ — see cloudflare/README.md and cloudflare/src/routes/img.js.
-export const API_BASE_URL = 'https://l-et-m-api.romain-albasini.workers.dev/'
+// On localhost the site talks to `wrangler dev` (port 8787), like the quiz does, so unreleased Worker
+// changes can be tried. Gallery photos are then the local (empty) bucket: in the console,
+// localStorage.lm_api = 'prod' goes back to the deployed Worker, localStorage.removeItem('lm_api') undoes it.
+const onLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname)
+let useProd = false
+try { useProd = localStorage.getItem('lm_api') === 'prod' } catch { /* ignore */ }
+export const API_BASE_URL = onLocalhost && !useProd ? 'http://127.0.0.1:8787/' : 'https://l-et-m-api.romain-albasini.workers.dev/'
 export const PHOTOS_BASE_URL = API_BASE_URL + 'img/'
 
 // URL of a stored photo, from its path in the bucket (e.g.
