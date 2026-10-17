@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quiz (animateur) — Lobna &amp; Martin</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body class="host">
+  <div id="offline" class="offline" hidden>Reconnexion…</div>
+
+  <main>
+    <section id="screen-auth" class="screen" hidden>
+      <h1>Accès animateur</h1>
+      <p id="auth-text">Connectez-vous d'abord à l'<a href="../../admin/">administration</a>, puis revenez sur cette page.</p>
+    </section>
+
+    <section id="screen-lobby" class="screen" hidden>
+      <p class="brand">L<span>&amp;</span>M</p>
+      <h1>Le quiz du mariage</h1>
+      <p class="join-hint">Rejoignez la partie depuis votre téléphone :</p>
+      <p id="join-url" class="join-url"></p>
+      <p class="count"><span id="lobby-count">0</span> joueur(s) connecté(s)</p>
+    </section>
+
+    <section id="screen-question" class="screen" hidden>
+      <div class="timer"><div id="timer-bar"></div></div>
+      <p class="meta"><span id="q-count"></span><span id="q-time" class="big-time"></span></p>
+      <h2 id="q-text"></h2>
+      <div id="q-options" class="options"></div>
+      <p class="answered"><span id="answered">0</span> / <span id="answered-of">0</span> réponses</p>
+    </section>
+
+    <section id="screen-reveal" class="screen" hidden>
+      <p class="meta"><span id="r-count"></span></p>
+      <h2 id="r-text"></h2>
+      <div id="r-options" class="options"></div>
+      <h3>Classement</h3>
+      <ol id="r-top" class="board"></ol>
+    </section>
+
+    <section id="screen-final" class="screen" hidden>
+      <h1>Classement final</h1>
+      <ol id="final-top" class="board podium"></ol>
+    </section>
+  </main>
+
+  <footer class="controls" id="controls" hidden>
+    <button type="button" id="btn-primary"></button>
+    <button type="button" id="btn-reset" class="ghost">Recommencer</button>
+  </footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

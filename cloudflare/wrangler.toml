@@ -13,6 +13,17 @@ binding = "DB"
 database_name = "lobna-et-martin"
 database_id = "0842eef8-8175-4014-b4ce-b781aa01a933"
 
+# ── Live quiz (Kahoot-style): one Durable Object per game room, see
+#    src/quiz/room.js. SQLite-backed, which is what the Workers Free plan
+#    allows. The migration only needs to run once, on the first deploy. ──────
+[[durable_objects.bindings]]
+name = "QUIZ"
+class_name = "QuizRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["QuizRoom"]
+
 # ── Custom domain(s) — optional, but without one the API lives at
 #    l-et-m-api.<your-subdomain>.workers.dev, which is fine to start with.
 #    Uncomment once your domain's DNS is on Cloudflare. ────────────────────
