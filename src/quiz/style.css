@@ -102,7 +102,7 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 /* On reveal, each block shows how many chose it; wrong answers dim. */
 .host .opt .num { font-size: 1.6rem; opacity: 0; }
 #r-options .opt { isolation: isolate; }
-#r-options .opt::after { content: ''; position: absolute; left: 0; bottom: 0; height: 0.45rem; width: var(--fill, 0); background: rgba(255, 255, 255, 0.55); }
+#r-options .opt::after { content: ''; position: absolute; left: 0.9rem; right: 0.9rem; bottom: 0.4rem; height: 0.35rem; border-radius: 1rem; background: linear-gradient(90deg, rgba(255, 255, 255, 0.85) var(--fill, 0%), rgba(255, 255, 255, 0.22) var(--fill, 0%)); }
 #r-options .opt .num { opacity: 1; }
 #r-options .opt.is-wrong { opacity: 0.45; }
 #r-options .opt.is-correct { outline: 0.4rem solid #1f3d38; }
@@ -152,7 +152,7 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 /* Host reveal: compact 2x2 answers on top, the animated leaderboard below */
 .host #screen-reveal h2 { margin: 0.25rem 0 0.75rem; font-size: 1.9rem; }
 .host #r-options { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-.host #r-options .opt { min-height: 3.2rem; padding: 0.4rem 0.9rem; font-size: 1.2rem; }
+.host #r-options .opt { min-height: 3.6rem; padding: 0.4rem 0.9rem 0.95rem; font-size: 1.2rem; }
 .host #r-options .opt .num { font-size: 1.2rem; }
 .host .reveal-board h3 { font-size: 1.6rem; margin: 1rem 0 0; }
 .host .reveal-board .race { margin-top: 0.6rem; max-width: none; }
