@@ -103,14 +103,9 @@ function showNameStep () {
 }
 
 function showUploadStep (guestName) {
-  document.getElementById('guest-name-label').textContent = guestName
   uploadStep.hidden = false
   myPhotosCard.hidden = false
 }
-
-document.getElementById('not-me-btn').addEventListener('click', () => {
-  requireGuest({ edit: true }).catch(() => {})
-})
 
 // ── Upload step ───────────────────────────────────────────────
 async function enterUploadStep (guestName) {
