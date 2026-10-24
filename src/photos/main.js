@@ -245,10 +245,16 @@ function fileKey (file) {
 }
 
 function syncInputFiles () {
-  const dt = new DataTransfer()
-  selectedFiles.forEach((file) => dt.items.add(file))
-  photosInput.files = dt.files
+  // Only a courtesy (the input shows its own "N files" text): the selection lives in selectedFiles,
+  // so a browser that can't build a FileList (or refuses to assign it) must not break the page.
+  try {
+    const dt = new DataTransfer()
+    selectedFiles.forEach((file) => dt.items.add(file))
+    photosInput.files = dt.files
+  } catch { /* keep going with selectedFiles */ }
 }
+// "required" would block the form unless the input itself holds a FileList; we check selectedFiles.
+photosInput.required = false
 
 function clearPreviewUrls () {
   previewUrls.forEach((url) => URL.revokeObjectURL(url))
@@ -292,6 +298,15 @@ function renderPreview () {
     img.src = url
     img.alt = ''
     img.addEventListener('click', () => openLightbox(i, true))
+    // A format this browser can't show (e.g. HEIC on Android): keep the photo in the list, with its
+    // name instead of a picture. It can still be sent.
+    img.addEventListener('error', () => {
+      const fallback = document.createElement('div')
+      fallback.className = 'preview-fallback'
+      fallback.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg><span></span>'
+      fallback.querySelector('span').textContent = file.name
+      img.replaceWith(fallback)
+    })
     figure.appendChild(img)
 
     const pendingBadge = document.createElement('span')
@@ -327,11 +342,31 @@ function setSelectedFiles (files) {
 // FileList entirely (especially on iOS) — merge instead of replacing, so
 // reopening it to add one more photo doesn't silently drop what was
 // already chosen.
-photosInput.addEventListener('change', () => {
+// HEIC (iPhone photos, some Samsung settings) can only be shown by Safari. Anywhere else the preview is
+// broken, the gallery could not show the photo either, and some Android browsers even send it with no
+// type. So where the browser cannot decode it, it is converted to a high-quality JPEG first (a library
+// loaded only for that case); if the conversion fails the original is still sent as it is.
+const looksHeic = (file) => /\.hei[cf]$/i.test(file.name) || /image\/hei[cf]/i.test(file.type)
+async function readableFile (file) {
+  if (!looksHeic(file)) return file
+  const canShow = await createImageBitmap(file).then((b) => { b.close(); return true }, () => false)
+  if (canShow) return file
+  try {
+    toast('Conversion de la photo…', true)
+    const { default: heic2any } = await import('heic2any')
+    const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 })
+    const blob = Array.isArray(out) ? out[0] : out
+    return new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg', lastModified: file.lastModified })
+  } catch {
+    return file
+  }
+}
+
+photosInput.addEventListener('change', async () => {
   const existingKeys = new Set(selectedFiles.map(fileKey))
   let added = 0
-  Array.from(photosInput.files).forEach((file) => {
-    const key = fileKey(file)
+  const picked = await Promise.all(Array.from(photosInput.files).map(async (f) => ({ key: fileKey(f), file: await readableFile(f) })))
+  picked.forEach(({ key, file }) => {
     if (!existingKeys.has(key)) {
       selectedFiles.push(file)
       existingKeys.add(key)

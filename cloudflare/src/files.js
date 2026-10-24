@@ -71,11 +71,16 @@ export function isReservedFolder (folder) {
 // Stores one uploaded file in R2 + D1 under `folder` (admin and guest
 // uploads alike; guestId is null for the admin's own), plus its optional
 // thumbnail. Returns an error message, or null on success.
+const IMAGE_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', heic: 'image/heic', heif: 'image/heif', bmp: 'image/bmp', tif: 'image/tiff', tiff: 'image/tiff' }
+// Some phones send no type at all for a photo (Android and HEIC): then the extension decides.
+const imageType = (file) => (file.type.startsWith('image/') ? file.type : IMAGE_TYPES[(file.name.split('.').pop() || '').toLowerCase()] || null)
+
 export async function storePhoto (env, folder, file, guestId = null, thumb = null) {
-  if (!file.type.startsWith('image/')) return `${file.name} : type de fichier non supporté.`
+  const type = imageType(file)
+  if (!type) return `${file.name} : type de fichier non supporté.`
   const filename = await uniqueFilename(env.DB, folder, safeFilename(file.name))
   const key = joinKey(folder, filename)
-  await env.PHOTOS_BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
+  await env.PHOTOS_BUCKET.put(key, file.stream(), { httpMetadata: { contentType: type } })
   if (thumb instanceof File && thumb.type === 'image/jpeg' && thumb.size <= MAX_THUMB_BYTES) {
     await env.PHOTOS_BUCKET.put(thumbKey(key), thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } })
   }
