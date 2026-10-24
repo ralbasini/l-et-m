@@ -279,6 +279,9 @@ let lobbyLast = 0
 // Measured with 100 moving avatars: ~80% of a 4x-slower CPU, a 30-avatar lobby ~38%.
 // Which ones move changes every SWAP_MS, so nobody stays frozen for long.
 const MAX_ANIMATED = 40
+// Past this many players the names would pile up into an unreadable smear, so they
+// are hidden (the avatars and the "N joueurs connectés" count stay).
+const MAX_NAMES = 20
 const SWAP_MS = 6000
 const animated = new Set()
 let lobbySwapAt = 0
@@ -384,6 +387,7 @@ function renderLobby (who) {
     s.textContent = n
     pop.append(flip, s)
     li.append(pop)
+    li.title = n
     const now = performance.now()
     const lane = lobbyCards.size % LANES
     li.style.zIndex = lane
@@ -398,6 +402,7 @@ function renderLobby (who) {
     if (animated.size >= MAX_ANIMATED) rest([...animated][Math.floor(Math.random() * animated.size)])
     animated.add(card)
   }
+  arena.classList.toggle('crowded', lobbyCards.size > MAX_NAMES)
   // Someone left: let a standing avatar take the free place.
   for (const w of lobbyCards.values()) {
     if (animated.size >= MAX_ANIMATED) break

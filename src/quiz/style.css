@@ -222,6 +222,7 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .lobby-players .pop { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; animation: lobby-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .lobby-players .flip { display: block; line-height: 0; transform-origin: 50% 55%; }
 .lobby-players .avatar { width: 4rem; }
+.lobby-players.crowded .nm { display: none; }
 .lobby-players .nm { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 1rem; }
 @keyframes lobby-pop { from { opacity: 0; transform: translateY(-2rem) scale(0.3); } to { opacity: 1; transform: none; } }
 
