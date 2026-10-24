@@ -30,6 +30,7 @@
         <span id="upload-progress-text">Envoi des photos en cours</span>
         <div class="upload-bar" aria-hidden="true"><div id="upload-bar-fill" class="upload-bar-fill"></div></div>
         <span id="upload-progress-detail" class="upload-progress-detail"></span>
+        <button type="button" id="upload-cancel" class="upload-cancel">Annuler</button>
       </div>
     </div>
   </div>
@@ -56,6 +57,7 @@
         </label>
         <button type="submit" id="upload-submit" class="upload-submit" disabled hidden>Envoyer</button>
         <p id="preview-warning" class="warning" hidden></p>
+        <p id="preview-error" class="error" role="alert" hidden></p>
         <div id="preview-grid" class="grid preview-grid" hidden></div>
       </form>
     </div>

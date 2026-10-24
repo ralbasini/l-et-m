@@ -226,6 +226,7 @@ const dropzoneText = document.getElementById('dropzone-text')
 const photosInput = document.getElementById('photos')
 const previewGrid = document.getElementById('preview-grid')
 const previewWarning = document.getElementById('preview-warning')
+const previewError = document.getElementById('preview-error')
 const uploadSubmitBtn = document.getElementById('upload-submit')
 const uploadProgress = document.getElementById('upload-progress')
 
@@ -255,6 +256,20 @@ function syncInputFiles () {
 }
 // "required" would block the form unless the input itself holds a FileList; we check selectedFiles.
 photosInput.required = false
+
+// Photos that can never be sent (the phone cannot read or show them) are not kept in the list of
+// photos ready to send: they are named here instead, with the reason.
+let rejectedPhotos = []
+function rejectPhoto (name, reason) {
+  rejectedPhotos.push(`${name} : ${reason}`)
+  previewError.hidden = false
+  previewError.textContent = (rejectedPhotos.length > 1 ? 'Ces photos ne peuvent pas être envoyées. ' : 'Cette photo ne peut pas être envoyée. ') + rejectedPhotos.join(' — ')
+}
+function clearRejected () {
+  rejectedPhotos = []
+  previewError.hidden = true
+  previewError.textContent = ''
+}
 
 function clearPreviewUrls () {
   previewUrls.forEach((url) => URL.revokeObjectURL(url))
@@ -298,14 +313,35 @@ function renderPreview () {
     img.src = url
     img.alt = ''
     img.addEventListener('click', () => openLightbox(i, true))
-    // A format this browser can't show (e.g. HEIC on Android): keep the photo in the list, with its
-    // name instead of a picture. It can still be sent.
-    img.addEventListener('error', () => {
-      const fallback = document.createElement('div')
-      fallback.className = 'preview-fallback'
-      fallback.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg><span></span>'
-      fallback.querySelector('span').textContent = file.name
-      img.replaceWith(fallback)
+    // A picture this browser cannot show (an unsupported format, a damaged file) is dropped from the list.
+    img.addEventListener('error', async () => {
+      // First try another way of decoding it (some JPEG variants only open through the bitmap decoder).
+      if (!img.dataset.retried) {
+        img.dataset.retried = '1'
+        try {
+          const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+          const scale = Math.min(1, 800 / Math.max(bitmap.width, bitmap.height))
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+          canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+          canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+          bitmap.close()
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85))
+          if (blob) {
+            const alt = URL.createObjectURL(blob)
+            previewUrls.push(alt)
+            img.src = alt
+            return
+          }
+        } catch { /* fall through to the name tile */ }
+      }
+      // Still no picture: it cannot be previewed, so it will never be sendable. Take it out of the list
+      // of photos ready to send and say so.
+      const at = selectedFiles.indexOf(file)
+      if (at !== -1) selectedFiles.splice(at, 1)
+      rejectPhoto(file.name, 'format d’image non reconnu par ce navigateur, elle ne pourra pas être envoyée.')
+      syncInputFiles()
+      renderPreview()
     })
     figure.appendChild(img)
 
@@ -347,27 +383,59 @@ function setSelectedFiles (files) {
 // type. So where the browser cannot decode it, it is converted to a high-quality JPEG first (a library
 // loaded only for that case); if the conversion fails the original is still sent as it is.
 const looksHeic = (file) => /\.hei[cf]$/i.test(file.name) || /image\/hei[cf]/i.test(file.type)
+const TYPE_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif', heic: 'image/heic', heif: 'image/heif' }
+
+// A photo handed over by the phone's picker (WhatsApp, Google Photos, the gallery…) is only a pointer to
+// a file that Android or iOS reads on demand: it can turn out unreadable, vanish, or have no type or
+// the wrong extension (a HEIC saved as ".jpg" is common). So each photo is read once, right away, into
+// memory: an unreadable one is reported now instead of failing mid-upload, and the rest of the page
+// works on a stable copy. Its real format is checked from its first bytes.
 async function readableFile (file) {
-  if (!looksHeic(file)) return file
-  const canShow = await createImageBitmap(file).then((b) => { b.close(); return true }, () => false)
-  if (canShow) return file
+  let buffer
+  try {
+    buffer = await file.arrayBuffer()
+  } catch {
+    rejectPhoto(file.name, 'le téléphone n’arrive pas à la lire. Enregistrez-la d’abord dans la galerie, puis choisissez-la à nouveau.')
+    return null
+  }
+  if (buffer.byteLength === 0) {
+    rejectPhoto(file.name, 'le fichier est vide ou n’a pas fini de se télécharger.')
+    return null
+  }
+  const head = new Uint8Array(buffer, 0, 12)
+  const brand = String.fromCharCode(...head.slice(4, 12))
+  const isHeic = /^ftyp(heic|heix|hevc|hevx|heim|heis|mif1|msf1)/.test(brand)
+  const ext = (file.name.split('.').pop() || '').toLowerCase()
+  let type = file.type || TYPE_BY_EXT[ext] || ''
+  let name = file.name
+  if (isHeic) {
+    type = 'image/heic'
+    if (!/\.hei[cf]$/i.test(name)) name = name.replace(/\.[^.]+$/, '') + '.heic'
+  }
+  const copy = new File([buffer], name, { type, lastModified: file.lastModified })
+  if (!(isHeic || looksHeic(copy))) return copy
+
+  // HEIC: only Safari can show it. Elsewhere convert it to a high-quality JPEG (library loaded just now).
+  const canShow = await createImageBitmap(copy).then((b) => { b.close(); return true }, () => false)
+  if (canShow) return copy
   try {
     toast('Conversion de la photo…', true)
     const { default: heic2any } = await import('heic2any')
-    const out = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.95 })
+    const out = await heic2any({ blob: copy, toType: 'image/jpeg', quality: 0.95 })
     const blob = Array.isArray(out) ? out[0] : out
-    return new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg', lastModified: file.lastModified })
+    return new File([blob], name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg', lastModified: file.lastModified })
   } catch {
-    return file
+    return copy
   }
 }
 
 photosInput.addEventListener('change', async () => {
+  clearRejected()
   const existingKeys = new Set(selectedFiles.map(fileKey))
   let added = 0
   const picked = await Promise.all(Array.from(photosInput.files).map(async (f) => ({ key: fileKey(f), file: await readableFile(f) })))
   picked.forEach(({ key, file }) => {
-    if (!existingKeys.has(key)) {
+    if (file && !existingKeys.has(key)) {
       selectedFiles.push(file)
       existingKeys.add(key)
       added += 1
@@ -411,6 +479,23 @@ const uploadProgressDetail = document.getElementById('upload-progress-detail')
 const uploadBarFill = document.getElementById('upload-bar-fill')
 
 function sleep (ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
+
+// "Annuler" while an upload is running or waiting to retry: stops the request in flight, wakes any
+// wait, and the photos not sent yet simply stay selected.
+let cancelUpload = false
+let currentXhr = null
+let wakeUp = null
+function interruptibleSleep (ms) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => { wakeUp = null; resolve() }, ms)
+    wakeUp = () => { clearTimeout(timer); wakeUp = null; resolve() }
+  })
+}
+document.getElementById('upload-cancel').addEventListener('click', () => {
+  cancelUpload = true
+  if (currentXhr) currentXhr.abort()
+  if (wakeUp) wakeUp()
+})
 
 // ±30%, so guests whose uploads failed together (e.g. the server was
 // briefly saturated) don't all come back in lockstep.
@@ -467,6 +552,7 @@ function formatMb (bytes) { return Math.round(bytes / (1024 * 1024)) }
 function sendPhoto (file, thumb, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
+    currentXhr = xhr
     let stallTimer
     const armStallTimer = () => {
       clearTimeout(stallTimer)
@@ -604,7 +690,7 @@ async function uploadBatch (files) {
 
   let gaveUp = false
   for (const [i, job] of jobs.entries()) {
-    if (gaveUp) {
+    if (gaveUp || cancelUpload) {
       job.status = 'failed' // kept for the next resume
       continue
     }
@@ -627,6 +713,7 @@ async function uploadBatch (files) {
         await attempt(job)
       }
       if (job.status !== 'failed') break
+      if (cancelUpload) { gaveUp = true; break }
       if (retry === RETRY_DELAYS_MS.length) {
         gaveUp = true
         break
@@ -634,7 +721,8 @@ async function uploadBatch (files) {
 
       showBar(settledBytes)
       uploadProgressDetail.textContent = 'Connexion instable, nouvelle tentative dans quelques secondes…'
-      await sleep(jittered(RETRY_DELAYS_MS[retry]))
+      await interruptibleSleep(jittered(RETRY_DELAYS_MS[retry]))
+      if (cancelUpload) { gaveUp = true; break }
       if (!navigator.onLine) {
         uploadProgressDetail.textContent = 'Pas de réseau pour le moment. L’envoi reprendra tout seul dès son retour.'
         if (!await whenOnline(OFFLINE_WAIT_MS)) {
@@ -665,6 +753,8 @@ async function runUpload () {
 
   const form = document.getElementById('upload-form')
   const files = selectedFiles.slice()
+  cancelUpload = false
+  resumePaused = false
   isUploading = true
   uploadSubmitBtn.disabled = true
   uploadSubmitBtn.classList.add('is-uploading')
@@ -684,6 +774,12 @@ async function runUpload () {
     if (failed.length) {
       const plural = failed.length > 1
       parts.push(`${failed.length} photo${plural ? 's n’ont' : ' n’a'} pas encore pu être envoyée${plural ? 's' : ''} (connexion instable). ${plural ? 'Elles restent sélectionnées' : 'Elle reste sélectionnée'} : l’envoi reprendra automatiquement au retour de la connexion, ou touchez « Réessayer l’envoi ».`)
+    }
+    if (cancelUpload && failed.length) {
+      resumePaused = true // the guest stopped it: do not restart on its own
+      parts.length = 0
+      if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}.`)
+      parts.push(`Envoi annulé. ${failed.length > 1 ? 'Les photos restantes restent sélectionnées' : 'La photo restante reste sélectionnée'} : touchez « Envoyer » pour reprendre.`)
     }
     toast(parts.join(' '), failed.length === 0 && rejected.length === 0, failed.length ? 10000 : 4000)
 
@@ -717,8 +813,9 @@ document.getElementById('upload-form').addEventListener('submit', (e) => {
 // Picks a stalled batch back up without the guest having to do anything —
 // but only while the selection is still exactly those leftovers; once
 // they've added or removed photos, sending is theirs to trigger again.
+let resumePaused = false
 function resumeLeftovers () {
-  if (isUploading || !leftovers || !navigator.onLine || uploadStep.hidden) return
+  if (resumePaused || isUploading || !leftovers || !navigator.onLine || uploadStep.hidden) return
   if (selectedFiles.length === 0 || !selectedFiles.every((f) => leftovers.files.has(f))) return
   runUpload()
 }
