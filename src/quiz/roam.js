@@ -70,7 +70,9 @@ export function roam (stage, el, mood = 'happy') {
 
 // For avatars that stay in place (podium, leaderboard rows): every so often the
 // avatar hops once to three times or throws a backflip, each on its own random timer.
-export function perform (el, { flip = 0.45, gap = [700, 2600], height = 1 } = {}) {
+// `lift` (optional): an element, such as a leaderboard row, to bring in front of its neighbours
+// while the avatar jumps, so the avatar is never hidden behind the rows above it.
+export function perform (el, { flip = 0.45, gap = [700, 2600], height = 1, lift = null } = {}) {
   let timer = 0
   let stopped = false
   const hop = (h) => ({ transform: `translateY(${-h * height}px)` })
@@ -92,7 +94,10 @@ export function perform (el, { flip = 0.45, gap = [700, 2600], height = 1 } = {}
       frames.push({ transform: 'translateY(0)' })
       done = el.animate(frames, { duration: n * 480, easing: 'ease-in-out' }).finished
     }
-    done.then(() => { timer = setTimeout(go, gap[0] + Math.random() * (gap[1] - gap[0])) }, () => {})
+    const before = lift ? lift.style.zIndex : ''
+    if (lift) lift.style.zIndex = '1000'
+    const rest = () => { if (lift) lift.style.zIndex = before; timer = setTimeout(go, gap[0] + Math.random() * (gap[1] - gap[0])) }
+    done.then(rest, rest)
   }
   timer = setTimeout(go, Math.random() * gap[1])
   return () => { stopped = true; clearTimeout(timer) }

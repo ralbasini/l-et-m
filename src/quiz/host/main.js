@@ -143,6 +143,8 @@ function showBoard () {
       li.classList.add(moved > 0 ? 'up' : 'down')
     }
     if (r.r === 1) li.classList.add('leader')
+    else if (r.r === 2) li.classList.add('second')
+    else if (r.r === 3) li.classList.add('third')
   })
 
   if (still) return settle()
@@ -152,7 +154,7 @@ function showBoard () {
   }), 500)
   later(settle, 1400)
   // Once the rows have settled, the avatars start hopping about (an occasional backflip too).
-  later(() => items.forEach((li) => avatarStops.push(perform(li.querySelector('.avatar'), { flip: 0.35, gap: [1000, 3500], height: 0.7 }))), 2800)
+  later(() => items.forEach((li) => avatarStops.push(perform(li.querySelector('.avatar'), { flip: 0.35, gap: [1000, 3500], height: 0.7, lift: li }))), 2800)
 }
 
 // ── Final podium ──────────────────────────────────────────────
@@ -267,7 +269,8 @@ function renderFinal (top) {
 
 // Lobby: everyone who joined walks left and right around an arena, taking small
 // hops and, now and then, a backflip. Cards are placed by script every frame.
-const LANES = 4
+// More players, more rows (about 18 per row on a wide screen), so the crowd stays readable.
+const lanesFor = (n) => Math.min(8, Math.max(4, Math.ceil(n / 18)))
 const LANE_GAP = 70 // px between rows; rows further down draw on top
 const LANE_TOP = 95 // room above the first row for backflips
 const lobbyCards = new Map()
@@ -389,7 +392,9 @@ function renderLobby (who) {
     li.append(pop)
     li.title = n
     const now = performance.now()
-    const lane = lobbyCards.size % LANES
+    const lanes = lanesFor(lobbyCards.size + 1)
+    const lane = lobbyCards.size % lanes
+    arena.style.height = `${LANE_TOP + lanes * LANE_GAP + 90}px`
     li.style.zIndex = lane
     arena.append(li)
     const card = {

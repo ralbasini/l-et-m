@@ -114,10 +114,11 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 #r-options .opt { isolation: isolate; }
 #r-options .opt .num { opacity: 1; }
 #r-options .opt.is-wrong { opacity: 0.45; }
-#r-options .opt.is-correct { outline: 0.4rem solid #1f3d38; }
+#r-options .opt.is-correct { outline: 0.4rem solid #3fa86b; box-shadow: 0 0 1.2rem rgba(63, 168, 107, 0.4); }
 
-.controls { position: sticky; bottom: 0; display: flex; justify-content: center; gap: 1rem; padding: 1rem; background: rgba(208, 218, 209, 0.92); border-top: 1px solid rgba(37, 37, 37, 0.1); }
-.controls button { min-width: 14rem; font-size: 1.2rem; }
+.controls { position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem; }
+.controls button { min-width: 13rem; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(37, 37, 37, 0.22); }
+.controls button.ghost, .controls button.ghost:hover { background: rgba(255, 255, 255, 0.92); color: var(--ink); }
 
 @media (min-width: 40rem) {
   .player .options { grid-template-columns: 1fr 1fr; }
@@ -137,10 +138,12 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 .race .mv { min-width: 3.4rem; text-align: right; }
 .race li.scored .gain { opacity: 1; animation: gain-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .race li.up .mv, .race li.down .mv { animation: mv-in 0.6s ease 0.5s both; }
-.race li.up { background: #dcefd8; animation: lift 1.2s ease-out 0.4s; }
+.race li.up { animation: lift 1.2s ease-out 0.4s; }
 .race li.up .mv { color: #2c7a3c; }
 .race li.down .mv { color: #a34848; }
 .race li.leader { background: #f1e3b3; }
+.race li.second { background: #f7eed3; }
+.race li.third { background: #fbf6e6; }
 
 @keyframes gain-pop { 0% { opacity: 0; transform: translateY(0.6rem) scale(0.5); } 100% { opacity: 1; transform: none; } }
 @keyframes mv-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: none; } }
@@ -167,7 +170,7 @@ body[data-result="wrong"], body[data-result="late"] { background: #dcc5c0; }
 /* ── Final podium (host) ──────────────────────────────────────── */
 #fireworks { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 body.host.finale { background: radial-gradient(ellipse at 50% 30%, #2f5f57, #10241f 75%); color: #fff; }
-body.host.finale .controls { background: transparent; border-top-color: rgba(255, 255, 255, 0.15); }
+body.host.finale .controls button.ghost, body.host.finale .controls button.ghost:hover { background: rgba(16, 36, 31, 0.85); color: #fff; }
 body.host.finale button.ghost, body.host.finale button.ghost:hover { color: #fff; border-color: rgba(255, 255, 255, 0.4); }
 body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 
@@ -204,20 +207,19 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .result-options .opt { min-height: 3.2rem; padding: 0.55rem 0.9rem; font-size: 1.05rem; }
 .result-options .opt.is-wrong { opacity: 0.4; }
 .result-options .opt.is-wrong.is-mine { opacity: 1; filter: grayscale(0.6); }
-.result-options .opt.is-correct { outline: 0.3rem solid #1f3d38; }
+.result-options .opt.is-correct { outline: 0.3rem solid #3fa86b; box-shadow: 0 0 0.9rem rgba(63, 168, 107, 0.4); }
 .result-options .tag { font-size: 1.4rem; }
 
 /* ── Avatars ───────────────────────────────────────────────────── */
 .race .avatar { width: 2.3rem; }
 .rest .avatar { width: 2rem; }
-.pod .pod-av { width: 5.2rem; }
-.pod-1 .pod-av { width: 7.5rem; }
+.pod .pod-av { width: 6.5rem; } /* the same for all three places */
 .pod .medal { font-size: 2.2rem; }
 .pod-1 .medal { font-size: 3rem; }
 .pod .crown { top: -2.4rem; z-index: 1; }
 
 /* Host lobby: everyone who joined walks around an arena (positions come from host/main.js) */
-.lobby-players { list-style: none; padding: 0; margin: 1rem auto 0; position: relative; width: 100%; max-width: 70rem; height: 30rem; }
+.lobby-players { list-style: none; padding: 0; margin: 1rem auto 0; position: relative; width: 100vw; max-width: none; margin-left: calc(50% - 50vw); height: 30rem; }
 .lobby-players li { position: absolute; left: 0; top: 0; width: 6rem; will-change: transform; }
 .lobby-players .pop { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; animation: lobby-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .lobby-players .flip { display: block; line-height: 0; transform-origin: 50% 55%; }
@@ -240,12 +242,12 @@ body.host.finale h1 { color: #f1e3b3; animation: mv-in 0.8s ease both; }
 .avatar.sad { transform-origin: 50% 95%; animation: sad 2.4s ease-in-out infinite; }
 @keyframes sad { 0%, 100% { transform: rotate(-3deg) scale(1, 0.97); } 50% { transform: rotate(3deg) translateY(0.3rem) scale(1, 0.94); } }
 @media (prefers-reduced-motion: reduce) { .avatar.sad { animation: none; } }
-.teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; animation: dance 1.6s ease-in-out infinite; }
+.teaser { font-family: 'MoreSugar-Thin', Georgia, serif; font-size: 2.4rem; margin: 2rem 0 0; }
+.teaser-emoji { display: inline-block; transform-origin: 50% 80%; animation: dance 1.6s ease-in-out infinite; }
 .stage { position: relative; height: 11rem; width: 100%; margin: 0 0 0.5rem; }
 .stage .avatar { position: absolute; left: 0; bottom: 0; transform-origin: 50% 55%; will-change: transform; }
 .pod .pod-av { position: relative; overflow: visible; }
-.pod .medal-acc { position: absolute; left: 50%; bottom: -12%; width: 38%; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)); }
-.pod-1 .medal-acc { width: 34%; }
+.pod .medal-acc { position: absolute; left: 50%; bottom: -24%; width: 38%; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)); }
 .pod .step { flex-direction: column; align-items: center; }
 .pod .step .ps { margin-top: 0.5rem; font-size: 1.7rem; font-weight: 600; opacity: 1; color: rgba(37, 37, 37, 0.8); }
 .pod-1 .step .ps { font-size: 2.1rem; color: #5a4310; }
@@ -317,8 +319,7 @@ body.player .brand { display: none; }
   .race .s { min-width: 3.5ch; }
   .teaser { font-size: 1.7rem; }
   .podium3 { gap: 0.35rem; margin-top: 2rem; }
-  .pod .pod-av { width: 3.6rem; }
-  .pod-1 .pod-av { width: 5rem; }
+  .pod .pod-av { width: 4.4rem; }
   .pod .pn { font-size: 1rem; max-width: 100%; }
   .pod-1 .pn { font-size: 1.3rem; }
   .pod-1 .step { height: 10rem; }
@@ -329,6 +330,25 @@ body.player .brand { display: none; }
   .pod-1 .step .ps { font-size: 1.4rem; }
   .rest { max-width: 100%; }
   .rest li { font-size: 1rem; }
-  .controls { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom, 0px)); }
-  .controls button { min-width: 0; flex: 1 1 9rem; font-size: 1rem; padding: 0.7rem 0.9rem; }
+  .controls { right: 0.6rem; bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); gap: 0.4rem; }
+  .controls button { min-width: 10.5rem; font-size: 1rem; padding: 0.65rem 0.9rem; }
 }
+
+/* Host lobby, wide screen: title and text on the left, address + QR code + count on the right. */
+@media (min-width: 60rem) {
+  /* Full screen width (like the avatar arena below), so the title has room for one line. */
+  .lobby-top { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3rem; text-align: left; width: 100vw; margin-left: calc(50% - 50vw); padding: 0 4vw; box-sizing: border-box; }
+  .lobby-intro .brand { margin-bottom: 1rem; }
+  .lobby-intro h1 { font-size: 4.2rem; line-height: 1.1; }
+  .lobby-intro .join-hint { font-size: 1.8rem; }
+  /* QR code on the left of its column, the address and the guest count to its right. */
+  .lobby-join { display: grid; grid-template-columns: auto auto; grid-template-areas: "qr url" "qr count"; align-content: center; align-items: center; column-gap: 2rem; text-align: left; }
+  .lobby-join .join-qr { grid-area: qr; width: 17rem; margin: 0; }
+  .lobby-join .join-url { grid-area: url; margin: 0 0 0.5rem; align-self: end; }
+  .lobby-join .count { grid-area: count; margin: 0; align-self: start; }
+}
+/* The buttons stay on top of the walking avatars. */
+.controls { z-index: 5000; } /* above everything on the host page, even a jumping row (z-index 1000) */
+/* The floor the podium stands on. */
+.podium3 { position: relative; }
+.podium3::after { content: ''; position: absolute; left: -2rem; right: -2rem; bottom: -4px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(241, 227, 179, 0.85) 12%, rgba(241, 227, 179, 0.85) 88%, transparent); }

@@ -23,12 +23,18 @@
     </section>
 
     <section id="screen-lobby" class="screen" hidden>
-      <p class="brand">L<span>&amp;</span>M</p>
-      <h1>Le grooond quiz du mariage</h1>
-      <p class="join-hint">Rejoignez la partie depuis votre téléphone :</p>
-      <p id="join-url" class="join-url"></p>
-      <div id="join-qr" class="join-qr" role="img" aria-label="QR code pour rejoindre le quiz"></div>
-      <p class="count"><span id="lobby-count">0</span> joueur(s) connecté(s)</p>
+      <div class="lobby-top">
+        <div class="lobby-intro">
+          <p class="brand">L<span>&amp;</span>M</p>
+          <h1>Le grooond quiz du mariage</h1>
+          <p class="join-hint">Rejoignez la partie depuis votre téléphone :</p>
+        </div>
+        <div class="lobby-join">
+          <p id="join-url" class="join-url"></p>
+          <div id="join-qr" class="join-qr" role="img" aria-label="QR code pour rejoindre le quiz"></div>
+          <p class="count"><span id="lobby-count">0</span> joueur(s) connecté(s)</p>
+        </div>
+      </div>
       <ul id="lobby-players" class="lobby-players"></ul>
     </section>
 
@@ -47,7 +53,7 @@
       <div class="reveal-board">
         <h3 id="board-title">Classement</h3>
         <ol id="b-board" class="race"></ol>
-        <p id="board-teaser" class="teaser" hidden>🥁 Le classement final arrive…</p>
+        <p id="board-teaser" class="teaser" hidden><span class="teaser-emoji" aria-hidden="true">🥁</span> Le classement final arrive…</p>
       </div>
     </section>
 
