@@ -2,7 +2,8 @@
 html.needs-login body > *:not(#gate) { visibility: hidden !important; }
 #gate { position: fixed; inset: 0; z-index: 10000; overflow-y: auto; background: #d0dad1; color: #252525; font-family: 'Quicksand', system-ui, sans-serif; font-size: 16px; line-height: 1.6; display: flex; justify-content: center; padding: 1.25rem; visibility: visible; }
 #gate * { box-sizing: border-box; }
-#gate .gate-inner { margin: auto; width: 100%; max-width: 26rem; text-align: center; }
+#gate { overflow-x: hidden; }
+#gate .gate-inner { margin: auto; width: 100%; min-width: 0; max-width: min(26rem, 100%); text-align: center; }
 #gate .brand { font-family: 'MoreSugar-Thin', cursive; font-size: 2.25rem; color: #abb9a2; margin: 0 0 0.25rem; }
 #gate .brand span { font-family: 'Apricot', cursive; margin: 0 -0.12em; }
 #gate h1 { font-family: 'MoreSugar-Thin', Georgia, serif; font-weight: 400; font-size: 2rem; margin: 0.25rem 0 0.25rem; }

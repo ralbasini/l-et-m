@@ -115,6 +115,9 @@ const siteChrome = {
     // (bundling, base prefix) like any tag written in the page.
     order: 'pre',
     handler (html, ctx) {
+      // iOS Safari zooms out (and lets the page pan sideways) when something is wider than
+      // the screen; minimum-scale=1 keeps the page at the screen width.
+      html = html.replace(/(<meta name="viewport" content="[^"]*?)"/i, (m, c) => (/minimum-scale/.test(c) ? m : `${c}, minimum-scale=1"`))
       if (!html.includes('<!-- site-nav -->')) return html
       return html
         .replace(/<head>/i, (head) => `${head}\n${CHROME_HEAD}`)

@@ -234,3 +234,7 @@ html:not(.is-admin) .brand-footer-logout { display: none; }
 /* A login screen is up (src/gate.js): no menu, and no space reserved for it. */
 html.gate-open .site-nav { display: none !important; }
 html.gate-open { --site-nav-height: 0px; --site-nav-offset: 0px; }
+
+/* Never scroll sideways: whatever is wider than the screen is clipped, so a phone cannot pan the
+   page (and iOS Safari does not widen the layout). `clip` where supported, `hidden` otherwise. */
+html, html body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
