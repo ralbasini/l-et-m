@@ -229,13 +229,22 @@ function stopFinale () {
   document.body.classList.remove('finale')
 }
 
+// A blue Subaru Impreza with yellow stars drifts back and forth behind the podium.
+function driftingCar () {
+  const d = document.createElement('div')
+  d.className = 'drift'
+  d.setAttribute('aria-hidden', 'true')
+  d.innerHTML = '<div class="drift-car"><img src="/quiz-img/impreza.svg" alt="" draggable="false"><span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span></div>'
+  return d
+}
+
 function renderFinal (top) {
   stopFinale()
   const still = false // projector: always animated, even if the laptop has OS animations off
   document.body.classList.add('finale')
   // Visual order 2 - 1 - 3; with fewer players the missing steps are just skipped.
   const order = [1, 0, 2].filter((i) => top[i])
-  $('podium').replaceChildren(...order.map((i) => {
+  $('podium').replaceChildren(driftingCar(), ...order.map((i) => {
     const r = top[i]
     const d = document.createElement('div')
     d.className = `pod pod-${i + 1}`

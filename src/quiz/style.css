@@ -352,3 +352,29 @@ body.player .brand { display: none; }
 /* The floor the podium stands on. */
 .podium3 { position: relative; }
 .podium3::after { content: ''; position: absolute; left: -2rem; right: -2rem; bottom: -4px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(241, 227, 179, 0.85) 12%, rgba(241, 227, 179, 0.85) 88%, transparent); }
+
+/* The Impreza drifting behind the podium: left to right, a pause, then right to left (mirrored). */
+.podium3 { isolation: isolate; }
+.drift { position: absolute; left: 50%; bottom: -2px; width: 0; height: 0; z-index: -1; pointer-events: none; }
+.drift-car { position: absolute; bottom: 0; left: -8rem; width: 16rem; animation: drift-run 13s linear infinite; animation-delay: 3.5s; transform: translateX(-120vw); will-change: transform; }
+.drift-car img { display: block; width: 100%; height: auto; transform: scaleX(-1); } /* the drawing faces left, the first pass goes right */
+.smoke { position: absolute; bottom: 0.3rem; left: 1.5rem; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: rgba(240, 240, 240, 0.75); filter: blur(3px); opacity: 0; animation: puff 0.7s ease-out infinite; }
+.smoke.s2 { animation-delay: 0.23s; left: 0.8rem; }
+.smoke.s3 { animation-delay: 0.46s; left: 2.2rem; }
+@keyframes puff { 0% { opacity: 0.8; transform: translate(0, 0) scale(0.4); } 100% { opacity: 0; transform: translate(-3.5rem, -1.5rem) scale(1.7); } }
+@keyframes drift-run {
+  0% { transform: translateX(calc(-50vw - 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
+  8% { transform: translateX(calc(-50vw - 6rem)) scaleX(1) rotate(-7deg) skewX(-14deg); }
+  18% { transform: translateX(calc(-28vw)) scaleX(1) rotate(5deg) skewX(12deg); }
+  28% { transform: translateX(calc(0vw)) scaleX(1) rotate(-8deg) skewX(-16deg); }
+  38% { transform: translateX(calc(30vw)) scaleX(1) rotate(6deg) skewX(10deg); }
+  46% { transform: translateX(calc(50vw + 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
+  50% { transform: translateX(calc(50vw + 12rem)) scaleX(-1) rotate(0deg) skewX(0deg); }
+  58% { transform: translateX(calc(50vw + 6rem)) scaleX(-1) rotate(-7deg) skewX(-14deg); }
+  68% { transform: translateX(calc(28vw)) scaleX(-1) rotate(5deg) skewX(12deg); }
+  78% { transform: translateX(calc(0vw)) scaleX(-1) rotate(-8deg) skewX(-16deg); }
+  88% { transform: translateX(calc(-30vw)) scaleX(-1) rotate(6deg) skewX(10deg); }
+  96% { transform: translateX(calc(-50vw - 12rem)) scaleX(-1) rotate(0deg) skewX(0deg); }
+  100% { transform: translateX(calc(-50vw - 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
+}
+@media (max-width: 40rem) { .drift-car { width: 9rem; left: -4.5rem; } .smoke { width: 1.5rem; height: 1.5rem; } }
