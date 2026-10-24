@@ -157,7 +157,7 @@ export class QuizRoom extends DurableObject {
   }
 
   finalMsgFor (p) {
-    return { t: 'final', score: p.s, rank: this.rankOf(p), of: this.players.size, top: this.leaderboard(5) }
+    return { t: 'final', score: p.s, rank: this.rankOf(p), of: this.players.size, top: this.leaderboard(5), all: this.leaderboard(this.players.size) }
   }
 
   tallyMsg () {
@@ -177,7 +177,7 @@ export class QuizRoom extends DurableObject {
       if (p && p.a[this.q]) this.send(ws, { t: 'ack', q: this.q, c: p.a[this.q][0] })
     } else if (this.phase === 'reveal') {
       this.send(ws, role === 'host' ? this.revealMsg() : p ? this.resultMsg(p) : this.revealMsg())
-    } else if (role === 'host') this.send(ws, { t: 'final', top: this.leaderboard(10), of: this.players.size })
+    } else if (role === 'host') this.send(ws, { t: 'final', top: this.leaderboard(10), all: this.leaderboard(this.players.size), of: this.players.size })
     else if (p) this.send(ws, this.finalMsgFor(p))
     if (role === 'host') this.send(ws, this.tallyMsg())
   }
@@ -334,7 +334,7 @@ export class QuizRoom extends DurableObject {
   async end () {
     this.phase = 'ended'
     await this.saveGame()
-    this.toHosts({ t: 'final', top: this.leaderboard(10), of: this.players.size })
+    this.toHosts({ t: 'final', top: this.leaderboard(10), all: this.leaderboard(this.players.size), of: this.players.size })
     this.toPlayers((pid, p) => this.finalMsgFor(p))
   }
 

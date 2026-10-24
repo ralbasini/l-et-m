@@ -353,28 +353,51 @@ body.player .brand { display: none; }
 .podium3 { position: relative; }
 .podium3::after { content: ''; position: absolute; left: -2rem; right: -2rem; bottom: -4px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(241, 227, 179, 0.85) 12%, rgba(241, 227, 179, 0.85) 88%, transparent); }
 
-/* The Impreza drifting in front of the podium: left to right, a pause, then right to left (mirrored). */
+/* The Impreza drifting in front of the podium. Two drawings take turns, each facing the way it
+   drives (so the "JUST MARRIED" board reads correctly both ways): one crossing left to right, then
+   the other right to left, with a pause off screen in between. */
 .podium3 { isolation: isolate; }
 .drift { position: absolute; left: 50%; bottom: -16px; width: 0; height: 0; z-index: 30; pointer-events: none; } /* in front of the blocks, avatars and medals, a little nearer the viewer than the floor line */
-.drift-car { position: absolute; bottom: 0; left: -8rem; width: 16rem; animation: drift-run 13s linear infinite; animation-delay: 3.5s; transform: translateX(-120vw); will-change: transform; }
-.drift-car img { display: block; width: 100%; height: auto; transform: scaleX(-1); } /* the drawing faces left, the first pass goes right */
-.smoke { position: absolute; bottom: 0.3rem; left: 1.5rem; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: rgba(240, 240, 240, 0.75); filter: blur(3px); opacity: 0; animation: puff 0.7s ease-out infinite; }
-.smoke.s2 { animation-delay: 0.23s; left: 0.8rem; }
-.smoke.s3 { animation-delay: 0.46s; left: 2.2rem; }
+.drift-car { position: absolute; bottom: 0; left: -13.5rem; width: 27rem; animation: 13s linear 3.5s infinite; will-change: transform; }
+.drift-car.ltr { animation-name: drift-ltr; transform: translateX(calc(-50vw - 14rem)); }
+.drift-car.rtl { animation-name: drift-rtl; transform: translateX(calc(50vw + 14rem)); }
+.drift-car img { display: block; width: 100%; height: auto; }
+.smoke { position: absolute; bottom: 0.3rem; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: rgba(240, 240, 240, 0.75); filter: blur(3px); opacity: 0; animation: puff 0.7s ease-out infinite; }
+.ltr .smoke { left: 52%; }
+.rtl .smoke { right: 52%; animation-name: puff-r; }
+.smoke.s2 { animation-delay: 0.23s; margin-left: -0.8rem; }
+.smoke.s3 { animation-delay: 0.46s; margin-left: 0.6rem; }
 @keyframes puff { 0% { opacity: 0.8; transform: translate(0, 0) scale(0.4); } 100% { opacity: 0; transform: translate(-3.5rem, -1.5rem) scale(1.7); } }
-@keyframes drift-run {
-  0% { transform: translateX(calc(-50vw - 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
-  8% { transform: translateX(calc(-50vw - 6rem)) scaleX(1) rotate(-7deg) skewX(-14deg); }
-  18% { transform: translateX(calc(-28vw)) scaleX(1) rotate(5deg) skewX(12deg); }
-  28% { transform: translateX(calc(0vw)) scaleX(1) rotate(-8deg) skewX(-16deg); }
-  38% { transform: translateX(calc(30vw)) scaleX(1) rotate(6deg) skewX(10deg); }
-  46% { transform: translateX(calc(50vw + 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
-  50% { transform: translateX(calc(50vw + 12rem)) scaleX(-1) rotate(0deg) skewX(0deg); }
-  58% { transform: translateX(calc(50vw + 6rem)) scaleX(-1) rotate(-7deg) skewX(-14deg); }
-  68% { transform: translateX(calc(28vw)) scaleX(-1) rotate(5deg) skewX(12deg); }
-  78% { transform: translateX(calc(0vw)) scaleX(-1) rotate(-8deg) skewX(-16deg); }
-  88% { transform: translateX(calc(-30vw)) scaleX(-1) rotate(6deg) skewX(10deg); }
-  96% { transform: translateX(calc(-50vw - 12rem)) scaleX(-1) rotate(0deg) skewX(0deg); }
-  100% { transform: translateX(calc(-50vw - 12rem)) scaleX(1) rotate(0deg) skewX(0deg); }
+@keyframes puff-r { 0% { opacity: 0.8; transform: translate(0, 0) scale(0.4); } 100% { opacity: 0; transform: translate(3.5rem, -1.5rem) scale(1.7); } }
+@keyframes drift-ltr {
+  0% { transform: translateX(calc(-50vw - 14rem)) rotate(0deg) skewX(0deg); }
+  8% { transform: translateX(calc(-50vw - 6rem)) rotate(-7deg) skewX(-14deg); }
+  18% { transform: translateX(calc(-28vw)) rotate(5deg) skewX(12deg); }
+  28% { transform: translateX(0) rotate(-8deg) skewX(-16deg); }
+  38% { transform: translateX(30vw) rotate(6deg) skewX(10deg); }
+  46%, 100% { transform: translateX(calc(50vw + 14rem)) rotate(0deg) skewX(0deg); }
 }
-@media (max-width: 40rem) { .drift-car { width: 9rem; left: -4.5rem; } .smoke { width: 1.5rem; height: 1.5rem; } }
+@keyframes drift-rtl {
+  0%, 50% { transform: translateX(calc(50vw + 14rem)) rotate(0deg) skewX(0deg); }
+  58% { transform: translateX(calc(50vw + 6rem)) rotate(7deg) skewX(14deg); }
+  68% { transform: translateX(28vw) rotate(-5deg) skewX(-12deg); }
+  78% { transform: translateX(0) rotate(8deg) skewX(16deg); }
+  88% { transform: translateX(-30vw) rotate(-6deg) skewX(-10deg); }
+  96%, 100% { transform: translateX(calc(-50vw - 14rem)) rotate(0deg) skewX(0deg); }
+}
+@media (max-width: 40rem) { .drift-car { width: 16rem; left: -8rem; } .smoke { width: 1.5rem; height: 1.5rem; } }
+
+/* Final screen on a phone: everybody, scrollable, opening on my own row. */
+.final-all { max-height: 34dvh; overflow-y: auto; margin: 1rem auto; padding: 0 0.25rem; position: relative; }
+.final-all li { align-items: center; }
+.final-all .who { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem; }
+.final-all .who .avatar { width: 1.9rem; }
+.final-all .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.final-all li.me { outline: 3px solid #356d65; outline-offset: -3px; /* drawn inside the row: the scrolling list would clip it */ background: #fff; box-shadow: 0 3px 10px rgba(37, 37, 37, 0.14); }
+/* Host podium: places 4 and below, scrollable when there are many players. */
+.rest { max-height: 15rem; overflow-y: auto; }
+
+/* Final screen: the player's avatar wanders behind the rank and the score. */
+.final-text { position: relative; min-height: 9rem; display: flex; flex-direction: column; justify-content: center; margin-bottom: 0.5rem; }
+.final-text .stage { position: absolute; inset: 0; height: auto; margin: 0; z-index: 0; opacity: 1; }
+.final-text > p { position: relative; z-index: 1; margin: 0.25rem 0; }

@@ -229,16 +229,18 @@ function stopFinale () {
   document.body.classList.remove('finale')
 }
 
-// A blue Subaru Impreza with yellow stars drifts back and forth in front of the podium.
+// A blue Subaru Impreza with yellow stars, a "JUST MARRIED" board and a chili and a raclette dragged
+// behind it on strings drifts back and forth in front of the podium.
 function driftingCar () {
   const d = document.createElement('div')
   d.className = 'drift'
   d.setAttribute('aria-hidden', 'true')
-  d.innerHTML = '<div class="drift-car"><img src="/quiz-img/impreza.svg" alt="" draggable="false"><span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span></div>'
+  const car = (cls, src) => `<div class="drift-car ${cls}"><img src="${src}" alt="" draggable="false"><span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span></div>`
+  d.innerHTML = car('ltr', '/quiz-img/impreza-right.svg') + car('rtl', '/quiz-img/impreza-left.svg')
   return d
 }
 
-function renderFinal (top) {
+function renderFinal (top, all) {
   stopFinale()
   const still = false // projector: always animated, even if the laptop has OS animations off
   document.body.classList.add('finale')
@@ -263,7 +265,7 @@ function renderFinal (top) {
     if (!still) podiumTimers.push(setTimeout(() => countUp(d.querySelector('.ps'), 0, r.s, 1200, (n) => `${n} pts`), at + 700))
     return d
   }))
-  $('final-rest').replaceChildren(...top.slice(3).map((r, k) => {
+  $('final-rest').replaceChildren(...(all || top).slice(3).map((r, k) => {
     const li = document.createElement('li')
     li.innerHTML = '<span class="rk"></span><span class="n"></span><span class="s"></span>'
     li.querySelector('.rk').textContent = k + 4
@@ -474,7 +476,7 @@ function onMessage (m, send) {
     }
     case 'final':
       stopTimer()
-      renderFinal(m.top)
+      renderFinal(m.top, m.all)
       show('final'); setPhase('final')
       break
   }

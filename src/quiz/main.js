@@ -169,14 +169,21 @@ ${name} !`
       delete document.body.dataset.result
       $('final-rank').textContent = `${m.rank}${m.rank === 1 ? 'er' : 'e'} sur ${m.of}`
       $('final-score').textContent = `${m.score} points`
-      $('final-top').replaceChildren(...m.top.map((r) => {
+      // Everyone, in order; the list scrolls and opens on this player's own row.
+      const rows = m.all || m.top
+      const list = $('final-all')
+      list.replaceChildren(...rows.map((r) => {
         const li = document.createElement('li')
-        li.innerHTML = '<span class="n"></span><span class="s"></span>'
+        if (r.n === name) li.className = 'me'
+        li.innerHTML = '<span class="who"><span class="n"></span></span><span class="s"></span>'
+        li.querySelector('.who').prepend(avatarEl(r.v))
         li.querySelector('.n').textContent = r.n
         li.querySelector('.s').textContent = r.s
         return li
       }))
       show('final')
+      onStage('final-avatar', 'happy')
+      requestAnimationFrame(() => { const me = list.querySelector('li.me'); if (me) list.scrollTop = me.offsetTop - (list.clientHeight - me.offsetHeight) / 2 })
       break
   }
   if (m.t !== 'result' && m.t !== 'final') delete document.body.dataset.result
