@@ -274,6 +274,43 @@ const lobbyCards = new Map()
 let lobbyRaf = 0
 let lobbyLast = 0
 
+// Everyone who joined stays on screen, but only MAX_ANIMATED avatars move at a
+// time; the rest stand still (a still avatar costs the browser almost nothing).
+// Measured with 100 moving avatars: ~80% of a 4x-slower CPU, a 30-avatar lobby ~38%.
+// Which ones move changes every SWAP_MS, so nobody stays frozen for long.
+const MAX_ANIMATED = 40
+const SWAP_MS = 6000
+const animated = new Set()
+let lobbySwapAt = 0
+
+function setPose (w, y, rot) {
+  w.li.style.transform = `translate3d(${w.x.toFixed(1)}px, ${(LANE_TOP + w.lane * LANE_GAP + y).toFixed(1)}px, 0)`
+  w.flip.style.transform = `rotate(${rot.toFixed(1)}deg)`
+}
+
+// A card leaving the animated set stops where it is, upright.
+function rest (w) {
+  w.kind = 'pause'; w.jump = null; w.until = Infinity
+  setPose(w, 0, 0)
+  animated.delete(w)
+}
+
+function animate (w) {
+  w.until = 0 // picks its first move on the next frame
+  animated.add(w)
+}
+
+function rotateAnimated () {
+  const all = [...lobbyCards.values()]
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]]
+  }
+  const next = new Set(all.slice(0, MAX_ANIMATED))
+  for (const w of [...animated]) if (!next.has(w)) rest(w)
+  for (const w of next) if (!animated.has(w)) animate(w)
+}
+
 // Each avatar decides on its own what to do next: walk left or right for a
 // while, stand still, hop on the spot, or throw a backflip.
 function nextMove (w, t) {
@@ -300,7 +337,8 @@ function stepLobby (t) {
   if ($('screen-lobby').hidden || !lobbyCards.size) return
   const W = $('lobby-players').clientWidth
   const dt = Math.min(0.05, (t - (lobbyLast || t)) / 1000); lobbyLast = t
-  for (const w of lobbyCards.values()) {
+  if (lobbyCards.size > MAX_ANIMATED && t >= lobbySwapAt) { lobbySwapAt = t + SWAP_MS; rotateAnimated() }
+  for (const w of animated) {
     if (t >= w.until) nextMove(w, t)
     if (w.kind === 'walk') {
       w.x += w.dir * w.speed * dt
@@ -317,8 +355,7 @@ function stepLobby (t) {
     }
     // Walking: a small rock from side to side, clockwise then anticlockwise, on its own beat.
     if (w.kind === 'walk' && !(w.jump && w.jump.flip)) rot += Math.sin(t / 110 + w.phase) * 7
-    w.li.style.transform = `translate3d(${w.x.toFixed(1)}px, ${(LANE_TOP + w.lane * LANE_GAP + y).toFixed(1)}px, 0)`
-    w.flip.style.transform = `rotate(${rot.toFixed(1)}deg)`
+    setPose(w, y, rot)
   }
   lobbyRaf = requestAnimationFrame(stepLobby)
 }
@@ -327,7 +364,7 @@ function renderLobby (who) {
   const arena = $('lobby-players')
   const names = new Set(who.map(([n]) => n))
   for (const [n, w] of lobbyCards) {
-    if (!names.has(n)) { w.li.remove(); lobbyCards.delete(n) }
+    if (!names.has(n)) { w.li.remove(); lobbyCards.delete(n); animated.delete(w) }
   }
   for (const [n, v] of who) {
     const known = lobbyCards.get(n)
@@ -351,10 +388,20 @@ function renderLobby (who) {
     const lane = lobbyCards.size % LANES
     li.style.zIndex = lane
     arena.append(li)
-    lobbyCards.set(n, {
+    const card = {
       li, flip, lane, jump: null, phase: Math.random() * 6.28, key: JSON.stringify(v), kind: 'pause', dir: Math.random() < 0.5 ? -1 : 1, speed: 40,
       x: Math.random() * Math.max(0, arena.clientWidth - 96), until: now + Math.random() * 1500,
-    })
+    }
+    lobbyCards.set(n, card)
+    setPose(card, 0, 0) // standing cards are never touched again by the animation loop
+    // A newcomer starts moving right away; if the stage is full, one other avatar takes a rest.
+    if (animated.size >= MAX_ANIMATED) rest([...animated][Math.floor(Math.random() * animated.size)])
+    animated.add(card)
+  }
+  // Someone left: let a standing avatar take the free place.
+  for (const w of lobbyCards.values()) {
+    if (animated.size >= MAX_ANIMATED) break
+    if (!animated.has(w)) animate(w)
   }
   if (!lobbyRaf && lobbyCards.size) lobbyRaf = requestAnimationFrame(stepLobby)
 }
