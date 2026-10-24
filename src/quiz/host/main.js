@@ -229,7 +229,7 @@ function stopFinale () {
   document.body.classList.remove('finale')
 }
 
-// A blue Subaru Impreza with yellow stars drifts back and forth behind the podium.
+// A blue Subaru Impreza with yellow stars drifts back and forth in front of the podium.
 function driftingCar () {
   const d = document.createElement('div')
   d.className = 'drift'
