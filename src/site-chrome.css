@@ -78,6 +78,11 @@ html body {
   min-height: 100vh;
   min-height: 100dvh;
 }
+/* Inside a home-page panel (iframe), vh/dvh units are unreliable on iOS Safari (they can
+   follow the outer window or the collapsing toolbar, leaving a gap under the footer), so
+   size from the frame itself. */
+html.is-embedded { height: 100%; }
+html.is-embedded body { min-height: 100%; }
 
 /* ── Top menu ───────────────────────────────────────────────────── */
 .site-nav {
