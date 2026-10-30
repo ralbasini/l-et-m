@@ -60,6 +60,16 @@
     "correct": 2
   },
   {
+    "text": "En quelle année est tombé le mur de Berlin ?",
+    "options": [
+      "1985",
+      "1989",
+      "1991",
+      "1993"
+    ],
+    "correct": 1
+  },
+  {
     "text": "Quelle est la plus belle Subaru ?",
     "options": [
       "Photo A",
