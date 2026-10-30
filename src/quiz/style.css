@@ -405,3 +405,7 @@ body.player .brand { display: none; }
 /* Picture shown with a question (host screen) */
 .q-image { display: block; max-width: 100%; max-height: 44vh; margin: 0 auto 1.25rem; border-radius: 0.75rem; object-fit: contain; }
 #screen-reveal .q-image { max-height: 42vh; margin-bottom: 0.75rem; }
+
+/* Phones: picture answers go two per row (4 stacked pictures are too tall), photos stay small. */
+.player .options:has(> .opt > img) { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.player .q-image { max-height: 28vh; margin-bottom: 0.75rem; }

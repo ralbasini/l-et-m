@@ -149,7 +149,7 @@ export class QuizRoom extends DurableObject {
     const qd = QUESTIONS[this.q]
     const a = p.a[this.q]
     return {
-      t: 'result', q: this.q, total: QUESTIONS.length, correct: qd.correct, choice: a ? a[0] : null,
+      t: 'result', q: this.q, total: QUESTIONS.length, correct: qd.correct, image: qd.revealImage || null, choice: a ? a[0] : null,
       delta: p.d, score: p.s, rank: this.rankOf(p), prev: p.pr ?? this.rankOf(p), of: this.players.size,
       // After the last question the standings stay secret until the final screen.
       around: this.q + 1 < QUESTIONS.length ? this.around(p) : null,

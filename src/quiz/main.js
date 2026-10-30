@@ -47,6 +47,7 @@ function showQuestion (m) {
   stopTimer()
   $('q-count').textContent = `Question ${m.q + 1} / ${m.total}`
   $('q-text').textContent = m.text
+  const qImg = $('q-image'); qImg.hidden = !m.image; if (m.image) qImg.src = m.image
   const box = $('q-options')
   box.replaceChildren(...m.options.map((text, i) => {
     const b = document.createElement('button')
@@ -128,6 +129,7 @@ ${name} !`
         return d
       }))
       current = null
+      const rImg = $('result-image'); rImg.hidden = !m.image; if (m.image) rImg.src = m.image
       $('result-title').textContent = m.choice === null ? 'Trop tard !' : right ? 'Bonne réponse !' : 'Raté…'
       document.body.dataset.result = m.choice === null ? 'late' : right ? 'right' : 'wrong'
       $('result-delta').textContent = right ? `+${m.delta} points` : '+0 point'
