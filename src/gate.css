@@ -39,3 +39,7 @@ html.needs-login, html.needs-login body, html.gate-open, html.gate-open body { o
 #gate .gate-loading { margin: auto; }
 #gate .gate-loading i { display: block; width: 2.5rem; height: 2.5rem; border: 3px solid rgba(53, 109, 101, 0.2); border-top-color: #356d65; border-radius: 50%; animation: gate-spin 0.8s linear infinite; }
 @keyframes gate-spin { to { transform: rotate(360deg); } }
+
+/* Keyboard up: stick to the top so the card does not slide around as the visible height changes. */
+#gate.keyboard { padding-bottom: 40vh; }
+#gate.keyboard .gate-inner { margin-top: 0; }

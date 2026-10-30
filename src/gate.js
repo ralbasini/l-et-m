@@ -105,7 +105,7 @@ function showGate ({ me, edit, cancellable = false, reload = false }) {
       }
       // Each step has a different height, and the keyboard may be opening or closing:
       // keep the main button on screen (the focused field is handled by keepInputVisible).
-      setTimeout(() => { if (!document.activeElement.matches?.('input')) ref('submit').scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, 350)
+      setTimeout(() => { if (!document.activeElement.matches?.('input') && !gate.classList.contains('keyboard')) ref('submit').scrollIntoView({ block: 'nearest', behavior: 'auto' }) }, 350)
     }
     render()
 
@@ -196,23 +196,24 @@ export function pickAvatar (initial, title = 'Personnage') {
 // brought to the middle of it. Samsung's keyboard animates slowly, hence the second pass.
 function keepInputVisible (gate) {
   const vv = window.visualViewport
-  const reveal = (el) => [200, 600].forEach((ms) => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), ms))
-  let wasKeyboard = false
-  const fit = () => {
-    if (!gate.isConnected) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); return }
+  if (!vv) return
+  // The recording of the flicker showed the visible area changing many times in a row (keyboard
+  // sliding in, its layout switching from letters to digits, the URL bar coming and going), each
+  // change re-sizing the screen and re-running a smooth scroll. So: wait until the area has
+  // stopped changing, then apply it once, with no animated scrolling.
+  let timer = 0
+  const apply = () => {
+    if (!gate.isConnected) { vv.removeEventListener('resize', schedule); vv.removeEventListener('scroll', schedule); return }
     const keyboard = window.innerHeight - vv.height > 120
-    // Only touch the styles (and re-center the field) when something changed: every change
-    // can fire another viewport event, which made the screen jitter in a loop.
-    const top = `${vv.offsetTop}px`
-    const height = `${vv.height}px`
-    if (gate.style.top !== top) gate.style.top = top
-    if (gate.style.height !== height) gate.style.height = height
+    gate.style.top = `${Math.round(vv.offsetTop)}px`
     gate.style.bottom = 'auto'
-    gate.style.paddingBottom = keyboard ? '40vh' : ''
+    gate.style.height = `${Math.round(vv.height)}px`
+    gate.classList.toggle('keyboard', keyboard)
     const el = document.activeElement
-    if (keyboard && !wasKeyboard && gate.contains(el) && el.matches('input')) reveal(el)
-    wasKeyboard = keyboard
+    if (keyboard && gate.contains(el) && el.matches('input')) el.scrollIntoView({ block: 'nearest', behavior: 'auto' })
   }
-  gate.addEventListener('focusin', (e) => { if (e.target.matches('input')) reveal(e.target) })
-  if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit) }
+  const schedule = () => { clearTimeout(timer); timer = setTimeout(apply, 150) }
+  vv.addEventListener('resize', schedule)
+  vv.addEventListener('scroll', schedule)
+  gate.addEventListener('focusin', (e) => { if (e.target.matches('input')) schedule() })
 }
