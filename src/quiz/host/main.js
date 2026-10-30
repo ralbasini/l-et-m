@@ -450,6 +450,7 @@ function onMessage (m, send) {
       stopTimer(); current = m
       $('q-count').textContent = `Question ${m.q + 1} / ${m.total}`
       $('q-text').textContent = m.text
+      const qImg = $('q-image'); qImg.hidden = !m.image; if (m.image) qImg.src = m.image
       optionBlocks($('q-options'), m.options, null, m.images)
       stopTimer = countdown(m.remaining, m.seconds * 1000, (s, frac) => {
         $('timer-bar').style.transform = `scaleX(${frac})`
@@ -462,6 +463,7 @@ function onMessage (m, send) {
       lastReveal = m
       $('r-count').textContent = `Question ${m.q + 1} / ${m.total}`
       $('r-text').textContent = m.text
+      const rImg = $('r-image'); rImg.hidden = !m.image; if (m.image) rImg.src = m.image
       const max = Math.max(1, ...m.counts)
       optionBlocks($('r-options'), m.options, (d, i) => {
         d.classList.toggle('is-correct', i === m.correct)

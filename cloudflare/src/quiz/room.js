@@ -133,7 +133,7 @@ export class QuizRoom extends DurableObject {
     const qd = QUESTIONS[this.q]
     const counts = qd.options.map(() => 0)
     for (const p of this.players.values()) if (p.a[this.q]) counts[p.a[this.q][0]]++
-    return { t: 'reveal', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, images: qd.images || null, correct: qd.correct, counts, players: this.players.size, board: this.boardRows(8) }
+    return { t: 'reveal', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, images: qd.images || null, image: qd.revealImage || null, correct: qd.correct, counts, players: this.players.size, board: this.boardRows(8) }
   }
 
   // The player's place with the two players above and the two below (fewer at the ends).

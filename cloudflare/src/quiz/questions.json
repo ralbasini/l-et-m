@@ -1,76 +1,48 @@
 [
   {
-    "text": "Quelle est la capitale du Kazakhstan ?",
+    "text": "Quel a été le premier emploi rémunéré de Martin ?",
     "options": [
-      "Almaty",
-      "Bichkek",
-      "Astana",
-      "Tachkent"
+      "Rameur du lac de St Léonard",
+      "Musicien",
+      "Top modèle",
+      "Remplaçant"
     ],
-    "correct": 2
+    "correct": 2,
+    "revealImage": "/quiz-img/martin.jpg"
   },
   {
-    "text": "Quel est le plus long fleuve d'Europe ?",
+    "text": "Qu'est-ce que Lobna a fait petite pour faire « comme papa » ?",
     "options": [
-      "Le Danube",
-      "La Volga",
-      "Le Rhin",
-      "Le Dniepr"
+      "Se dessiner une moustache au feutre",
+      "Se raser la barbe",
+      "Sortir de la maison avec une cravate",
+      "Lire le journal (avant de savoir lire)"
     ],
     "correct": 1
   },
   {
-    "text": "Quel pays compte le plus de fuseaux horaires, territoires d'outre-mer inclus ?",
+    "text": "Quel est le nom de ce magnifique instrument dont on voit ici les derniers instants ?",
     "options": [
-      "La France",
-      "La Russie",
-      "Les États-Unis",
-      "Le Royaume-Uni"
+      "Le Cornichon",
+      "Gisèle",
+      "Toot-Ankhamon",
+      "Peau de serpent"
+    ],
+    "correct": 3,
+    "image": "/quiz-img/peau-de-serpent.jpeg"
+  },
+  {
+    "text": "Quelle est la plus grande peur de Lobna ?",
+    "options": [
+      "Les orages",
+      "Les vampires",
+      "Les araignées",
+      "Les clowns"
     ],
     "correct": 0
   },
   {
-    "text": "Quel est le seul pays au monde dont le drapeau n'est ni carré ni rectangulaire ?",
-    "options": [
-      "Le Bhoutan",
-      "Le Népal",
-      "Le Sri Lanka",
-      "Le Laos"
-    ],
-    "correct": 1
-  },
-  {
-    "text": "Quel est le lac le plus profond du monde ?",
-    "options": [
-      "Le lac Supérieur",
-      "Le lac Tanganyika",
-      "Le lac Victoria",
-      "Le lac Baïkal"
-    ],
-    "correct": 3
-  },
-  {
-    "text": "Quel est le plus petit pays d'Afrique par sa superficie ?",
-    "options": [
-      "La Gambie",
-      "Djibouti",
-      "Les Seychelles",
-      "Les Comores"
-    ],
-    "correct": 2
-  },
-  {
-    "text": "En quelle année est tombé le mur de Berlin ?",
-    "options": [
-      "1985",
-      "1989",
-      "1991",
-      "1993"
-    ],
-    "correct": 1
-  },
-  {
-    "text": "Quelle est la plus belle Subaru ?",
+    "text": "Laquelle de ces voitures n'a PAS appartenu à Martin ?",
     "options": [
       "Photo A",
       "Photo B",
@@ -78,25 +50,81 @@
       "Photo D"
     ],
     "images": [
-      "/quiz-img/subaru-1.svg",
-      "/quiz-img/subaru-2.svg",
-      "/quiz-img/subaru-3.svg",
-      "/quiz-img/subaru-4.svg"
+      "/quiz-img/voiture-baleno.jpeg",
+      "/quiz-img/voiture-carisma.jpeg",
+      "/quiz-img/voiture-fiat.jpeg",
+      "/quiz-img/voiture-sub.jpeg"
     ],
-    "correct": 3,
-    "seconds": 20,
-    "_demo": true
+    "correct": 2
   },
   {
-    "text": "Selon la légende, comment Lobna et Martin se sont-ils rencontrés pour la première fois ?",
+    "text": "Où Lobna a-t-elle terminé sa soirée d'Halloween 2018, débutée à Monthey ?",
     "options": [
-      "Par hasard, dans une file d'attente interminable devant une boulangerie, un dimanche matin pluvieux",
-      "Lors d'une soirée entre amis où ils ont passé la nuit entière à discuter de voyages, de fromage et de musique",
-      "Sur un quai de gare, en attendant un train qui avait presque deux heures de retard à cause de la neige",
-      "Au bureau, en se disputant gentiment la dernière tasse propre de la cuisine commune du troisième étage"
+      "Sur l'eau, en soirée-croisière sur le Léman",
+      "Dans l'eau, en soirée à Lavey-les-Bains",
+      "En montagne, à l'alpage de Savolaire",
+      "Dans un autre pays, à une fête en France"
     ],
-    "correct": 1,
-    "seconds": 25,
-    "_demo": true
+    "correct": 3
+  },
+  {
+    "text": "Avec quoi Martin n'a jamais raclé ?",
+    "options": [
+      "Un cône de chantier",
+      "Un poivrier",
+      "Un extincteur",
+      "Une fenêtre de voiture"
+    ],
+    "correct": 1
+  },
+  {
+    "text": "En voyage, le passage de la frontière entre le Vietnam et le Cambodge a été quelque peu compliqué, pourquoi ?",
+    "options": [
+      "Les autorités vietnamiennes ont jeté les passeports",
+      "Lobna ne trouvait plus son passeport",
+      "Le visa cambodgien avait expiré la veille",
+      "Le bus est parti avec les valises pendant le contrôle"
+    ],
+    "correct": 0
+  },
+  {
+    "text": "Qu'est-ce qui a convaincu Martin de poursuivre la relation avec Lobna lors de leur premier date ?",
+    "options": [
+      "Son humour",
+      "Une tartine de harissa",
+      "Une bière et une tarte aux myrtilles",
+      "Un point commun inattendu"
+    ],
+    "correct": 2
+  },
+  {
+    "text": "Pourquoi Lobna et Martin ont-ils dû changer d'hôtel en Ouzbékistan ?",
+    "options": [
+      "Un dégât d'eau généralisé dans l'hôtel",
+      "Il n'y avait pas de clim dans la chambre",
+      "L'hôtel avait fait faillite entre temps",
+      "La réceptionniste a dit « Bonjour » au lieu de « Bonsoir »"
+    ],
+    "correct": 1
+  },
+  {
+    "text": "Que ne retrouve-t-on PAS dans les bagages du couple en vacances ?",
+    "options": [
+      "Un coussin",
+      "Une couette",
+      "Un ventilateur",
+      "Une bouillotte"
+    ],
+    "correct": 3
+  },
+  {
+    "text": "Lors de leur mariage civil, pourquoi Martin et Lobna ont-ils dû signer deux fois ?",
+    "options": [
+      "Ils ont signé trop vite pour la photo",
+      "Le stylo ne fonctionnait pas",
+      "Martin a signé à la place de Lobna",
+      "L'officiante a mélangé les registres"
+    ],
+    "correct": 0
   }
 ]
