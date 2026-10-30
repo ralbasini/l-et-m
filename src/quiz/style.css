@@ -410,7 +410,8 @@ body.player .brand { display: none; }
 .player .options:has(> .opt > img) { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .player .q-image { max-height: 28vh; margin-bottom: 0.75rem; }
 
-/* Host: answer-time slider above the buttons */
-.time-bar { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.6rem; padding: 0.55rem 0.8rem; border-radius: 0.6rem; background: rgba(255, 255, 255, 0.92); color: var(--ink); font-size: 0.95rem; box-shadow: 0 4px 14px rgba(37, 37, 37, 0.22); }
-.time-bar input { grid-column: 1 / -1; width: 100%; }
+/* Host: answer-time slider under the buttons (bar + value, no box) */
+.time-bar { display: flex; align-items: center; gap: 0.6rem; color: var(--ink); font-size: 0.95rem; font-weight: 600; text-shadow: 0 0 6px rgba(255, 255, 255, 0.9); }
+.time-bar input { flex: 1 1 auto; min-width: 0; width: 13rem; margin: 0; }
+.time-bar output { min-width: 2.6rem; text-align: right; }
 body.host.finale .time-bar { display: none; }
