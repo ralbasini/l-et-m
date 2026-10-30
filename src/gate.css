@@ -1,6 +1,8 @@
 /* Login screen: name + avatar. Scoped to #gate so it never leaks into the page. */
 html.needs-login body > *:not(#gate) { visibility: hidden !important; }
-#gate { position: fixed; inset: 0; z-index: 10000; overflow-y: auto; background: #d0dad1; color: #252525; font-family: 'Quicksand', system-ui, sans-serif; font-size: 16px; line-height: 1.6; display: flex; justify-content: center; padding: 1.25rem; visibility: visible; }
+/* Nothing behind the login screen may scroll (it made the screen shake). */
+html.needs-login, html.needs-login body, html.gate-open, html.gate-open body { overflow: hidden !important; overscroll-behavior: none; }
+#gate { overscroll-behavior: contain; position: fixed; inset: 0; z-index: 10000; overflow-y: auto; background: #d0dad1; color: #252525; font-family: 'Quicksand', system-ui, sans-serif; font-size: 16px; line-height: 1.6; display: flex; justify-content: center; padding: 1.25rem; visibility: visible; }
 #gate * { box-sizing: border-box; }
 #gate { overflow-x: hidden; }
 #gate .gate-inner { margin: auto; width: 100%; min-width: 0; max-width: min(26rem, 100%); text-align: center; }

@@ -91,7 +91,7 @@ function showGate ({ me, edit, cancellable = false, reload = false }) {
         ref('title').textContent = 'Bienvenue cher invité !'
         ref('sub').textContent = "A qui ai-je l'honneur ?"
         ref('submit').textContent = 'Continuer'
-        gate.querySelector('#gate-name').focus()
+        gate.querySelector('#gate-name').focus({ preventScroll: true })
       } else if (step === 3) {
         const typed = gate.querySelector('#gate-name').value.trim()
         ref('title').textContent = 'Déjà connu !'
@@ -197,15 +197,21 @@ export function pickAvatar (initial, title = 'Personnage') {
 function keepInputVisible (gate) {
   const vv = window.visualViewport
   const reveal = (el) => [200, 600].forEach((ms) => setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), ms))
+  let wasKeyboard = false
   const fit = () => {
     if (!gate.isConnected) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); return }
     const keyboard = window.innerHeight - vv.height > 120
-    gate.style.top = `${vv.offsetTop}px`
+    // Only touch the styles (and re-center the field) when something changed: every change
+    // can fire another viewport event, which made the screen jitter in a loop.
+    const top = `${vv.offsetTop}px`
+    const height = `${vv.height}px`
+    if (gate.style.top !== top) gate.style.top = top
+    if (gate.style.height !== height) gate.style.height = height
     gate.style.bottom = 'auto'
-    gate.style.height = `${vv.height}px`
     gate.style.paddingBottom = keyboard ? '40vh' : ''
     const el = document.activeElement
-    if (keyboard && gate.contains(el) && el.matches('input')) reveal(el)
+    if (keyboard && !wasKeyboard && gate.contains(el) && el.matches('input')) reveal(el)
+    wasKeyboard = keyboard
   }
   gate.addEventListener('focusin', (e) => { if (e.target.matches('input')) reveal(e.target) })
   if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit) }
