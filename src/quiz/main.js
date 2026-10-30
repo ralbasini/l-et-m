@@ -59,11 +59,16 @@ function showQuestion (m) {
     b.addEventListener('click', () => answer(i))
     return b
   }))
+  startTimer(m)
+  show('question')
+}
+
+function startTimer (m) {
+  stopTimer()
   stopTimer = countdown(m.remaining, m.seconds * 1000, (s, frac) => {
     $('timer-bar').style.transform = `scaleX(${frac})`
     $('q-time').textContent = `${s} s`
   })
-  show('question')
 }
 
 function answer (choice) {
@@ -103,6 +108,9 @@ ${name} !`
       break
     case 'question':
       showQuestion(m)
+      break
+    case 'time': // the host changed the answer time
+      if (current && m.q === current.q) startTimer(m)
       break
     case 'ack':
       if (current && m.q === current.q) {

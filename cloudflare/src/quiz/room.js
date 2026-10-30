@@ -20,7 +20,8 @@ const MAX_POINTS = 1000
 const ANSWER_GRACE_MS = 1500 // network latency allowance on top of the timer
 
 const OPEN = 1
-const secondsOf = (i) => QUESTIONS[i].seconds || DEFAULT_SECONDS
+const MIN_SECONDS = 5
+const MAX_SECONDS = 120
 
 export class QuizRoom extends DurableObject {
   constructor (ctx, env) {
@@ -29,6 +30,7 @@ export class QuizRoom extends DurableObject {
     this.q = -1
     this.startedAt = 0
     this.endsAt = 0
+    this.secondsOverride = null // set live by the host: answer time for every question
     this.players = new Map() // pid -> { n: name, s: score, d: last delta, a: { [q]: [choice, ms] } }
     ctx.blockConcurrencyWhile(async () => {
       const saved = await ctx.storage.get('game')
@@ -47,7 +49,11 @@ export class QuizRoom extends DurableObject {
 
   // ── Persistence ───────────────────────────────────────────
   saveGame () {
-    return this.ctx.storage.put('game', { phase: this.phase, q: this.q, startedAt: this.startedAt, endsAt: this.endsAt })
+    return this.ctx.storage.put('game', { phase: this.phase, q: this.q, startedAt: this.startedAt, endsAt: this.endsAt, secondsOverride: this.secondsOverride })
+  }
+
+  seconds (i) {
+    return this.secondsOverride ?? (QUESTIONS[i].seconds || DEFAULT_SECONDS)
   }
 
   savePlayer (pid) {
@@ -125,7 +131,7 @@ export class QuizRoom extends DurableObject {
     // Never includes `correct` — that only goes out with the reveal.
     return {
       t: 'question', q: this.q, total: QUESTIONS.length, text: qd.text, options: qd.options, images: qd.images || null, image: qd.image || null,
-      seconds: secondsOf(this.q), remaining: Math.max(0, this.endsAt - Date.now()),
+      seconds: this.seconds(this.q), remaining: Math.max(0, this.endsAt - Date.now()),
     }
   }
 
@@ -179,7 +185,11 @@ export class QuizRoom extends DurableObject {
       this.send(ws, role === 'host' ? this.revealMsg() : p ? this.resultMsg(p) : this.revealMsg())
     } else if (role === 'host') this.send(ws, { t: 'final', top: this.leaderboard(10), all: this.leaderboard(this.players.size), of: this.players.size })
     else if (p) this.send(ws, this.finalMsgFor(p))
-    if (role === 'host') this.send(ws, this.tallyMsg())
+    if (role === 'host') { this.send(ws, this.timeCfgMsg()); this.send(ws, this.tallyMsg()) }
+  }
+
+  timeCfgMsg () {
+    return { t: 'timecfg', seconds: this.seconds(Math.max(this.q, 0)) }
   }
 
   // ── Incoming messages ─────────────────────────────────────
@@ -195,7 +205,7 @@ export class QuizRoom extends DurableObject {
     if (msg.t === 'join') return this.onJoin(ws, att, msg)
     if (msg.t === 'refresh' && att.role === 'player') return this.onRefresh(ws, att)
     if (msg.t === 'answer' && att.role === 'player') return this.onAnswer(ws, att.pid, msg)
-    if (msg.t === 'cmd' && att.role === 'host') return this.onCommand(msg.c)
+    if (msg.t === 'cmd' && att.role === 'host') return this.onCommand(msg.c, msg)
   }
 
   async webSocketClose (ws) {
@@ -267,7 +277,7 @@ export class QuizRoom extends DurableObject {
     const choice = msg.c
     if (!Number.isInteger(choice) || choice < 0 || choice >= QUESTIONS[this.q].options.length) return
     const ms = Date.now() - this.startedAt
-    if (ms > secondsOf(this.q) * 1000 + ANSWER_GRACE_MS) return
+    if (ms > this.seconds(this.q) * 1000 + ANSWER_GRACE_MS) return
 
     p.a[this.q] = [choice, ms]
     await this.savePlayer(pid)
@@ -281,7 +291,8 @@ export class QuizRoom extends DurableObject {
     if (allIn) await this.reveal()
   }
 
-  async onCommand (cmd) {
+  async onCommand (cmd, msg) {
+    if (cmd === 'time') return this.setSeconds(msg.v)
     if (cmd === 'start' && this.phase === 'lobby') return this.startQuestion(0)
     if (cmd === 'reveal') return this.reveal()
     if (cmd === 'next' && this.phase === 'reveal') {
@@ -290,12 +301,29 @@ export class QuizRoom extends DurableObject {
     if (cmd === 'reset') return this.reset()
   }
 
+  // Host changes the answer time (all questions, also the one running: it keeps its start and just
+  // ends sooner or later).
+  async setSeconds (v) {
+    const n = Math.round(Number(v))
+    if (!Number.isFinite(n) || n < MIN_SECONDS || n > MAX_SECONDS) return
+    this.secondsOverride = n
+    if (this.phase === 'question') {
+      this.endsAt = this.startedAt + n * 1000
+      await this.saveGame()
+      if (Date.now() >= this.endsAt) return this.reveal()
+      await this.ctx.storage.setAlarm(this.endsAt)
+      const msg = { t: 'time', q: this.q, seconds: n, remaining: this.endsAt - Date.now() }
+      for (const ws of this.ctx.getWebSockets()) if (ws.readyState === OPEN && (ws.deserializeAttachment() || {}).role) this.send(ws, msg)
+    } else await this.saveGame()
+    this.toHosts(this.timeCfgMsg())
+  }
+
   // ── Game flow ─────────────────────────────────────────────
   async startQuestion (i) {
     this.phase = 'question'
     this.q = i
     this.startedAt = Date.now()
-    this.endsAt = this.startedAt + secondsOf(i) * 1000
+    this.endsAt = this.startedAt + this.seconds(i) * 1000
     await this.saveGame()
     await this.ctx.storage.setAlarm(this.endsAt)
     const msg = this.questionMsg()
@@ -312,7 +340,7 @@ export class QuizRoom extends DurableObject {
   async reveal () {
     if (this.phase !== 'question') return
     const qd = QUESTIONS[this.q]
-    const windowMs = secondsOf(this.q) * 1000
+    const windowMs = this.seconds(this.q) * 1000
     // Ranks before this question's points, for the leaderboard animation.
     const before = new Map()
     for (const [pid, p] of this.players) before.set(pid, this.rankOf(p))

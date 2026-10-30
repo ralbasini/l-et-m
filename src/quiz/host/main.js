@@ -427,6 +427,18 @@ function renderLobby (who) {
   if (!lobbyRaf && lobbyCards.size) lobbyRaf = requestAnimationFrame(stepLobby)
 }
 
+function startTimer (m) {
+  stopTimer()
+  stopTimer = countdown(m.remaining, m.seconds * 1000, (s, frac) => {
+    $('timer-bar').style.transform = `scaleX(${frac})`
+    $('q-time').textContent = s
+  })
+}
+
+// Answer-time slider: applies to every question, including the one running.
+$('time-range').addEventListener('input', () => { $('time-value').textContent = `${$('time-range').value} s` })
+$('time-range').addEventListener('change', () => sendFn({ t: 'cmd', c: 'time', v: Number($('time-range').value) }))
+
 function onMessage (m, send) {
   sendFn = send
   if (['lobby', 'question', 'reveal'].includes(m.t)) stopFinale() // not on 'tally', which keeps arriving
@@ -447,16 +459,19 @@ function onMessage (m, send) {
       $('answered-of').textContent = m.online
       break
     case 'question':
-      stopTimer(); current = m
+      current = m
       $('q-count').textContent = `Question ${m.q + 1} / ${m.total}`
       $('q-text').textContent = m.text
       const qImg = $('q-image'); qImg.hidden = !m.image; if (m.image) qImg.src = m.image
       optionBlocks($('q-options'), m.options, null, m.images)
-      stopTimer = countdown(m.remaining, m.seconds * 1000, (s, frac) => {
-        $('timer-bar').style.transform = `scaleX(${frac})`
-        $('q-time').textContent = s
-      })
+      startTimer(m)
       show('question'); setPhase('question')
+      break
+    case 'time':
+      if (phase === 'question' && current && m.q === current.q) startTimer(m)
+      break
+    case 'timecfg':
+      $('time-range').value = m.seconds; $('time-value').textContent = `${m.seconds} s`
       break
     case 'reveal': {
       stopTimer()
