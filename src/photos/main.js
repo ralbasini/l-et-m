@@ -680,6 +680,7 @@ async function uploadBatch (files) {
       applyServerState(data)
       if (data.uploaded > 0) {
         job.status = 'done'
+        job.moderated = Boolean(data.pending && data.pending.length)
         notifyGalleryStale()
         claimArrival(job, data.photos)
       } else {
@@ -775,7 +776,7 @@ async function runUpload () {
     const failed = jobs.filter((j) => j.status === 'failed')
 
     const parts = []
-    if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci ! Elle${done.length > 1 ? 's apparaîtront' : ' apparaîtra'} dans la galerie après validation.`)
+    if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci !${done.some((j) => j.moderated) ? ` Elle${done.length > 1 ? 's apparaîtront' : ' apparaîtra'} dans la galerie après validation.` : ''}`)
     rejected.forEach((j) => parts.push(j.error))
     if (failed.length) {
       const plural = failed.length > 1

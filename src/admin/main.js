@@ -176,6 +176,8 @@ async function loadSettings () {
     renderVisibility()
     quizToggle.checked = Boolean(settings.quizEnabled)
     renderQuiz()
+    moderationToggle.checked = settings.moderation !== false
+    renderModeration()
     menuMariageToggle.checked = settings.menuMariage !== false
     menuQuizToggle.checked = settings.menuQuiz !== false
     setMenuEntries({ mariage: menuMariageToggle.checked, quiz: menuQuizToggle.checked })
@@ -241,6 +243,28 @@ const pendingBadge = document.getElementById('pending-badge')
 const pendingEmpty = document.getElementById('pending-empty')
 const pendingActions = document.getElementById('pending-actions')
 let pendingPaths = []
+const moderationToggle = document.getElementById('moderation-toggle')
+function renderModeration () {
+  document.getElementById('moderation-hint').textContent = moderationToggle.checked
+    ? "Les photos envoyées par les invités n'apparaissent dans la galerie qu'une fois validées ici."
+    : 'Modération désactivée : les nouvelles photos des invités apparaissent directement dans la galerie. Celles déjà en attente le restent jusqu\'à validation.'
+}
+moderationToggle.addEventListener('change', async () => {
+  const wanted = moderationToggle.checked
+  renderModeration()
+  moderationToggle.disabled = true
+  try {
+    const settings = await apiFetch('settings', { method: 'POST', json: { moderation: wanted } })
+    moderationToggle.checked = settings.moderation !== false
+    toast(moderationToggle.checked ? 'Les photos devront être validées.' : 'Les photos seront publiées directement.', true)
+  } catch (err) {
+    moderationToggle.checked = !wanted
+    toast(err.message)
+  } finally {
+    renderModeration()
+    moderationToggle.disabled = false
+  }
+})
 
 async function loadPending () {
   try {

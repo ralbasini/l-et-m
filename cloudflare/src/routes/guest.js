@@ -1,7 +1,7 @@
 import { json } from '../cors.js'
 import { signToken } from '../auth.js'
 import { registerFolderPath, storePhoto, deletePhotoRows } from '../files.js'
-import { getMaxPerPerson } from './settings.js'
+import { getMaxPerPerson, isModerationOn } from './settings.js'
 import { verifyAdminPassword } from './admin.js'
 import { parseAvatar, avatarKey, avatarFromKey, cleanName } from '../avatar.js'
 
@@ -124,9 +124,10 @@ export async function upload (request, env, guest) {
   await registerFolderPath(env.DB, folder)
   const errors = allFiles.length > files.length ? [`Limite de ${before.maxPerPerson} photos par personne atteinte.`] : []
   let uploaded = 0
+  const approved = !(await isModerationOn(env))
 
   for (const file of files) {
-    const error = await storePhoto(env, folder, file, guest.id, files.length === 1 ? formData.get('thumb') : null)
+    const error = await storePhoto(env, folder, file, guest.id, files.length === 1 ? formData.get('thumb') : null, approved)
     if (error) errors.push(error)
     else uploaded += 1
   }

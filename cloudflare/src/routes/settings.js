@@ -5,9 +5,10 @@ import { json } from '../cors.js'
 // not just logged-in admins (see src/admin-access.js on the main site).
 // maxPerPerson: how many photos one guest may have in their folder (0 closes uploads).
 // quizEnabled: the live quiz is open (Quiz shows in the menu, players may join).
+// moderation: guest photos must be validated by an admin before they show in the gallery (default on).
 // menuMariage / menuQuiz: whether the Mariage / Quiz entries show in the menu at all (default yes;
 // Quiz also needs quizEnabled).
-const DEFAULTS = { menuPublic: false, quizEnabled: false, menuMariage: true, menuQuiz: true, maxPerPerson: 10 }
+const DEFAULTS = { menuPublic: false, quizEnabled: false, menuMariage: true, menuQuiz: true, moderation: true, maxPerPerson: 10 }
 const MAX_PER_PERSON_CEILING = 1000
 
 async function readSettings (env) {
@@ -23,6 +24,11 @@ async function readSettings (env) {
 // already above it just has nothing left to upload (remaining = max(0, …)).
 export async function isQuizEnabled (env) {
   return (await readSettings(env)).quizEnabled // players need a guest login anyway, public site or not
+}
+
+// Guest uploads wait for an admin's validation (routes/admin.js approvePhotos) while this is on.
+export async function isModerationOn (env) {
+  return (await readSettings(env)).moderation
 }
 
 export async function getMaxPerPerson (env) {

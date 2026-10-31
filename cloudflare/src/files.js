@@ -75,7 +75,7 @@ const IMAGE_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg',
 // Some phones send no type at all for a photo (Android and HEIC): then the extension decides.
 const imageType = (file) => (file.type.startsWith('image/') ? file.type : IMAGE_TYPES[(file.name.split('.').pop() || '').toLowerCase()] || null)
 
-export async function storePhoto (env, folder, file, guestId = null, thumb = null) {
+export async function storePhoto (env, folder, file, guestId = null, thumb = null, approved = true) {
   const type = imageType(file)
   if (!type) return `${file.name} : type de fichier non supporté.`
   const filename = await uniqueFilename(env.DB, folder, safeFilename(file.name))
@@ -86,8 +86,8 @@ export async function storePhoto (env, folder, file, guestId = null, thumb = nul
   }
   await env.DB.prepare(
     'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes, approved) VALUES (?, ?, ?, ?, ?, ?)'
-  // A guest's photo waits for an admin to validate it; the admin's own are published at once.
-  ).bind(key, folder, filename, guestId, file.size, guestId ? 0 : 1).run()
+  // `approved` false = waits for an admin's validation (guest uploads while moderation is on).
+  ).bind(key, folder, filename, guestId, file.size, approved ? 1 : 0).run()
   return null
 }
 

@@ -48,7 +48,11 @@
 
     <div class="card" id="pending-card">
       <span class="card-title">Photos à valider <span id="pending-badge" class="visibility-badge"></span></span>
-      <p class="setting-hint">Les photos envoyées par les invités n'apparaissent dans la galerie qu'une fois validées ici.</p>
+      <label class="setting-row">
+        <input type="checkbox" id="moderation-toggle" checked>
+        <span>Valider chaque photo avant qu'elle apparaisse dans la galerie</span>
+      </label>
+      <p class="setting-hint" id="moderation-hint"></p>
       <div id="pending-actions" class="pending-actions" hidden>
         <button type="button" id="pending-approve-all">Tout valider</button>
       </div>
