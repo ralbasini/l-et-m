@@ -1,6 +1,6 @@
 import { API_BASE_URL, photoUrl } from '../photos.js'
 import { makeThumbnail } from '../thumbnail.js'
-import { setMenuPublic, setQuizOn, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
+import { setMenuPublic, setQuizOn, setMenuEntries, ADMIN_TOKEN_KEY as TOKEN_KEY } from '../admin-access.js'
 import { avatarEl } from '../quiz/avatar.js'
 import '../avatar.css'
 import { toast } from '../toast.js'
@@ -175,6 +175,9 @@ async function loadSettings () {
     renderVisibility()
     quizToggle.checked = Boolean(settings.quizEnabled)
     renderQuiz()
+    menuMariageToggle.checked = settings.menuMariage !== false
+    menuQuizToggle.checked = settings.menuQuiz !== false
+    setMenuEntries({ mariage: menuMariageToggle.checked, quiz: menuQuizToggle.checked })
     if (settings.maxPerPerson !== undefined) {
       // A value above the slider's range (set earlier) still shows and stays settable.
       maxPerPersonInput.max = Math.max(30, settings.maxPerPerson)
@@ -229,6 +232,28 @@ menuPublicToggle.addEventListener('change', async () => {
     menuPublicToggle.disabled = false
   }
 })
+
+// ── Menu entries ────────────────────────────────────────────────
+const menuMariageToggle = document.getElementById('menu-mariage-toggle')
+const menuQuizToggle = document.getElementById('menu-quiz-toggle')
+for (const [toggle, key] of [[menuMariageToggle, 'menuMariage'], [menuQuizToggle, 'menuQuiz']]) {
+  toggle.addEventListener('change', async () => {
+    const wanted = toggle.checked
+    setMenuEntries({ mariage: menuMariageToggle.checked, quiz: menuQuizToggle.checked })
+    toggle.disabled = true
+    try {
+      const settings = await apiFetch('settings', { method: 'POST', json: { [key]: wanted } })
+      toggle.checked = settings[key] !== false
+      toast('Menu enregistré.', true)
+    } catch (err) {
+      toggle.checked = !wanted
+      toast(err.message)
+    } finally {
+      setMenuEntries({ mariage: menuMariageToggle.checked, quiz: menuQuizToggle.checked })
+      toggle.disabled = false
+    }
+  })
+}
 
 // ── Quiz switch ─────────────────────────────────────────────────
 const quizToggle = document.getElementById('quiz-enabled-toggle')

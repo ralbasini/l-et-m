@@ -157,6 +157,10 @@ html:not(.is-admin):not(.is-guest):not(.menu-public) [data-admin-only] { display
 html:not(.quiz-on) [data-quiz-only],
 html:not(.is-guest):not(.is-admin):not(.menu-public) [data-quiz-only] { display: none; }
 
+/* Entries the admin hid from the menu (dashboard "Menu" card). The page you are on always shows. */
+html.hide-mariage .site-nav a[data-page="mariage"]:not(.is-current),
+html.hide-quiz-menu .site-nav a[data-page="quiz"]:not(.is-current) { display: none; }
+
 /* Admin: logged-in admins only, even when the site is public. */
 html:not(.is-admin) [data-logged-in-only] { display: none; }
 

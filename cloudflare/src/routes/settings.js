@@ -5,7 +5,9 @@ import { json } from '../cors.js'
 // not just logged-in admins (see src/admin-access.js on the main site).
 // maxPerPerson: how many photos one guest may have in their folder (0 closes uploads).
 // quizEnabled: the live quiz is open (Quiz shows in the menu, players may join).
-const DEFAULTS = { menuPublic: false, quizEnabled: false, maxPerPerson: 10 }
+// menuMariage / menuQuiz: whether the Mariage / Quiz entries show in the menu at all (default yes;
+// Quiz also needs quizEnabled).
+const DEFAULTS = { menuPublic: false, quizEnabled: false, menuMariage: true, menuQuiz: true, maxPerPerson: 10 }
 const MAX_PER_PERSON_CEILING = 1000
 
 async function readSettings (env) {

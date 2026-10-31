@@ -23,6 +23,13 @@ export function setQuizOn (on) {
   try { localStorage.setItem('lm_quiz_enabled', on ? '1' : '0') } catch {}
 }
 
+// Menu entries the admin can hide: html.hide-mariage / html.hide-quiz-menu (see site-chrome.css).
+export function setMenuEntries ({ mariage, quiz }) {
+  document.documentElement.classList.toggle('hide-mariage', !mariage)
+  document.documentElement.classList.toggle('hide-quiz-menu', !quiz)
+  try { localStorage.setItem('lm_menu_mariage', mariage ? '1' : '0'); localStorage.setItem('lm_menu_quiz', quiz ? '1' : '0') } catch {}
+}
+
 export function setMenuPublic (on) {
   // A logged-in guest sees the site as public, whatever the setting says.
   document.documentElement.classList.toggle('menu-public', on || document.documentElement.classList.contains('is-guest'))
@@ -68,6 +75,7 @@ if (window.parent === window) {
       if (!settings) { document.documentElement.classList.remove('needs-login'); return }
       setMenuPublic(Boolean(settings.menuPublic))
       setQuizOn(Boolean(settings.quizEnabled))
+      setMenuEntries({ mariage: settings.menuMariage !== false, quiz: settings.menuQuiz !== false })
       window.dispatchEvent(new Event('lm:settings'))
       // Public site: every visitor needs an account (name + avatar), except a logged-in admin.
       const isAdmin = document.documentElement.classList.contains('is-admin')
