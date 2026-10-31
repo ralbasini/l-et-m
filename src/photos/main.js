@@ -156,7 +156,7 @@ function renderQuota (remaining, maxPerPerson) {
   }
 }
 
-function renderPhotos (photos) {
+function renderPhotos (photos, pending = []) {
   const grid = document.getElementById('photos-grid')
   grid.innerHTML = ''
   myPhotosCard.hidden = photos.length === 0
@@ -171,6 +171,12 @@ function renderPhotos (photos) {
     img.loading = 'lazy'
     img.addEventListener('click', () => openLightbox(i))
     figure.appendChild(img)
+    if (pending.includes(file)) {
+      const badge = document.createElement('span')
+      badge.className = 'pending-tag'
+      badge.textContent = 'En attente de validation'
+      figure.appendChild(badge)
+    }
 
     const delBtn = document.createElement('button')
     delBtn.type = 'button'
@@ -183,7 +189,7 @@ function renderPhotos (photos) {
         const data = await apiFetch('delete', { method: 'POST', json: { file } })
         toast('Photo supprimée.', true)
         notifyGalleryStale()
-        renderPhotos(data.photos)
+        renderPhotos(data.photos, data.pending)
         renderQuota(data.remaining, currentMaxPerPerson)
       } catch (err) {
         toast(err.message, false)
@@ -213,7 +219,7 @@ async function refreshMyPhotos () {
   const data = await apiFetch('me')
   applyLimits(data)
   renderQuota(data.remaining, data.maxPerPerson)
-  renderPhotos(data.photos)
+  renderPhotos(data.photos, data.pending)
 }
 
 // ── Upload preview ────────────────────────────────────────────
@@ -606,7 +612,7 @@ function serverNamePattern (originalName) {
 }
 
 function applyServerState (data) {
-  renderPhotos(data.photos)
+  renderPhotos(data.photos, data.pending)
   renderQuota(data.remaining, currentMaxPerPerson)
 }
 
@@ -769,7 +775,7 @@ async function runUpload () {
     const failed = jobs.filter((j) => j.status === 'failed')
 
     const parts = []
-    if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci !`)
+    if (done.length) parts.push(`${done.length} photo${done.length > 1 ? 's envoyées' : ' envoyée'}, merci ! Elle${done.length > 1 ? 's apparaîtront' : ' apparaîtra'} dans la galerie après validation.`)
     rejected.forEach((j) => parts.push(j.error))
     if (failed.length) {
       const plural = failed.length > 1
@@ -901,7 +907,7 @@ async function init () {
     applyLimits(data)
     showUploadStep(data.name)
     renderQuota(data.remaining, data.maxPerPerson)
-    renderPhotos(data.photos)
+    renderPhotos(data.photos, data.pending)
   } catch {
     showNameStep()
   }

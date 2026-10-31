@@ -427,3 +427,6 @@ button.add-btn:hover { background: #2a5951; }
 .lightbox-nav { top: 50%; transform: translateY(-50%); }
 .lightbox-prev { left: 1.25rem; }
 .lightbox-next { right: 1.25rem; }
+
+/* A guest's photo an admin has not validated yet. */
+.pending-tag { position: absolute; left: 0; right: 0; bottom: 0; padding: 0.2rem 0.4rem; background: rgba(37, 37, 37, 0.72); color: #fff; font-size: 0.6875rem; text-align: center; pointer-events: none; }

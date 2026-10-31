@@ -21,9 +21,11 @@ import { parseAvatar, avatarKey, avatarFromKey, cleanName } from '../avatar.js'
 // uploaded a photo, not as the source of truth for what's currently theirs.
 async function guestState (env, guest) {
   const { results } = await env.DB.prepare(
-    'SELECT filename FROM photos WHERE folder = ? ORDER BY uploaded_at'
+    'SELECT filename, approved FROM photos WHERE folder = ? ORDER BY uploaded_at'
   ).bind(guestFolder(guest.name)).all()
   const photos = results.map((r) => r.filename)
+  // Still waiting for an admin's validation (not yet in the gallery).
+  const pending = results.filter((r) => !r.approved).map((r) => r.filename)
   const maxPerPerson = await getMaxPerPerson(env)
   return {
     name: guest.name,
@@ -34,6 +36,7 @@ async function guestState (env, guest) {
     // just can't add more.
     remaining: Math.max(0, maxPerPerson - photos.length),
     photos,
+    pending,
   }
 }
 

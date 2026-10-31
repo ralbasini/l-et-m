@@ -37,6 +37,7 @@ async function listPhotos (env) {
            ${TAG_LIST_SQL}
     FROM photos p
     LEFT JOIN guests g ON g.id = p.guest_id
+    WHERE p.approved = 1
     ORDER BY p.r2_key
   `).all()
 

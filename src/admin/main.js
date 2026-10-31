@@ -110,6 +110,7 @@ function showDashboard () {
   // rejection on top of it.
   loadState('').catch(() => {})
   loadSettings()
+  loadPending()
 }
 
 // ── Missing thumbnails ──────────────────────────────────────────
@@ -232,6 +233,71 @@ menuPublicToggle.addEventListener('change', async () => {
     menuPublicToggle.disabled = false
   }
 })
+
+// ── Photos waiting for validation ──────────────────────────────
+// Guests' uploads stay out of the gallery until approved here; refusing one deletes it.
+const pendingGrid = document.getElementById('pending-grid')
+const pendingBadge = document.getElementById('pending-badge')
+const pendingEmpty = document.getElementById('pending-empty')
+const pendingActions = document.getElementById('pending-actions')
+let pendingPaths = []
+
+async function loadPending () {
+  try {
+    const { photos } = await apiFetch('pending')
+    renderPending(photos)
+  } catch { /* a 401 already sent us back to the login screen */ }
+}
+
+function renderPending (photos) {
+  pendingPaths = photos.map((p) => p.path)
+  pendingBadge.textContent = photos.length ? String(photos.length) : ''
+  pendingEmpty.hidden = photos.length > 0
+  pendingActions.hidden = photos.length === 0
+  pendingGrid.innerHTML = ''
+  for (const photo of photos) {
+    const figure = document.createElement('figure')
+    figure.className = 'photo-card'
+    const img = document.createElement('img')
+    loadAdminThumb(img, photo.path)
+    img.alt = ''
+    img.loading = 'lazy'
+    img.addEventListener('click', () => window.open(photoUrl(photo.path), '_blank', 'noopener'))
+    const caption = document.createElement('figcaption')
+    caption.textContent = photo.by ? `de ${photo.by}` : photo.path
+    const buttons = document.createElement('div')
+    buttons.className = 'pending-buttons'
+    const ok = document.createElement('button')
+    ok.type = 'button'
+    ok.textContent = 'Valider'
+    ok.addEventListener('click', () => decide('approve', [photo.path], ok))
+    const no = document.createElement('button')
+    no.type = 'button'
+    no.className = 'danger'
+    no.textContent = 'Refuser'
+    no.addEventListener('click', () => decide('delete', [photo.path], no))
+    buttons.append(ok, no)
+    figure.append(img, caption, buttons)
+    pendingGrid.appendChild(figure)
+  }
+}
+
+async function decide (action, files, button) {
+  if (button) button.disabled = true
+  try {
+    await apiFetch(action, { method: 'POST', json: { files } })
+    toast(action === 'approve' ? (files.length > 1 ? 'Photos validées.' : 'Photo validée.') : 'Photo refusée et supprimée.', true)
+    await loadPending()
+    if (action === 'approve') loadState(currentPath).catch(() => {})
+  } catch (err) {
+    toast(err.message)
+    if (button) button.disabled = false
+  }
+}
+
+document.getElementById('pending-approve-all').addEventListener('click', (e) => decide('approve', pendingPaths.slice(), e.currentTarget))
+// New uploads arrive during the day: refresh while the dashboard is open.
+setInterval(() => { if (!dashboardView.hidden && !document.hidden) loadPending() }, 20000)
 
 // ── Menu entries ────────────────────────────────────────────────
 const menuMariageToggle = document.getElementById('menu-mariage-toggle')

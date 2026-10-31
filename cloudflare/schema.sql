@@ -33,6 +33,7 @@ CREATE TABLE photos (
   guest_id INTEGER REFERENCES guests(id) ON DELETE SET NULL, -- NULL for admin-added photos
   size_bytes INTEGER NOT NULL DEFAULT 0,
   caption TEXT NOT NULL DEFAULT '',
+  approved INTEGER NOT NULL DEFAULT 1, -- guest uploads start at 0 until an admin validates them; only approved photos are in the gallery
   uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX idx_photos_folder ON photos(folder);

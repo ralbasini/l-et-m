@@ -346,3 +346,9 @@ button.tag-filter:hover { background: none; text-decoration: underline; }
 .icon-btn.is-on:hover { background: #2a5951; }
 .icon-btn.is-danger { color: #a34848; }
 .icon-btn.is-danger:hover { background: #f3e1e1; }
+
+/* ── Photos waiting for validation ───────────────────────────── */
+.pending-actions { margin: 0 0 1rem; }
+.pending-buttons { display: flex; gap: 0.4rem; padding: 0.5rem 0.6rem 0; }
+.pending-buttons button { flex: 1; padding: 0.4rem 0.5rem; font-size: 0.8125rem; }
+#pending-grid img { cursor: zoom-in; }

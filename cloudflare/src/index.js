@@ -6,6 +6,16 @@ import { adminOnly, guestOnly } from './auth.js'
 import { isImgPath, serveImg } from './routes/img.js'
 import { getSettings, updateSettings } from './routes/settings.js'
 
+// The `approved` column was added after the first deploy. Existing databases get it here, once
+// per Worker instance (existing photos default to 1 = already in the gallery), so no manual
+// `wrangler d1 execute` is needed; a fresh database already has it (schema.sql).
+let schemaReady
+function ensureSchema (env) {
+  schemaReady ??= env.DB.prepare('ALTER TABLE photos ADD COLUMN approved INTEGER NOT NULL DEFAULT 1').run()
+    .catch((err) => { if (!/duplicate column/i.test(String(err))) { schemaReady = undefined; throw err } })
+  return schemaReady
+}
+
 export { QuizRoom } from './quiz/room.js'
 
 // One route table for the whole API. /admin/* routes (except login/logout)
@@ -31,6 +41,8 @@ const routes = {
   'POST /admin/add-tag': adminOnly(admin.addTag),
   'POST /admin/delete-tag': adminOnly(admin.deleteTag),
   'POST /admin/delete': adminOnly(admin.deletePhotos),
+  'GET /admin/pending': adminOnly(admin.pendingPhotos),
+  'POST /admin/approve': adminOnly(admin.approvePhotos),
   'POST /admin/thumb': adminOnly(admin.setThumb),
   'POST /admin/move': adminOnly(admin.movePhotos),
   'POST /admin/tag': adminOnly(admin.tagPhotos),
@@ -57,6 +69,7 @@ export default {
     if (!handler) return json({ error: 'Not found' }, { status: 404 })
 
     try {
+      await ensureSchema(env)
       const response = await handler(request, env)
       if (request.method === 'POST') await purgePhotosList(request).catch(() => {})
       return response

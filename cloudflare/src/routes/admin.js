@@ -82,12 +82,13 @@ export async function state (request, env) {
 
   // No folder selected (the top level): every photo, from all folders —
   // each one's folder is shown on its card. Inside a folder: just its own.
-  const photoQuery = `SELECT p.r2_key, p.filename, p.folder, ${TAG_LIST_SQL} FROM photos p`
+  // Photos still waiting for validation are listed in the dashboard's own section (pendingPhotos).
+  const photoQuery = `SELECT p.r2_key, p.filename, p.folder, ${TAG_LIST_SQL} FROM photos p WHERE p.approved = 1`
   const [{ results: folderRows }, { results: photoRows }, { results: tagRows }, { results: [totalRow] }] = await env.DB.batch([
     env.DB.prepare('SELECT path FROM folders ORDER BY path'),
     path === ''
       ? env.DB.prepare(`${photoQuery} ORDER BY p.folder, p.filename`)
-      : env.DB.prepare(`${photoQuery} WHERE p.folder = ? ORDER BY p.filename`).bind(path),
+      : env.DB.prepare(`${photoQuery} AND p.folder = ? ORDER BY p.filename`).bind(path),
     env.DB.prepare('SELECT name FROM tags ORDER BY name'),
     env.DB.prepare('SELECT COALESCE(SUM(size_bytes), 0) AS total FROM photos'),
   ])
@@ -207,6 +208,25 @@ export async function deleteTag (request, env) {
   await env.DB.prepare('DELETE FROM photo_tags WHERE tag_name = ?').bind(name).run()
   await env.DB.prepare('DELETE FROM tags WHERE name = ?').bind(name).run()
   return json({ ok: true })
+}
+
+// Guest uploads waiting for validation, oldest first. Refusing one is the normal /admin/delete.
+export async function pendingPhotos (request, env) {
+  const { results } = await env.DB.prepare(`
+    SELECT p.r2_key AS path, g.name AS uploader, p.uploaded_at AS uploadedAt
+    FROM photos p LEFT JOIN guests g ON g.id = p.guest_id
+    WHERE p.approved = 0 ORDER BY p.uploaded_at, p.id
+  `).all()
+  return json({ photos: results.map((r) => ({ path: r.path, by: r.uploader || '', uploadedAt: r.uploadedAt })) })
+}
+
+// POST { files: [r2_key…] } — puts them in the gallery.
+export async function approvePhotos (request, env) {
+  const { files = [] } = await request.json().catch(() => ({}))
+  const photos = await findPhotos(env, files)
+  const approve = env.DB.prepare('UPDATE photos SET approved = 1 WHERE id = ?')
+  for (let i = 0; i < photos.length; i += 500) await env.DB.batch(photos.slice(i, i + 500).map((p) => approve.bind(p.id)))
+  return json({ approved: photos.length })
 }
 
 export async function deletePhotos (request, env) {

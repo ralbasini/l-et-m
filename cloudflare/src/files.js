@@ -85,8 +85,9 @@ export async function storePhoto (env, folder, file, guestId = null, thumb = nul
     await env.PHOTOS_BUCKET.put(thumbKey(key), thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } })
   }
   await env.DB.prepare(
-    'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes) VALUES (?, ?, ?, ?, ?)'
-  ).bind(key, folder, filename, guestId, file.size).run()
+    'INSERT INTO photos (r2_key, folder, filename, guest_id, size_bytes, approved) VALUES (?, ?, ?, ?, ?, ?)'
+  // A guest's photo waits for an admin to validate it; the admin's own are published at once.
+  ).bind(key, folder, filename, guestId, file.size, guestId ? 0 : 1).run()
   return null
 }
 

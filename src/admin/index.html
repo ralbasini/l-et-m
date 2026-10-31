@@ -46,6 +46,16 @@
       <p id="storage-label" class="storage-label"></p>
     </div>
 
+    <div class="card" id="pending-card">
+      <span class="card-title">Photos à valider <span id="pending-badge" class="visibility-badge"></span></span>
+      <p class="setting-hint">Les photos envoyées par les invités n'apparaissent dans la galerie qu'une fois validées ici.</p>
+      <div id="pending-actions" class="pending-actions" hidden>
+        <button type="button" id="pending-approve-all">Tout valider</button>
+      </div>
+      <div id="pending-grid" class="grid"></div>
+      <p id="pending-empty" class="empty">Aucune photo en attente.</p>
+    </div>
+
     <div class="card">
       <span class="card-title">Visibilité du site <span id="visibility-badge" class="visibility-badge"></span></span>
       <label class="setting-row">
